@@ -40,7 +40,12 @@
                         updateRevealHud();
                     }
                 });
-            }, { threshold: 0.1 });
+            // threshold 0: elemen langsung reveal saat 1px pertama terlihat.
+            // threshold berbasis persentase (mis. 0.1) GAGAL untuk elemen
+            // lebih tinggi dari 10× viewport (mis. section series 10.000px+
+            // butuh 1.000px terlihat > tinggi layar) → section tak pernah
+            // di-reveal → tampak black/blank screen.
+            }, { threshold: 0 });
             els.forEach(function (el) { io.observe(el); });
         } else {
             els.forEach(function (el) { el.classList.add('visible'); });

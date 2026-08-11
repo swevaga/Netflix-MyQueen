@@ -199,6 +199,25 @@ dan induk memanggil `resumeFromVideo()` pada pesan tersebut.
 
 ---
 
+## 6b. Kontinuitas musik antar halaman (pindah page)
+
+Situs ini MPA (tiap halaman HTML punya instance pemutar sendiri), sehingga
+navigasi biasa akan menghentikan audio. Sejak `music-player.js` v12, state
+pemutar **disimpan ke `sessionStorage`** saat halaman ditinggalkan
+(`pagehide` / tab tersembunyi) dan **dipulihkan di halaman berikutnya**:
+
+- lagu yang sama lanjut dari **posisi waktu yang sama** (bukan dari awal),
+- tombol "Matikan musik" (off) ikut persist — tidak tiba-tiba berbunyi lagi,
+- bila browser memblokir autoplay setelah navigasi, musik **dilanjutkan oleh
+  interaksi pertama user** (klik/tap di mana pun atau tombol musik pojok)
+  dari posisi tersimpan.
+
+State yang disimpan: `{ trackIndex, currentTime, playing, started, isOff }`
+di key `musicPlayerState`. SessionStorage bersifat per-tab — tab baru = mulai
+fres (tanpa musik), sesuai harapan.
+
+---
+
 ## 7. Referensi file
 
 ```

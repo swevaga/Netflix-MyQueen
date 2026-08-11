@@ -1,3 +1,8 @@
+/* ==========================================================================
+   index.css — Gaya khusus halaman utama (index.html): hero billboard,
+   galeri "Angel Face" (grid 2:3 + crossfade), dan tata letak section.
+   ========================================================================== */
+
 body {
     font-family: 'Roboto', sans-serif;
     margin: 0;

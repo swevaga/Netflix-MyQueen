@@ -1,3 +1,10 @@
+/* ==========================================================================
+   common.css — Gaya bersama SEMUA halaman (navbar, modal, music island,
+   galeri, scroll-reveal, aksesibilitas). Dipakai oleh setiap .html via
+   <link rel="stylesheet" href="src/css/common.css?v=N">
+   - Ubah versi ?v= saat file ini berubah agar browser tidak memakai cache lama.
+   ========================================================================== */
+
 body {
     font-family: 'Roboto', sans-serif;
     margin: 0;

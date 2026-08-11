@@ -28,6 +28,63 @@
     var wasPlayingBeforeSuppress = false;
     var isOff = false; // state "Matikan musik" (berbeda dari jeda biasa)
 
+    /* ---- Kontinuitas antar halaman (MPA) ----
+       State pemutar disimpan ke sessionStorage saat halaman ditinggalkan
+       (pagehide / tab tersembunyi), lalu dipulihkan di halaman berikutnya:
+       lagu yang sama lanjut dari posisi yang sama. Bila browser memblokir
+       autoplay setelah navigasi, musik dilanjutkan oleh interaksi pertama
+       user — tetap dari posisi tersimpan, bukan dari awal. */
+    var STATE_KEY = 'musicPlayerState';
+    var pendingRestoreTime = 0;
+
+    function saveState() {
+        try {
+            sessionStorage.setItem(STATE_KEY, JSON.stringify({
+                trackIndex: trackIndex,
+                currentTime: audio && !isNaN(audio.duration) ? audio.currentTime : 0,
+                playing: playing,
+                started: started,
+                isOff: isOff
+            }));
+        } catch (e) { /* sessionStorage tidak tersedia — abaikan */ }
+    }
+
+    function restoreState() {
+        try {
+            var raw = sessionStorage.getItem(STATE_KEY);
+            if (!raw) return;
+            var s = JSON.parse(raw);
+            if (typeof s.trackIndex === 'number' && PLAYLIST.length) {
+                trackIndex = Math.min(Math.max(0, s.trackIndex), PLAYLIST.length - 1);
+            }
+            started = !!s.started;
+            isOff = !!s.isOff;
+            pendingRestoreTime = (typeof s.currentTime === 'number' && s.currentTime > 0) ? s.currentTime : 0;
+            if (s.playing && !isOff) playing = true;
+        } catch (e) { /* data korup — abaikan */ }
+    }
+
+    // Terapkan lagu & posisi yang tersimpan ke audio yang baru dibuat
+    // (seek ditunda sampai metadata siap agar aman lintas browser).
+    function applyRestoredPosition() {
+        ensureAudio();
+        if (!audio) return;
+        var t = PLAYLIST[trackIndex];
+        document.getElementById('musicIslandTrack').textContent = t.title || 'Musik';
+        document.getElementById('musicExpandedTitle').textContent = t.title || '';
+        var pos = pendingRestoreTime;
+        if (!pos) return;
+        if (audio.readyState >= 1) {
+            audio.currentTime = pos;
+            updateTime();
+        } else {
+            audio.addEventListener('loadedmetadata', function onMeta() {
+                audio.removeEventListener('loadedmetadata', onMeta);
+                try { audio.currentTime = pos; updateTime(); } catch (e) {}
+            });
+        }
+    }
+
     function buildUI() {
         var island = document.createElement('div');
         island.id = 'musicIsland';
@@ -364,8 +421,37 @@
     document.addEventListener('keydown', handleInteraction);
     document.addEventListener('touchstart', handleInteraction);
 
+    // Simpan state saat halaman ditinggalkan / tab tersembunyi, supaya
+    // halaman berikutnya bisa melanjutkan dari posisi yang sama.
+    window.addEventListener('pagehide', saveState);
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') saveState();
+    });
+
     function initPlayer() {
         buildUI();
+        restoreState();
+
+        if (isOff) {
+            // User mematikan musik di halaman sebelumnya → tampilkan UI "Musik Mati".
+            powerOff();
+        } else if (playing) {
+            applyRestoredPosition();
+            document.getElementById('musicToggle').innerHTML = '<i class="fas fa-pause" aria-hidden="true"></i>';
+            var p = audio.play();
+            if (p && p.catch) p.catch(function () {
+                // Autoplay diblokir browser → lanjut dari posisi tersimpan
+                // lewat interaksi pertama user (listener handleInteraction).
+                playing = false;
+                document.getElementById('musicToggle').innerHTML = '<i class="fas fa-play" aria-hidden="true"></i>';
+                updateFloating();
+            });
+            updateFloating();
+        } else if (pendingRestoreTime || trackIndex !== 0) {
+            // Dipulihkan dalam keadaan jeda: siapkan lagu & posisi tanpa memutar.
+            applyRestoredPosition();
+        }
+
         if (window.DebugHud) window.DebugHud.register('musicDebugHud', 'music');
         syncHudTimer();
     }

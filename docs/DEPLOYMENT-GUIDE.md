@@ -311,4 +311,62 @@ Foto & video versi lengkap (untuk penerima yang dituju saja):
 
 ---
 
+## 8. Cara Deploy Dengan Hasil Yang Sesuai (panduan praktis)
+
+Urutan paling aman agar versi live SELALU sama dengan versi lokal:
+
+### 8.1 Uji dulu di lokal (wajib sebelum push)
+
+```bash
+npm install            # sekali saja (dependensi test/validasi)
+npx playwright test    # 19 test end-to-end (semua halaman + musik + modal)
+npx html-validate *.html
+```
+
+Jika semua hijau, baru lanjut deploy.
+
+### 8.2 Deploy (Vercel terhubung ke GitHub — auto-deploy)
+
+```bash
+git add -A
+git commit -m "deskripsi perubahan"
+git push origin main
+```
+
+Vercel otomatis mendeploy dalam ±1–2 menit. Cek statusnya di
+[vercel.com/dashboard](https://vercel.com/dashboard) → *Deployments*:
+deployment terakhir harus berstatus **Ready** + badge **Production**
+(bukan *Preview*). Jika *Error* → klik ⋯ → **Redeploy**.
+
+### 8.3 Hasil yang HARUS sesuai setelah deploy (checklist)
+
+Buka `https://nurulflix.vercel.app` (URL produksi, bukan link preview):
+
+| Cek | Hasil yang benar |
+|-----|------------------|
+| Halaman index | Hero billboard berputar + galeri 12 kartu berganti tiap 5 dtk |
+| Halaman series | **BUKAN blank/black screen** — 98 kartu terlihat, dikelompokkan per rasio (Lanskap 16:9, Persegi, Potret), TANPA banner ganda |
+| Halaman movies | 59 kartu film; klik kartu → modal video terbuka |
+| Halaman news | 3 item berita; video bisa tanpa suara (opsional) |
+| Halaman mylist & play | Konten tampil; play video berjalan |
+| Musik | Putar musik → pindah halaman → lanjut dari posisi yang sama |
+| Gambar/video | Tidak ada ikon gambar rusak di semua halaman |
+
+Jika ada yang belum sesuai → **hard refresh** (`Ctrl+Shift+R` / hapus cache
+situs di HP) — browser kadang menyimpan versi lama. Kalau masih beda, cek
+lagi langkah 8.2 (deployment harus Ready + Production).
+
+### 8.4 Aturan cache-buster (`?v=N`)
+
+Saat mengubah file **CSS/JS/data**, naikkan versi `?v=`-nya di semua halaman
+yang mereferensikannya (contoh: `common.css?v=10` → `?v=11`). Tanpa ini,
+browser pengunjung yang pernah datang bisa menampilkan versi lama. HTML
+sendiri tidak perlu (selalu fresh via `must-revalidate`).
+
+### 8.5 Analytics & Speed Insights
+
+- **Speed Insights** sudah aktif (script `/_vercel/speed-insights/script.js` → 200).
+- **Web Analytics** perlu di-enable manual: Vercel → *Analytics* → pilih proyek → **Enable** → redeploy. Sebelum di-enable, `/_vercel/insights/script.js` mengembalikan 404 (tidak merusak tampilan).
+- Keduanya dipasang via paket resmi (`@vercel/analytics` + `@vercel/speed-insights`) yang di-panggil dari `src/js/vercel-init.mjs`.
+
 *Dokumen disusun untuk Vaetherion — 2026.*

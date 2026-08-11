@@ -7,3 +7,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Playwright artifacts
+playwright-report/
+test-results/
