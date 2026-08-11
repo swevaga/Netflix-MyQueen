@@ -1,0 +1,9 @@
+# Dependencies (Tailwind/PostCSS) — install ulang via `npm install`
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

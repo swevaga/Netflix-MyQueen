@@ -1,0 +1,645 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #181818;
+    color: white;
+    min-width: 220px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.7);
+    /* 10000 > z-index music island (9998): panel menutupi pill saat dibuka. */
+    z-index: 10000;
+    border-radius: 4px;
+    top: 100%;
+    right: 0;
+}
+
+.dropdown-content.mobile-menu-dropdown {
+    right: auto;
+    left: 0;
+}
+
+.dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #2f2f2f;
+}
+
+.dropdown-content.show,
+.notification.show {
+    display: block;
+    animation: menuIn 0.25s ease-out;
+}
+
+/* Animasi masuk panel (search / notification / profile / mobile menu). */
+@keyframes menuIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.notification {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background-color: #181818;
+    color: white;
+    /* Responsif otomatis: min 300px di layar lebar, menyusut mengikuti viewport di HP. */
+    min-width: 300px;
+    max-width: min(90vw, 380px);
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.7);
+    /* 10000 > z-index music island (9998): panel menutupi pill saat dibuka. */
+    z-index: 10000;
+    border-radius: 4px;
+}
+
+.notification p {
+    padding: 12px 16px;
+    border-bottom: 1px solid #2f2f2f;
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification p:last-child {
+    border-bottom: none;
+}
+
+.scroll-animate {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.scroll-animate.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ===== Skip-to-content link (WCAG 2.4.1) =====
+   Tersembunyi secara visual, muncul saat menerima fokus keyboard. */
+.skip-link {
+    position: absolute;
+    left: 8px;
+    top: -60px;
+    z-index: 9999;
+    background-color: #e50914;
+    color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+    top: 8px;
+    outline: 3px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Penyesuaian panel di layar sempit: jangan meluber keluar viewport.
+   position: fixed + right: 12px memposisikan panel relatif viewport,
+   jadi selalu muat di layar HP (sebelumnya meluber ke kiri). */
+@media (max-width: 640px) {
+    .notification {
+        position: fixed;
+        top: 52px;
+        right: 12px;
+        left: auto;
+        min-width: 0;
+        width: min(88vw, 320px);
+    }
+
+    .dropdown-content {
+        min-width: 0;
+        width: max-content;
+        max-width: 78vw;
+    }
+}
+
+/* ===== Dynamic Island Music Player (gaya iOS) ===== */
+.music-island-btn {
+    position: fixed;
+    top: 66px; /* di bawah navbar desktop (~60px) agar tidak menumpuk */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid #2f2f2f;
+    color: #fff;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+}
+
+.music-island-btn:hover {
+    background: rgba(40, 40, 40, 0.95);
+}
+
+.music-island-icon {
+    color: #e50914;
+    font-size: 14px;
+}
+
+.music-island-track {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.music-island-time {
+    color: #aaa;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+}
+
+.music-island-btn.music-island-off .music-island-icon {
+    color: #666;
+}
+
+/* Island disembunyikan sementara saat video halaman lain berbunyi
+   (dipasang oleh window.MusicPlayer.pauseForVideo()). */
+#musicIsland.music-island-suppressed {
+    display: none !important;
+}
+
+/* ===== Tombol status musik di pojok (di luar dynamic island) =====
+   Indikator kecil di kanan-bawah: ikon musik berputar saat lagu aktif,
+   statis saat jeda, dan ikon senyap saat dimatikan. Pengguna langsung
+   tahu musik sedang berputar tanpa melihat pill di atas. */
+.music-float-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9997; /* di bawah pill island (9998) & panel dropdown (10000) */
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid #2f2f2f;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.music-float-btn:hover {
+    transform: scale(1.08);
+    background: rgba(40, 40, 40, 0.95);
+    border-color: #e50914;
+}
+
+.music-float-btn:focus-visible {
+    outline: 3px solid #e50914;
+    outline-offset: 2px;
+}
+
+.music-float-icon {
+    color: #e50914;
+    font-size: 16px;
+}
+
+/* Berputar perlahan saat musik aktif — sinyal hidup tanpa teks. */
+.music-float-btn.is-playing .music-float-icon {
+    animation: musicFloatSpin 3s linear infinite;
+}
+
+.music-float-btn.is-paused .music-float-icon {
+    color: #aaa;
+}
+
+.music-float-btn.is-off .music-float-icon {
+    color: #666;
+}
+
+/* Sembunyi saat suara video lain dipakai (sama dengan island). */
+.music-float-btn.music-float-suppressed {
+    display: none !important;
+}
+
+@keyframes musicFloatSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.music-expanded {
+    position: fixed;
+    top: 112px; /* tepat di bawah pill island (66 + 38 + 8) */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    background: rgba(20, 20, 20, 0.97);
+    border: 1px solid #2f2f2f;
+    border-radius: 16px;
+    padding: 14px 20px 16px;
+    min-width: 260px;
+    max-width: min(90vw, 340px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+    animation: menuIn 0.25s ease-out;
+}
+
+.music-expanded[hidden] {
+    display: none;
+}
+
+.music-expanded-label {
+    display: block;
+    color: #aaa;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.music-expanded-title {
+    display: block;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.music-expanded-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.music-ctrl {
+    background: transparent;
+    border: 1px solid #2f2f2f;
+    color: #fff;
+    border-radius: 999px;
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.music-ctrl:hover {
+    background: #2f2f2f;
+}
+
+.music-toggle {
+    width: 52px;
+    height: 52px;
+    background: #e50914;
+    border-color: #e50914;
+    font-size: 16px;
+}
+
+.music-toggle:hover {
+    background: #ff1a2b;
+}
+
+/* ===== Aksesibilitas: prefers-reduced-motion =====
+   Pengguna yang sensitif terhadap gerakan (WCAG 2.3.3):
+   semua transisi/animasi menjadi instan, konten scroll-reveal langsung terlihat. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .scroll-animate {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* ===== Aksesibilitas: prefers-contrast (more) =====
+   Pengguna yang meminta kontras lebih tinggi (WCAG 1.4.6):
+   panel diberi border tegas, teks sekunder diperjelas, link di-underline. */
+@media (prefers-contrast: more) {
+    a {
+        text-decoration: underline;
+    }
+
+    .dropdown-content,
+    .notification {
+        background-color: #0a0a0a;
+        border: 1px solid #ffffff;
+        box-shadow: none;
+    }
+
+    .dropdown-content a:hover,
+    .dropdown-content a:focus {
+        background-color: #ffffff;
+        color: #000000;
+    }
+
+    .notification p {
+        border-bottom-color: #ffffff;
+    }
+}
+
+/* ===== Aksesibilitas: forced-colors (Windows High Contrast) =====
+   Sistem warna paksa (WCAG 1.4.6 / 1.4.11): browser menghapus box-shadow,
+   jadi panel, modal, dan tombol butuh border eksplisit agar batasnya tetap terlihat. */
+@media (forced-colors: active) {
+    .dropdown-content,
+    .notification {
+        border: 1px solid ButtonText;
+        box-shadow: none;
+    }
+
+    .dropdown-content a:hover,
+    .dropdown-content a:focus {
+        background-color: Highlight;
+        color: HighlightText;
+        text-decoration: underline;
+    }
+
+    .modal,
+    .modal-content {
+        border: 1px solid CanvasText;
+    }
+
+    .close {
+        background-color: ButtonFace !important;
+        color: ButtonText !important;
+        border: 1px solid ButtonText !important;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    .skip-link {
+        border: 1px solid ButtonText;
+    }
+
+    .music-float-btn {
+        border: 1px solid ButtonText;
+        box-shadow: none;
+    }
+}
+
+/* Dynamic Island di layar sempit: di bawah navbar mobile (~52px).
+   (Media query ini sengaja di AKHIR file — setelah rule dasar island —
+   agar cascade memenangkan nilai mobile.) */
+@media (max-width: 640px) {
+    .music-island-btn {
+        top: 56px;
+        padding: 6px 14px;
+        max-width: 88vw;
+    }
+
+    .music-expanded {
+        top: 102px;
+    }
+}
+
+/* ===== Overlay "Replay / Tutup" saat video selesai (ala Netflix) =====
+   Di-inject via JS ke modal movies/series; menutupi area video saja
+   (wrapper .video-wrap membungkus <video>), bukan header modal. */
+.video-wrap {
+    position: relative;
+}
+
+.video-ended-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5; /* di atas <video>, di bawah tombol close modal (z-100) */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: radial-gradient(ellipse at center, rgba(20, 20, 20, 0.45) 0%, rgba(5, 5, 5, 0.92) 100%);
+}
+
+.video-ended-overlay.show {
+    display: flex;
+}
+
+/* Tombol ikon bulat ala Netflix: Replay (putar) + Tutup (X). */
+.video-ended-overlay .ended-btn {
+    width: 52px;
+    height: 52px;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.video-ended-overlay .ended-btn:hover {
+    transform: scale(1.06);
+}
+
+.video-ended-overlay .ended-replay {
+    background: #fff;
+    color: #000;
+}
+
+.video-ended-overlay .ended-replay:hover,
+.video-ended-overlay .ended-replay:focus {
+    background: #e50914;
+    color: #fff;
+}
+
+.video-ended-overlay .ended-close {
+    background: rgba(109, 109, 110, 0.7);
+    color: #fff;
+}
+
+.video-ended-overlay .ended-close:hover,
+.video-ended-overlay .ended-close:focus {
+    background: rgba(109, 109, 110, 0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .video-ended-overlay .ended-btn {
+        transition: none;
+    }
+
+    .video-ended-overlay .ended-btn:hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .video-ended-overlay .ended-btn {
+        width: 46px;
+        height: 46px;
+        font-size: 1.05rem;
+    }
+}
+
+/* ===== Countdown "Memutar episode berikutnya" (ala Netflix, modal series) =====
+   Kartu kecil di pojok kanan-bawah video: ring + angka hitung mundur,
+   tombol "Putar sekarang" dan "×" untuk membatalkan. */
+.series-countdown {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 6; /* di atas video, di bawah tombol close modal (z-100) */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    max-width: 280px;
+    background: rgba(0, 0, 0, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.series-countdown[hidden] {
+    display: none;
+}
+
+/* Di news, kartu countdown dinaikkan agar tidak menutupi tombol "Suara"
+   yang berada di pojok kanan-bawah (bottom-3 right-3). */
+.news-countdown {
+    bottom: 56px;
+}
+
+.series-countdown-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.series-countdown-ringwrap {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.series-countdown-ring {
+    width: 40px;
+    height: 40px;
+    transform: rotate(-90deg);
+}
+
+.series-countdown-ring .ring-bg {
+    stroke: rgba(255, 255, 255, 0.25);
+}
+
+.series-countdown-ring .ring-fg {
+    stroke: #e50914;
+    transition: stroke-dashoffset 1s linear;
+}
+
+.series-countdown-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.series-countdown-label {
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+.series-countdown-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.series-countdown-play {
+    flex: 1;
+    border: none;
+    border-radius: 4px;
+    background: #fff;
+    color: #000;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 7px 12px;
+    cursor: pointer;
+}
+
+.series-countdown-play:hover,
+.series-countdown-play:focus {
+    background: #e50914;
+    color: #fff;
+}
+
+.series-countdown-cancel {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(109, 109, 110, 0.7);
+    color: #fff;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.series-countdown-cancel:hover,
+.series-countdown-cancel:focus {
+    background: rgba(109, 109, 110, 0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .series-countdown-ring .ring-fg {
+        transition: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .series-countdown {
+        right: 10px;
+        bottom: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix - Play</title>
+    <link rel="stylesheet" href="src/css/tailwind.css?v=3">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="src/css/common.css?v=10">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="src/data/music-data.js?v=4"></script>
+    <script src="src/js/debug-hud.js?v=1"></script>
+    <script src="src/js/music-player.js?v=11"></script>
+    <!-- Vercel Analytics + Speed Insights -->
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+</head>
+<body class="bg-black text-white m-0 p-0">
+    <a class="skip-link" href="#main-content">Langsung ke konten</a>
+    <main id="main-content" tabindex="-1">
+        <div class="relative">
+            <div class="relative w-full aspect-video">
+                <video id="heroVideo" class="absolute top-0 left-0 w-full h-full object-cover" controls autoplay muted playsinline preload="metadata">
+                    <source src="src/videos/playpage/video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <!-- Overlay Replay / Tutup saat video hero selesai (konsisten dgn movies/series). -->
+                <div class="video-ended-overlay" id="playEndedOverlay">
+                    <button type="button" class="ended-btn ended-replay" id="playReplayBtn" aria-label="Putar ulang" title="Putar ulang"><i class="fas fa-redo" aria-hidden="true"></i></button>
+                    <button type="button" class="ended-btn ended-close" id="playCloseBtn" aria-label="Tutup" title="Tutup"><i class="fas fa-times" aria-hidden="true"></i></button>
+                </div>
+                <button type="button" id="soundToggle" aria-label="Aktifkan suara" aria-pressed="false"
+                        class="absolute bottom-4 right-4 z-10 bg-black/70 hover:bg-black text-white border border-white/60 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer hidden">
+                    <i class="fas fa-volume-mute mr-2" aria-hidden="true"></i>Suara
+                </button>
+            </div>
+        </div>
+        <div class="bg-black p-6 md:p-8 max-w-4xl mx-auto">
+            <h1 class="text-2xl md:text-3xl font-bold mb-4">
+                I Love You &gt;3
+            </h1>
+            <div class="text-sm md:text-base text-gray-300 leading-relaxed space-y-3">
+                <p>
+                    Hai, kamu...
+                </p>
+                <p>
+                    Mungkin kamu tidak mengenalku, atau mungkin juga tak pernah menyadari kehadiranku. Tapi dari kejauhan, aku telah mengagumi caramu berjalan dalam hidup, energimu yang tak pernah padam, dan bagaimana sinarmu menerangi banyak orang.
+                </p>
+                <p>
+                    Aku tidak ingin lagi hanya menjadi seseorang yang mengagumi dari jauh. Hari ini, di momen spesial ini, aku ingin mengatakan sesuatu yang sudah lama ada di hati—Aku suka kamu. Lebih dari sekadar kekaguman, lebih dari sekadar kata-kata. Aku ingin jadi bagian dari perjalananmu. Mau nggak, kamu jadi milikku?
+                </p>
+                <p>
+                    Dan satu hal lagi… aku tak ingin orang lain tahu tentang hubungan kita. Bukan karena alasan buruk, bukan karena aku ragu, tapi karena aku ingin ini hanya tentang kita—tanpa gangguan, tanpa tekanan, hanya aku dan kamu.
+                </p>
+                <p>
+                    ✨ Dengan seluruh keberanian yang akhirnya terkumpul,
+                </p>
+                <p>
+                    Rouf.
+                </p>
+            </div>
+        </div>
+    </main>
+    <script>
+        (function () {
+            var video = document.getElementById('heroVideo');
+            var toggle = document.getElementById('soundToggle');
+
+            function setSound(on) {
+                video.muted = !on;
+                toggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+                toggle.innerHTML = on
+                    ? '<i class="fas fa-volume-up mr-2" aria-hidden="true"></i>Suara Aktif'
+                    : '<i class="fas fa-volume-mute mr-2" aria-hidden="true"></i>Suara';
+                // Klik = user gesture: autoplay bersuara diizinkan setelah interaksi.
+                if (on) { var p = video.play(); if (p && p.catch) p.catch(function(){}); }
+                // Jangan biarkan musik island berbunyi bersamaan dengan video
+                // (berlaku juga saat halaman dibuka langsung, bukan via modal).
+                if (window.MusicPlayer) {
+                    if (on) window.MusicPlayer.pauseForVideo();
+                    else window.MusicPlayer.resumeFromVideo();
+                }
+            }
+
+            // Tombol suara tampil setelah video siap (autoplay muted berjalan).
+            video.addEventListener('loadedmetadata', function () {
+                toggle.classList.remove('hidden');
+            });
+
+            toggle.addEventListener('click', function () {
+                setSound(video.muted);
+            });
+
+            // Overlay Replay / Tutup saat video hero selesai.
+            var overlay = document.getElementById('playEndedOverlay');
+
+            function replayHero() {
+                overlay.classList.remove('show');
+                video.currentTime = 0;
+                var p = video.play();
+                if (p && p.catch) p.catch(function () {});
+                // Suara video aktif lagi → suppress musik (island sendiri + induk).
+                if (!video.muted) {
+                    if (window.MusicPlayer) window.MusicPlayer.pauseForVideo();
+                    try { window.parent.postMessage('netflix-video-playing', '*'); } catch (e) {}
+                }
+            }
+
+            function closeHero() {
+                var inIframe = false;
+                try { inIframe = window.self !== window.top; } catch (e) { inIframe = true; }
+                if (inIframe) {
+                    // Diputar di dalam modal index.html → minta induk menutup modal.
+                    try { window.parent.postMessage('netflix-close', '*'); } catch (e) {}
+                } else {
+                    // Dibuka langsung → kembali ke beranda.
+                    window.location.href = 'index.html';
+                }
+            }
+
+            document.getElementById('playReplayBtn').addEventListener('click', replayHero);
+            document.getElementById('playCloseBtn').addEventListener('click', closeHero);
+
+            // Video selesai → tampilkan Replay/Tutup + pulihkan musik.
+            video.addEventListener('ended', function () {
+                overlay.classList.add('show');
+                // Pulihkan music island sendiri bila sedang di-suppress suara video.
+                if (window.MusicPlayer && window.MusicPlayer.isSuppressed()) window.MusicPlayer.resumeFromVideo();
+                // Beri tahu halaman induk agar music island kembali.
+                try { window.parent.postMessage('netflix-video-ended', '*'); } catch (e) {}
+            });
+
+            // Dipanggil dari index.html (modal Play): aktifkan suara setelah klik Play.
+            window.addEventListener('message', function (event) {
+                if (event.data === 'netflix-unmute') setSound(true);
+                if (event.data === 'netflix-mute') setSound(false);
+            });
+
+            // Fallback: jika halaman dibuka langsung (bukan via modal), tetap senyap sesuai kebijakan browser.
+        })();
+    </script>
+</body>
+</html>

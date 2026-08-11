@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix - News &amp; Popular</title>
+    <link rel="icon" href="src/images/iconpage/netflix.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="src/css/tailwind.css?v=3">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="src/css/common.css?v=10">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="src/data/news-data.js?v=4"></script>
+    <script src="src/js/debug-hud.js?v=1"></script>
+    <script src="src/js/navbar.js?v=3"></script>
+    <script src="src/js/scroll-reveal.js?v=4"></script>
+    <script src="src/data/music-data.js?v=4"></script>
+    <script src="src/js/music-player.js?v=11"></script>
+    <script src="src/js/hero-slider.js?v=5"></script>
+    <script>
+        // Billboard rotasi News & Popular (foto + teks berganti, ala index.html).
+        // img = 16:9 (desktop), imgMobile = 9:16 (mobile) — mencegah foto
+        // terpotong / buram saat full-screen.
+        window.HERO_SLIDES = [
+            {
+                img: "src/images/homepage/background_image.png",
+                imgMobile: "src/images/seriespage/placeholder1.png",
+                title: "News & Popular",
+                desc: "Kisah Rouf untuk Nurul — dari mengagumi dari jauh, hingga berani mengungkapkan perasaan yang selama ini dipendam."
+            },
+            {
+                img: "src/images/seriespage/placeholder16_9.png",
+                imgMobile: "src/images/seriespage/placeholder2.png",
+                title: "Dari Jauh Aku Menjagamu",
+                desc: "Setiap hari kuamati caramu menjalani hidup. Senyummu adalah alasan terbaik untuk terus berharap."
+            },
+            {
+                img: "src/images/seriespage/placeholder16_9pt2.png",
+                imgMobile: "src/images/seriespage/placeholder3.png",
+                title: "Cahayamu, Lengkapkan Hariku",
+                desc: "Ada kehangatan yang tak bisa kujelaskan setiap kali kamu hadir. Hari-hariku terasa lebih ringan hanya dengan melihatmu bahagia."
+            },
+            {
+                img: "src/images/seriespage/placeholder16_9pt8.png",
+                imgMobile: "src/images/seriespage/placeholder56.png",
+                title: "Kisah yang Terus Berjalan",
+                desc: "Setiap orang punya cerita. Yang paling indah adalah ketika cerita itu melibatkan kamu."
+            }
+        ];
+    </script>
+    <!-- Vercel Analytics + Speed Insights -->
+    <script defer src="/_vercel/insights/script.js"></script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+</head>
+<body class="bg-black text-white m-0 p-0 overflow-x-hidden">
+    <a class="skip-link" href="#main-content">Langsung ke konten</a>
+    <header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
+        <div class="flex items-center space-x-3 md:space-x-6">
+            <button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
+            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/iconpage/netflix_logo.png">
+            <nav class="hidden md:flex space-x-5 text-sm">
+                <a class="text-gray-300 hover:text-white transition" href="index.html">Home</a>
+                <a class="text-gray-300 hover:text-white transition" href="series.html">Series</a>
+                <a class="text-gray-300 hover:text-white transition" href="movies.html">Movies</a>
+                <a class="text-white hover:text-gray-300 transition" href="newsandpopular.html">News &amp; Popular</a>
+                <a class="text-gray-300 hover:text-white transition" href="mylist.html">My List</a>
+            </nav>
+        </div>
+        <div class="flex items-center space-x-3 md:space-x-5">
+            <div class="relative">
+                <button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
+                <div class="notification" id="searchNotification">
+                    <p>gada siapa siapa kecuali aku.me love you ~R</p>
+                </div>
+            </div>
+            <button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
+            <div class="notification" id="notificationMenu">
+                <p>Semakin Hari Semakin Cantik Sih Kamu</p>
+                <p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
+                <p>I Love You Hehe &gt;3</p>
+            </div>
+            <div class="dropdown">
+                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/iconpage/user_avatar.png"></button>
+                <div class="dropdown-content" id="dropdownMenu">
+                    <a href="#">Accounts</a>
+                    <a href="#">Settings</a>
+                    <a href="#">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="dropdown md:hidden fixed top-11 left-3 z-50">
+        <div class="dropdown-content mobile-menu-dropdown" id="mobileMenu">
+            <a href="index.html">Home</a>
+            <a href="series.html">Series</a>
+            <a href="movies.html">Movies</a>
+            <a href="newsandpopular.html">News &amp; Popular</a>
+            <a href="mylist.html">My List</a>
+        </div>
+    </div>
+    
+    <main id="main-content" tabindex="-1" class="pt-20 md:pt-24 pb-12">
+        <div id="heroSlider" class="relative h-[55vh] md:h-[60vh] overflow-hidden mb-8"></div>
+        <section id="newsSection" class="bg-black py-6 scroll-animate">
+            <div class="container mx-auto px-4 md:px-12 max-w-4xl">
+                <h2 class="text-lg md:text-xl font-bold mb-6">News and Popular</h2>
+                <div id="newsList">
+                    <p class="text-gray-400">Memuat konten...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        /* ===== Overlay Replay / Tutup saat video news selesai (ala Netflix) =====
+           Konsisten dengan movies/series/play: video selesai → resume musik +
+           tampilkan tombol Replay (putar ulang) dan Tutup (kembali ke poster). */
+        function replayNewsVideo(btn) {
+            var wrap = btn.closest('.relative');
+            var overlay = wrap.querySelector('.video-ended-overlay');
+            if (overlay) overlay.classList.remove('show');
+            var video = wrap.querySelector('video');
+            video.currentTime = 0;
+            var p = video.play();
+            if (p && p.catch) p.catch(function(){});
+            // Suara video aktif kembali → suppress music island.
+            if (!video.muted && window.MusicPlayer) window.MusicPlayer.pauseForVideo();
+        }
+
+        function closeNewsVideo(btn) {
+            var wrap = btn.closest('.relative');
+            var overlay = wrap.querySelector('.video-ended-overlay');
+            if (overlay) overlay.classList.remove('show');
+            var video = wrap.querySelector('video');
+            stopNewsCountdown(video);
+            video.pause();
+            video.currentTime = 0; // kembali ke poster
+        }
+
+        /* ===== Countdown "Memutar episode berikutnya" (ala Netflix) =====
+           Konsisten dengan movies/series: video selesai → hitung mundur +
+           ring, lalu auto-replay. State disimpan per elemen video (properti
+           elemen) karena news punya banyak video sekaligus. Total bisa diatur
+           per item berita lewat data-countdown di template (item.countdown),
+           atau data-countdown di <body>, atau default 5 detik. */
+        var NEWS_COUNTDOWN_TOTAL = 5; // demo berita pendek → default 5 detik
+
+        function newsCountdownTotalFor(video) {
+            if (video && video.getAttribute('data-countdown')) {
+                var v = parseInt(video.getAttribute('data-countdown'), 10);
+                if (!isNaN(v) && v > 0) return v;
+            }
+            var body = document.body.getAttribute('data-countdown');
+            if (body) {
+                var n = parseInt(body, 10);
+                if (!isNaN(n) && n > 0) return n;
+            }
+            return NEWS_COUNTDOWN_TOTAL;
+        }
+
+        function stopNewsCountdown(video) {
+            if (!video) return;
+            if (video._cdTimer) { clearInterval(video._cdTimer); video._cdTimer = null; }
+            var wrap = video.closest ? video.closest('.relative') : null;
+            var el = wrap ? wrap.querySelector('.series-countdown') : null;
+            if (el) el.hidden = true;
+        }
+
+        function updateNewsCountdown(video) {
+            var wrap = video.closest('.relative');
+            if (!wrap) return;
+            var num = wrap.querySelector('.series-countdown-num');
+            if (num) num.textContent = video._cdLeft;
+            var ring = wrap.querySelector('.series-countdown-ring .ring-fg');
+            if (ring) {
+                var circ = 2 * Math.PI * 15.9;
+                ring.style.strokeDasharray = circ;
+                ring.style.strokeDashoffset = circ * (1 - video._cdLeft / video._cdTotal);
+            }
+        }
+
+        function startNewsCountdown(video) {
+            stopNewsCountdown(video);
+            var wrap = video.closest('.relative');
+            var el = wrap ? wrap.querySelector('.series-countdown') : null;
+            if (!el) return;
+            el.hidden = false;
+            video._cdTotal = newsCountdownTotalFor(video);
+            video._cdLeft = video._cdTotal;
+            updateNewsCountdown(video);
+            video._cdTimer = setInterval(function () {
+                video._cdLeft--;
+                if (video._cdLeft <= 0) {
+                    stopNewsCountdown(video);
+                    replayNewsVideo(wrap.querySelector('.ended-replay'));
+                    return;
+                }
+                updateNewsCountdown(video);
+            }, 1000);
+        }
+
+        function newsPlayNow(btn) {
+            var wrap = btn.closest('.relative');
+            var video = wrap.querySelector('video');
+            stopNewsCountdown(video);
+            replayNewsVideo(wrap.querySelector('.ended-replay'));
+        }
+
+        function newsCancelCountdown(btn) {
+            var wrap = btn.closest('.relative');
+            var video = wrap.querySelector('video');
+            stopNewsCountdown(video);
+        }
+
+        /* ===== Render konten News & Popular dari src/data/news-data.js =====
+           Menampilkan item dengan tanggal publish <= hari ini (data-driven,
+           update tanpa edit HTML: cukup ubah data di news-data.js). Video
+           OPSIONAL — item tanpa field "video" tampil sebagai teks saja. */
+        function renderNews() {
+            var list = document.getElementById('newsList');
+            var items = (window.NEWS_ITEMS || []).slice();
+            // Tanggal lokal (bukan UTC) agar item "hari ini" langsung tampil di zona waktu user.
+            var today = new Date();
+            var todayStr = today.getFullYear() + '-' +
+                String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                String(today.getDate()).padStart(2, '0');
+
+            // Filter: hanya item yang tanggalnya sudah lewat / hari ini.
+            items = items.filter(function (item) {
+                return item.date <= todayStr;
+            });
+            // Urutkan terbaru dulu.
+            items.sort(function (a, b) { return b.date.localeCompare(a.date); });
+
+            if (items.length === 0) {
+                list.innerHTML = '<p class="text-gray-400">Belum ada konten untuk tanggal ini. Upload video dan atur tanggal di src/data/news-data.js.</p>';
+                return;
+            }
+
+            list.innerHTML = items.map(function (item) {
+                var paras = (item.paragraphs || []).map(function (p) {
+                    return '<p>' + p.replace(/</g, '&lt;').replace(/\n/g, '<br>') + '</p>';
+                }).join('');
+                var dateLabel = new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                return '<article class="mb-10">' +
+                    '<div class="flex items-center gap-3 mb-4">' +
+                        '<span class="bg-gray-800 text-white text-xs font-semibold px-3 py-1 rounded-full">' + dateLabel + '</span>' +
+                        (item.title ? '<h3 class="text-base md:text-lg font-bold">' + item.title.replace(/</g, '&lt;') + '</h3>' : '') +
+                    '</div>' +
+                    (item.video ? '<div class="mb-6 relative">' +
+                        '<video class="news-video w-full h-auto rounded" controls autoplay muted playsinline preload="metadata" data-countdown="' + (item.countdown || 5) + '">' +
+                            '<source src="' + item.video + (item.v ? '?v=' + item.v : '') + '" type="video/mp4"/>' +
+                            'Your browser does not support the video tag.' +
+                        '</video>' +
+                        '<div class="video-ended-overlay news-ended-overlay">' +
+                            '<button type="button" class="ended-btn ended-replay" aria-label="Putar ulang" title="Putar ulang" onclick="replayNewsVideo(this)"><i class="fas fa-redo" aria-hidden="true"></i></button>' +
+                            '<button type="button" class="ended-btn ended-close" aria-label="Tutup" title="Tutup" onclick="closeNewsVideo(this)"><i class="fas fa-times" aria-hidden="true"></i></button>' +
+                            '<div class="series-countdown news-countdown" role="status" hidden>' +
+                                '<div class="series-countdown-main">' +
+                                    '<div class="series-countdown-ringwrap">' +
+                                        '<svg class="series-countdown-ring" viewBox="0 0 36 36" aria-hidden="true">' +
+                                            '<circle class="ring-bg" cx="18" cy="18" r="15.9" fill="none" stroke-width="3"></circle>' +
+                                            '<circle class="ring-fg" cx="18" cy="18" r="15.9" fill="none" stroke-width="3" stroke-linecap="round"></circle>' +
+                                        '</svg>' +
+                                        '<span class="series-countdown-num">10</span>' +
+                                    '</div>' +
+                                    '<span class="series-countdown-label">Memutar episode berikutnya</span>' +
+                                '</div>' +
+                                '<div class="series-countdown-actions">' +
+                                    '<button type="button" class="series-countdown-play" onclick="newsPlayNow(this)">Putar sekarang</button>' +
+                                    '<button type="button" class="series-countdown-cancel" onclick="newsCancelCountdown(this)" aria-label="Batal">&times;</button>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<button type="button" class="news-sound absolute bottom-3 right-3 z-10 bg-black/70 hover:bg-black text-white border border-white/60 rounded-full px-3 py-1 text-xs font-semibold cursor-pointer">' +
+                            '<i class="fas fa-volume-mute mr-1" aria-hidden="true"></i>Suara' +
+                        '</button>' +
+                    '</div>' : '') +
+                    '<div class="text-sm md:text-base text-gray-300 leading-relaxed space-y-4">' + paras + '</div>' +
+                '</article>';
+            }).join('');
+
+            // Tombol suara: klik = user gesture, autoplay bersuara diizinkan.
+            list.querySelectorAll('.news-sound').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var video = btn.closest('.relative').querySelector('video');
+                    video.muted = !video.muted;
+                    btn.innerHTML = video.muted
+                        ? '<i class="fas fa-volume-mute mr-1" aria-hidden="true"></i>Suara'
+                        : '<i class="fas fa-volume-up mr-1" aria-hidden="true"></i>Suara Aktif';
+                    if (!video.muted) {
+                        var p = video.play(); if (p && p.catch) p.catch(function(){});
+                        // Video diputar ulang dengan suara → tutup overlay ended.
+                        var ov = btn.closest('.relative').querySelector('.video-ended-overlay');
+                        if (ov) ov.classList.remove('show');
+                        stopNewsCountdown(video);
+                    }
+                    // Suara video aktif → pause music island; mati → kembalikan.
+                    if (window.MusicPlayer) {
+                        if (video.muted) window.MusicPlayer.resumeFromVideo();
+                        else window.MusicPlayer.pauseForVideo();
+                    }
+                });
+            });
+
+            // Video selesai diputar → tampilkan Replay/Tutup + kembalikan music island.
+            // (Dibind sekali per video — bukan di dalam loop tombol suara.)
+            list.querySelectorAll('.news-video').forEach(function (video) {
+                video.addEventListener('ended', function () {
+                    var wrap = video.closest('.relative');
+                    var overlay = wrap ? wrap.querySelector('.video-ended-overlay') : null;
+                    if (overlay) overlay.classList.add('show');
+                    if (window.MusicPlayer) window.MusicPlayer.resumeFromVideo();
+                    startNewsCountdown(video);
+                });
+            });
+        }
+
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            renderNews();
+        });
+    </script>
+</body>
+</html>
