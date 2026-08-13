@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <!-- ==========================================================================
+         admin.html — Admin Panel Netflix-MyQueen (v3.0)
+         --------------------------------------------------------------------------
+         Panel pengelolaan konten TANPA edit kode sama sekali:
+
+           • LAPIS 1 (klien) : PIN gatekeeper — form tersembunyi sampai PIN benar.
+           • LAPIS 2 (GitHub): Personal Access Token (PAT) — satu-satunya yang bisa
+                               menulis ke repository. Token TIDAK ada di kode ini;
+                               disimpan di localStorage browser pemilik.
+
+         Yang bisa dikelola (semua lewat file data di src/data/):
+           1. Berita  → news-data.js     (Tanggal DD-MM-YYYY, Judul, Isi, Video Opsional)
+           2. Foto    → series-data.js    (path/URL foto + pilih RASIO)
+           3. Video   → movies-data.js    (path/URL video + thumbnail)
+           4. Musik   → music-data.js     (path/URL lagu + judul)
+
+         Teks situs DIKELOLA LANGSUNG DI KODE (site-text-data.js) — tidak ada
+         editor Teks di panel ini.
+
+         Alur: buka admin.html → PIN → isi Owner/Repo/Branch/Token → "Muat Data"
+         → edit → "Simpan ke GitHub" → Vercel auto re-deploy (~1 menit).
+
+         MEDIA TIDAK DI-UPLOAD dari panel ini: field foto/video/audio hanya
+         menerima teks path/URL — file harus sudah ada di repo (mis.
+         src/images/photo/...) atau di hosting eksternal. Preview otomatis
+         muncul saat path diketik.
+         ========================================================================== -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix - Admin</title>
+    <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="src/css/tailwind.css?v=3">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #e50914;
+            --red-hover: #ff1a2b;
+            --card: #151515;
+            --card-2: #1d1d1d;
+            --line: #2a2a2a;
+            --muted: #a3a3a3;
+            --ok: #1db954;
+        }
+        body { font-family: 'Roboto', sans-serif; background: radial-gradient(1200px 600px at 50% -10%, rgba(229,9,20,.08), transparent), #0a0a0a; color: #fff; }
+        .admin-card {
+            background: linear-gradient(180deg, var(--card), #101010);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.45);
+        }
+        .admin-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        .admin-input {
+            width: 100%;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            padding: 10px 12px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        .admin-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,9,20,.15); }
+        textarea.admin-input { line-height: 1.55; }
+        .admin-hint { font-size: 11.5px; color: #7a7a7a; margin-top: 5px; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            border: none; border-radius: 8px; cursor: pointer;
+            font-size: 13px; font-weight: 700; padding: 10px 16px;
+            transition: background .15s ease, transform .1s ease;
+        }
+        .btn:active { transform: scale(.97); }
+        .btn-red { background: var(--red); color: #fff; }
+        .btn-red:hover { background: var(--red-hover); }
+        .btn-gray { background: #2a2a2a; color: #fff; }
+        .btn-gray:hover { background: #3a3a3a; }
+        .btn-green { background: var(--ok); color: #fff; }
+        .btn-green:hover { background: #1ed760; }
+        .btn-ghost {
+            background: transparent; border: 1px solid #3a3a3a; color: #ccc;
+            border-radius: 7px; cursor: pointer; width: 32px; height: 32px;
+            font-size: 13px; display: inline-flex; align-items: center; justify-content: center;
+            transition: background .15s ease;
+        }
+        .btn-ghost:hover { background: #2f2f2f; color: #fff; }
+        .btn-danger { background: transparent; border: 1px solid #7a1f1f; color: #ff6b6b; border-radius: 7px; cursor: pointer; width: 32px; height: 32px; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-danger:hover { background: #7a1f1f; color: #fff; }
+        .tab-btn {
+            background: transparent; border: none; color: var(--muted);
+            font-weight: 700; font-size: 13.5px; padding: 9px 14px; cursor: pointer;
+            border-radius: 999px; transition: background .15s ease, color .15s ease;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: #fff; background: rgba(255,255,255,.06); }
+        .tab-btn.active { background: var(--red); color: #fff; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .admin-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            background: #0d0d0d; border: 1px solid #232323; border-radius: 10px;
+            padding: 10px 14px; margin-bottom: 8px;
+            transition: border-color .15s ease;
+        }
+        .admin-row:hover { border-color: #3a3a3a; }
+        .admin-row-main { flex: 1; min-width: 0; font-size: 14px; }
+        .admin-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .admin-thumb { width: 44px; height: 64px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+        .admin-thumb-square { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+        #logBox {
+            background: #0d0d0d; border: 1px solid #232323; border-radius: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12px; line-height: 1.65; color: #9fe8a5;
+            padding: 12px 14px; max-height: 220px; overflow-y: auto; white-space: pre-wrap;
+        }
+        #logBox .err { color: #ff8080; }
+        #logBox .ok { color: #7ee787; }
+        #logBox .info { color: var(--muted); }
+        .pin-card { max-width: 400px; margin: 12vh auto 0; text-align: center; }
+        .status-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+        .dirty-badge {
+            display: inline-block; background: #b45309; color: #fff; font-size: 11px;
+            font-weight: 700; border-radius: 999px; padding: 2px 9px; margin-left: 6px;
+        }
+        .grid-cols-2-gap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+        a { color: var(--red); }
+
+        /* ===== Responsif dasar ===== */
+        @media (max-width: 640px) {
+            .admin-card { padding: 16px; }
+            .admin-row { flex-wrap: wrap; }
+            .admin-row-main { flex: 1 1 100%; }
+            .admin-row-actions { margin-left: auto; }
+            .admin-thumb, .admin-thumb-square { width: 40px; height: 58px; }
+            .admin-thumb-square { width: 48px; height: 34px; }
+        }
+
+        /* ===== Form editor: grid responsif (1 kolom mobile, 2 kolom desktop) ===== */
+        .admin-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+        @media (min-width: 768px) {
+            .admin-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .admin-form-grid .form-field-full { grid-column: 1 / -1; }
+        }
+        .form-field { min-width: 0; }
+
+        /* ===== Preview media path/URL (foto / video / audio) ===== */
+        .media-preview {
+            display: none;
+            margin-top: 8px;
+            width: 100%;
+            max-width: 340px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #000;
+            overflow: hidden;
+        }
+        .media-preview.show { display: block; }
+        .media-preview img {
+            display: block;
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+        }
+        .media-preview video, .media-preview audio { display: block; width: 100%; }
+        .media-preview audio { border-radius: 8px; }
+
+        /* ===== Fallback thumbnail tanpa foto ===== */
+        .admin-thumb-fallback {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            background: #1d1d1d;
+            color: #666;
+            font-size: 15px;
+        }
+
+        /* ===== Tab bar: scroll halus & scrollbar disembunyikan (mobile) ===== */
+        .tab-bar {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .tab-bar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- ==================== LAPIS 1: PIN GATEKEEPER ==================== -->
+    <div id="pinSection">
+        <div class="admin-card pin-card">
+            <img alt="Netflix Logo" class="h-8 mx-auto mb-4" src="src/images/icon/netflix_logo.png">
+            <h1 class="text-xl font-bold mb-1">Admin Panel</h1>
+            <p class="text-sm text-gray-400 mb-5">Masukkan PIN untuk membuka dashboard.</p>
+            <form id="pinForm" class="flex gap-2">
+                <input id="pinInput" type="password" inputmode="numeric" autocomplete="off"
+                       placeholder="PIN" class="admin-input text-center tracking-[0.4em] text-lg">
+                <button type="submit" class="btn btn-red flex-shrink-0">Buka</button>
+            </form>
+            <p id="pinError" class="text-red-400 text-sm mt-3 hidden">PIN salah. Coba lagi.</p>
+        </div>
+    </div>
+
+    <!-- ==================== DASHBOARD (setelah PIN benar) ==================== -->
+    <div id="adminSection" class="hidden px-4 md:px-8 py-6">
+        <div class="max-w-5xl mx-auto">
+
+            <!-- Header -->
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+                <div class="flex items-center gap-3 min-w-0">
+                    <h1 class="text-xl md:text-2xl font-bold">Admin Panel</h1>
+                    <span id="connStatus" class="text-xs text-gray-400"></span>
+                </div>
+                <button type="button" class="btn btn-gray" onclick="lockAdmin()"><i class="fas fa-lock" aria-hidden="true"></i> Kunci</button>
+            </div>
+
+            <!-- ===== Koneksi GitHub ===== -->
+            <div class="admin-card">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold">🔗 Koneksi GitHub</h2>
+                    <span id="dirtySummary"></span>
+                </div>
+                <div class="grid-cols-2-gap">
+                    <div>
+                        <label class="admin-label" for="ghOwner">Owner (username)</label>
+                        <input id="ghOwner" type="text" class="admin-input" placeholder="mis. Vaetherion">
+                    </div>
+                    <div>
+                        <label class="admin-label" for="ghRepo">Repository</label>
+                        <input id="ghRepo" type="text" class="admin-input" placeholder="mis. Netflix-MyQueen">
+                    </div>
+                    <div>
+                        <label class="admin-label" for="ghBranch">Branch</label>
+                        <input id="ghBranch" type="text" class="admin-input" value="main">
+                    </div>
+                    <div>
+                        <label class="admin-label" for="ghToken">Personal Access Token (PAT)</label>
+                        <input id="ghToken" type="password" class="admin-input" placeholder="ghp_xxx" autocomplete="off">
+                        <p class="admin-hint">Scope: repo. Hanya tersimpan di browser kamu (localStorage).</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-4">
+                    <button type="button" class="btn btn-gray" onclick="testConnection()"><i class="fas fa-plug" aria-hidden="true"></i> Tes Koneksi</button>
+                    <button type="button" class="btn btn-green" onclick="loadAllData()"><i class="fas fa-download" aria-hidden="true"></i> Muat Data dari GitHub</button>
+                    <button type="button" class="btn btn-red" onclick="saveAllData()"><i class="fas fa-upload" aria-hidden="true"></i> Simpan Perubahan ke GitHub</button>
+                </div>
+                <p class="admin-hint mt-3">Media <b>tidak di-upload</b> dari panel ini — isi saja path/URL file yang sudah ada di repo (mis. <code class="text-red-400">src/images/photo/…</code>) atau di hosting eksternal. Preview muncul otomatis saat path diketik.</p>
+            </div>
+
+            <!-- Log -->
+            <div class="admin-card">
+                <h2 class="font-bold mb-2">📋 Log</h2>
+                <div id="logBox">Menunggu perintah…</div>
+            </div>
+
+            <!-- ===== Tabs ===== -->
+            <div class="tab-bar flex flex-wrap gap-1 border-b border-gray-800 mb-5 pb-2 overflow-x-auto">
+                <button type="button" class="tab-btn active" data-tab="tabNews" onclick="switchTab('tabNews')">Berita</button>
+                <button type="button" class="tab-btn" data-tab="tabSeries" onclick="switchTab('tabSeries')">Foto Series</button>
+                <button type="button" class="tab-btn" data-tab="tabMovies" onclick="switchTab('tabMovies')">Video Movies</button>
+                <button type="button" class="tab-btn" data-tab="tabMusic" onclick="switchTab('tabMusic')">Musik</button>
+                <button type="button" class="tab-btn" data-tab="tabSettings" onclick="switchTab('tabSettings')">Pengaturan</button>
+            </div>
+
+            <!-- ===== Editor: Berita ===== -->
+            <div class="tab-panel active" id="tabNews">
+                <div class="admin-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 class="font-bold">Pesan Berita &amp; Popular</h2>
+                            <p class="text-xs text-gray-500">Tanggal (DD-MM-YYYY) · Judul Pesan · Isi Pesan · Video (Opsional) — tampil di newsandpopular.html</p>
+                        </div>
+                        <button type="button" class="btn btn-red" onclick="editors.news.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
+                    </div>
+                    <div id="newsList"></div>
+                    <form id="newsForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
+                </div>
+            </div>
+
+            <!-- ===== Editor: Foto Series ===== -->
+            <div class="tab-panel" id="tabSeries">
+                <div class="admin-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 class="font-bold">Foto Series</h2>
+                            <p class="text-xs text-gray-500">Path/URL foto + pilih rasio — tampil di series.html</p>
+                        </div>
+                        <button type="button" class="btn btn-red" onclick="editors.series.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
+                    </div>
+                    <div id="seriesList"></div>
+                    <form id="seriesForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
+                </div>
+            </div>
+
+            <!-- ===== Editor: Video Movies ===== -->
+            <div class="tab-panel" id="tabMovies">
+                <div class="admin-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 class="font-bold">Video Movies</h2>
+                            <p class="text-xs text-gray-500">Path/URL video + thumbnail (foto) — tampil di movies.html</p>
+                        </div>
+                        <button type="button" class="btn btn-red" onclick="editors.movies.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
+                    </div>
+                    <div id="moviesList"></div>
+                    <form id="moviesForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
+                </div>
+            </div>
+
+            <!-- ===== Editor: Musik ===== -->
+            <div class="tab-panel" id="tabMusic">
+                <div class="admin-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 class="font-bold">Musik Dynamic Island</h2>
+                            <p class="text-xs text-gray-500">Path/URL file music + judul lagu — playlist semua halaman</p>
+                        </div>
+                        <button type="button" class="btn btn-red" onclick="editors.music.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
+                    </div>
+                    <div id="musicList"></div>
+                    <form id="musicForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
+                </div>
+            </div>
+
+            <!-- ===== Pengaturan ===== -->
+            <div class="tab-panel" id="tabSettings">
+                <div class="admin-card">
+                    <h2 class="font-bold mb-3">🔐 Ganti PIN</h2>
+                    <p class="text-sm text-gray-400 mb-3">PIN disimpan di localStorage browser ini (berlaku untuk perangkat ini saja). Default bawaan di kode: <code class="text-red-400">1602</code>.</p>
+                    <div class="flex flex-wrap gap-2 items-end">
+                        <div>
+                            <label class="admin-label" for="newPin">PIN baru</label>
+                            <input id="newPin" type="password" class="admin-input max-w-xs" autocomplete="off">
+                        </div>
+                        <button type="button" class="btn btn-gray" onclick="changePin()">Simpan PIN</button>
+                        <button type="button" class="btn btn-gray" onclick="resetPin()">Kembalikan ke bawaan</button>
+                    </div>
+                    <p id="pinMsg" class="text-sm mt-3"></p>
+                </div>
+                <div class="admin-card">
+                    <h2 class="font-bold mb-3">ℹ️ Cara Pakai</h2>
+                    <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
+                        <li>Isi Owner / Repository / Branch / Token GitHub, lalu <b>Tes Koneksi</b>.</li>
+                        <li>Klik <b>Muat Data dari GitHub</b> — semua konten situs diambil dari repo.</li>
+                        <li>Edit konten: <b>Berita</b> (tanggal, judul, isi, video opsional) · <b>Foto Series</b> (path/URL foto + rasio) · <b>Video Movies</b> (path/URL video + thumbnail) · <b>Musik</b> (path/URL lagu + judul).</li>
+                        <li>Media diisi sebagai <b>path/URL</b> — file harus sudah ada di repo atau hosting eksternal (tidak di-upload dari panel ini). Preview muncul otomatis saat path diketik.</li>
+                        <li>Klik <b>Simpan Perubahan ke GitHub</b> — commit dibuat otomatis (Vercel auto re-deploy ±1 menit).</li>
+                    </ol>
+                    <p class="text-xs text-gray-500 mt-3">⚠️ Token hanya disimpan di browser kamu. Jangan pernah menaruh token di dalam file repo.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+    /* ==========================================================================
+       LOGIKA ADMIN v3.0 — vanilla JS, tanpa dependensi eksternal.
+       ========================================================================== */
+
+    // ===== KONFIGURASI =====
+    // PIN default (LAPIS 1). Ganti angka di sini kalau mau — atau pakai tab
+    // "Pengaturan" untuk menyimpan PIN khusus di browser ini.
+    var ADMIN_PIN = "1602";
+
+    var LS = {
+        get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
+        set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+        del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+    };
+
+    var DATA_FILES = [
+        { key: 'news',   varName: 'NEWS_ITEMS',     path: 'src/data/news-data.js',      label: 'Pesan Berita' },
+        { key: 'series', varName: 'SERIES_ITEMS',   path: 'src/data/series-data.js',    label: 'Foto Series' },
+        { key: 'movies', varName: 'MOVIES_ITEMS',   path: 'src/data/movies-data.js',    label: 'Video Movies' },
+        { key: 'music',  varName: 'MUSIC_PLAYLIST', path: 'src/data/music-data.js',     label: 'Musik' }
+    ];
+
+    var state = {};   // key -> { data: <parsed>, sha: <string|null>, dirty: bool }
+    var editors = {};
+
+    /* ===== Log konsol ===== */
+    function log(msg, cls) {
+        var box = document.getElementById('logBox');
+        var d = new Date().toLocaleTimeString('id-ID', { hour12: false });
+        var line = document.createElement('div');
+        line.className = cls || 'info';
+        line.textContent = '[' + d + '] ' + msg;
+        box.appendChild(line);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    /* ===== PIN GATEKEEPER ===== */
+    function currentPin() {
+        var saved = LS.get('mqAdminPin', '');
+        return saved ? saved : ADMIN_PIN;
+    }
+
+    document.getElementById('pinForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var val = document.getElementById('pinInput').value.trim();
+        if (val === currentPin()) {
+            try { sessionStorage.setItem('mqAdminUnlocked', '1'); } catch (err) {}
+            openDashboard();
+        } else {
+            var err = document.getElementById('pinError');
+            err.classList.remove('hidden');
+            document.getElementById('pinInput').value = '';
+            document.getElementById('pinInput').focus();
+        }
+    });
+
+    function openDashboard() {
+        document.getElementById('pinSection').style.display = 'none';
+        document.getElementById('adminSection').classList.remove('hidden');
+        restoreGhConfig();
+    }
+
+    function lockAdmin() {
+        try { sessionStorage.removeItem('mqAdminUnlocked'); } catch (err) {}
+        document.getElementById('adminSection').classList.add('hidden');
+        document.getElementById('pinSection').style.display = 'block';
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinError').classList.add('hidden');
+    }
+
+    // Sesi PIN: refresh tidak perlu PIN lagi (masih di tab yang sama).
+    (function () {
+        try {
+            if (sessionStorage.getItem('mqAdminUnlocked') === '1') openDashboard();
+        } catch (e) {}
+    })();
+
+    /* ===== Tab switching ===== */
+    function switchTab(id) {
+        var btns = document.querySelectorAll('.tab-btn');
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].classList.toggle('active', btns[i].getAttribute('data-tab') === id);
+        }
+        var panels = document.querySelectorAll('.tab-panel');
+        for (var j = 0; j < panels.length; j++) {
+            panels[j].classList.toggle('active', panels[j].id === id);
+        }
+    }
+
+    /* ===== GitHub API ===== */
+    function ghConfig() {
+        return {
+            owner: document.getElementById('ghOwner').value.trim(),
+            repo: document.getElementById('ghRepo').value.trim(),
+            branch: document.getElementById('ghBranch').value.trim() || 'main',
+            token: document.getElementById('ghToken').value.trim()
+        };
+    }
+
+    function restoreGhConfig() {
+        document.getElementById('ghOwner').value = LS.get('mqGhOwner', '');
+        document.getElementById('ghRepo').value = LS.get('mqGhRepo', '');
+        document.getElementById('ghBranch').value = LS.get('mqGhBranch', 'main');
+        document.getElementById('ghToken').value = LS.get('mqGhToken', '');
+    }
+
+    function saveGhConfig(cfg) {
+        LS.set('mqGhOwner', cfg.owner);
+        LS.set('mqGhRepo', cfg.repo);
+        LS.set('mqGhBranch', cfg.branch);
+        LS.set('mqGhToken', cfg.token);
+    }
+
+    async function ghApi(path, method, body) {
+        var cfg = ghConfig();
+        var headers = { 'Accept': 'application/vnd.github+json' };
+        if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token;
+        var opts = { method: method || 'GET', headers: headers };
+        if (body !== undefined) opts.body = JSON.stringify(body);
+        var res = await fetch('https://api.github.com' + path, opts);
+        var data = null;
+        try { data = await res.json(); } catch (e) {}
+        if (!res.ok) {
+            var msg = (data && (data.message || data.error)) || ('HTTP ' + res.status);
+            throw new Error(msg);
+        }
+        return data;
+    }
+
+    function decodeB64(b64) {
+        var bin = atob(b64);
+        var bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new TextDecoder('utf-8').decode(bytes);
+    }
+
+    function encodeB64(str) {
+        var bytes = new TextEncoder().encode(str);
+        var bin = '';
+        for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        return btoa(bin);
+    }
+
+    async function ghGetFile(path) {
+        var cfg = ghConfig();
+        var data = await ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path + '?ref=' + encodeURIComponent(cfg.branch));
+        return { sha: data.sha, content: decodeB64(data.content) };
+    }
+
+    async function ghPutFile(path, content, message, sha) {
+        var cfg = ghConfig();
+        var body = { message: message, content: encodeB64(content), branch: cfg.branch };
+        if (sha) body.sha = sha;
+        var data = await ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path, 'PUT', body);
+        return data;
+    }
+
+    async function testConnection() {
+        var cfg = ghConfig();
+        if (!cfg.owner || !cfg.repo || !cfg.token) {
+            log('Lengkapi Owner, Repository, Branch, dan Token dulu.', 'err');
+            return;
+        }
+        saveGhConfig(cfg);
+        log('Mengetes koneksi ke GitHub…');
+        try {
+            var user = await ghApi('/user');
+            await ghApi('/repos/' + cfg.owner + '/' + cfg.repo);
+            document.getElementById('connStatus').innerHTML =
+                '<span class="status-dot" style="background:#1db954"></span>Terhubung sebagai <b>' + (user.login || cfg.owner) + '</b>';
+            log('Koneksi OK — login: ' + user.login + ' @ ' + cfg.owner + '/' + cfg.repo + ':' + cfg.branch, 'ok');
+        } catch (e) {
+            document.getElementById('connStatus').innerHTML =
+                '<span class="status-dot" style="background:#e50914"></span>Gagal';
+            log('Tes koneksi GAGAL: ' + e.message, 'err');
+        }
+    }
+
+    /* ===== Parsing & serialisasi file data JS ===== */
+    function parseDataFile(src, varName) {
+        var re = new RegExp('window\\.' + varName + '\\s*=\\s*([\\[\\{])');
+        var m = src.match(re);
+        if (!m) throw new Error('Format tidak dikenali: window.' + varName + ' = …');
+        var start = m.index + m[0].length - 1;
+        var open = src[start];
+        var close = open === '[' ? ']' : '}';
+        var depth = 0, inStr = false, esc = false, i;
+        for (i = start; i < src.length; i++) {
+            var c = src[i];
+            if (inStr) {
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') inStr = true;
+            else if (c === open) depth++;
+            else if (c === close) { depth--; if (depth === 0) break; }
+        }
+        var body = src.slice(start, i + 1);
+        // eslint-disable-next-line no-new-func
+        return (new Function('return ' + body + ';'))();
+    }
+
+    function fileHeader(path) {
+        return '/* ==========================================================================\n' +
+               '   ' + path + ' — DIKELOLA OTOMATIS oleh admin.html\n' +
+               '   Jangan edit manual jika tidak perlu — perubahan bisa tertimpa\n' +
+               '   saat admin.html menyimpan. ========================================================================== */\n';
+    }
+
+    function serializeFile(path, varName, data) {
+        return fileHeader(path) + '\nwindow.' + varName + ' = ' + JSON.stringify(data, null, 4) + ';\n';
+    }
+
+    /* ===== Muat semua data ===== */
+    async function loadAllData() {
+        var cfg = ghConfig();
+        if (!cfg.owner || !cfg.repo || !cfg.token) {
+            log('Isi koneksi GitHub dulu (Owner/Repo/Token), lalu coba lagi.', 'err');
+            return;
+        }
+        saveGhConfig(cfg);
+        log('Memuat data dari GitHub…');
+        var loaded = 0;
+        for (var i = 0; i < DATA_FILES.length; i++) {
+            var df = DATA_FILES[i];
+            try {
+                var f = await ghGetFile(df.path);
+                state[df.key] = { data: parseDataFile(f.content, df.varName), sha: f.sha, dirty: false };
+                log('✓ ' + df.label + ' dimuat dari GitHub (' + df.path + ')', 'ok');
+                loaded++;
+            } catch (e) {
+                if (String(e.message).indexOf('404') >= 0) {
+                    log('⚠ ' + df.path + ' belum ada di GitHub — coba ambil dari situs ini…', 'info');
+                    var local = await tryLoadLocal(df);
+                    if (local) {
+                        state[df.key] = { data: local, sha: null, dirty: true };
+                        log('✓ ' + df.label + ' diambil dari situs (belum di GitHub, akan dibuat saat disimpan)', 'ok');
+                    } else {
+                        log('✗ ' + df.label + ' tidak ditemukan di GitHub maupun situs.', 'err');
+                    }
+                } else {
+                    log('✗ ' + df.label + ' gagal dimuat: ' + e.message, 'err');
+                }
+            }
+        }
+        if (loaded === 0 && Object.keys(state).length === 0) {
+            log('Tidak ada data yang bisa dimuat. Periksa token/owner/repo, atau pastikan repo sudah punya file data.', 'err');
+        }
+        renderAll();
+        updateDirtySummary();
+    }
+
+    async function tryLoadLocal(df) {
+        try {
+            var res = await fetch(df.path, { cache: 'no-store' });
+            if (!res.ok) return null;
+            var text = await res.text();
+            return parseDataFile(text, df.varName);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function renderAll() {
+        if (state.news) editors.news.render();
+        if (state.series) editors.series.render();
+        if (state.movies) editors.movies.render();
+        if (state.music) editors.music.render();
+    }
+
+    /* ===== Simpan semua (hanya file yang berubah) ===== */
+    async function saveAllData() {
+        var dirtyKeys = [];
+        for (var k in state) {
+            if (state[k] && state[k].dirty) dirtyKeys.push(k);
+        }
+        if (!dirtyKeys.length) {
+            log('Tidak ada perubahan untuk disimpan. Ubah konten dulu, atau muat data lagi.', 'info');
+            return;
+        }
+        var cfg = ghConfig();
+        if (!cfg.token) { log('Token GitHub belum diisi.', 'err'); return; }
+        log('Menyimpan ' + dirtyKeys.length + ' file ke GitHub…');
+        var ok = 0;
+        for (var i = 0; i < dirtyKeys.length; i++) {
+            var key = dirtyKeys[i];
+            var df = null;
+            for (var j = 0; j < DATA_FILES.length; j++) {
+                if (DATA_FILES[j].key === key) { df = DATA_FILES[j]; break; }
+            }
+            if (!df) continue;
+            var s = state[key];
+            var content = serializeFile(df.path, df.varName, s.data);
+            var message = 'update ' + df.path + ' via admin.html';
+            try {
+                await ghPutFile(df.path, content, message, s.sha);
+                state[key].sha = null; // sha baru diambil ulang saat load berikutnya
+                state[key].dirty = false;
+                log('✓ ' + df.label + ' tersimpan → ' + message, 'ok');
+                ok++;
+            } catch (e) {
+                log('✗ ' + df.label + ' GAGAL disimpan: ' + e.message, 'err');
+            }
+        }
+        updateDirtySummary();
+        if (ok === dirtyKeys.length) {
+            log('Selesai! Vercel akan auto re-deploy dalam ±1 menit. 🚀', 'ok');
+        }
+    }
+
+    function updateDirtySummary() {
+        var n = 0;
+        for (var k in state) {
+            if (state[k] && state[k].dirty) n++;
+        }
+        var el = document.getElementById('dirtySummary');
+        if (n > 0) {
+            el.innerHTML = '<span class="dirty-badge">' + n + ' file belum disimpan</span>';
+        } else {
+            el.textContent = '';
+        }
+    }
+
+    /* ===== Preview media dari path/URL (foto / video / audio) =====
+       Media TIDAK di-upload dari panel ini — cukup tulis path file yang
+       sudah ada di repo atau URL eksternal. Preview (kalau path valid)
+       muncul otomatis saat user mengetik / saat form diedit. */
+    function refreshMediaPreview(input) {
+        var prev = input.nextElementSibling;
+        if (!prev || !prev.classList || !prev.classList.contains('media-preview')) return;
+        var val = input.value.trim();
+        if (!val) {
+            prev.classList.remove('show');
+            prev.removeAttribute('src');
+            return;
+        }
+        if (prev.tagName === 'IMG') {
+            prev.onload = function () { prev.classList.add('show'); };
+            prev.onerror = function () { prev.classList.remove('show'); };
+            prev.src = val;
+        } else {
+            prev.src = val;
+            prev.classList.add('show');
+        }
+    }
+
+    /* ===== Normalisasi tanggal: terima DD-MM-YYYY / YYYY-MM-DD ===== */
+    function normalizeDate(v) {
+        v = String(v || '').trim();
+        if (!v) return v;
+        var m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+        if (m) return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
+        m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (m) return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
+        var d = new Date(v);
+        if (!isNaN(d.getTime())) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        return v;
+    }
+
+    /* ===== Generic list editor (field teks/nomor/select + media path/URL) ===== */
+    function makeListEditor(cfg) {
+        var ed = {
+            key: cfg.key,
+            fields: cfg.fields,
+            renderItem: cfg.renderItem,
+            editingIndex: -1,
+
+            get listEl() { return document.getElementById(cfg.key + 'List'); },
+            get formEl() { return document.getElementById(cfg.key + 'Form'); },
+            items: function () { return state[cfg.key] ? state[cfg.key].data : []; },
+            fieldId: function (name) { return 'fld_' + cfg.key + '_' + name; },
+
+            markDirty: function () {
+                if (state[cfg.key]) state[cfg.key].dirty = true;
+                updateDirtySummary();
+            },
+
+            formHtml: function () {
+                var self = this;
+                return '<div class="admin-form-grid">' +
+                this.fields.map(function (f) {
+                    var id = self.fieldId(f.name);
+                    var label = '<label class="admin-label" for="' + id + '">' + f.label + '</label>';
+                    var input;
+                    if (f.type === 'textarea') {
+                        input = '<textarea id="' + id + '" class="admin-input" rows="' + (f.rows || 4) + '" placeholder="' + (f.placeholder || '') + '"></textarea>';
+                    } else if (f.type === 'select') {
+                        input = '<select id="' + id + '" class="admin-input">' +
+                            (f.options || []).map(function (o) { return '<option value="' + o + '">' + o + '</option>'; }).join('') +
+                            '</select>';
+                    } else if (f.kind) {
+                        input = '<input id="' + id + '" type="text" class="admin-input" placeholder="' + (f.placeholder || '') + '" autocomplete="off" spellcheck="false">';
+                    } else {
+                        input = '<input id="' + id + '" type="' + (f.type || 'text') + '" class="admin-input" placeholder="' + (f.placeholder || '') + '">';
+                    }
+                    var preview = '';
+                    if (f.kind === 'image') preview = '<img class="media-preview" alt="Pratinjau foto" hidden>';
+                    else if (f.kind === 'video') preview = '<video class="media-preview" controls preload="metadata" hidden></video>';
+                    else if (f.kind === 'audio') preview = '<audio class="media-preview" controls preload="none" hidden></audio>';
+                    return '<div class="form-field' + (f.full ? ' form-field-full' : '') + '">' +
+                        label + input + preview +
+                        (f.hint ? '<p class="admin-hint">' + f.hint + '</p>' : '') +
+                    '</div>';
+                }).join('') +
+                '</div>' +
+                '<div class="flex flex-wrap gap-2 mt-4">' +
+                    '<button type="submit" class="btn btn-red"><i class="fas fa-save" aria-hidden="true"></i> Simpan</button>' +
+                    '<button type="button" class="btn btn-gray" onclick="editors.' + this.key + '.cancel()">Batal</button>' +
+                '</div>';
+            },
+
+            render: function () {
+                var self = this;
+                var items = this.items();
+                if (!items || !Array.isArray(items)) return;
+                var html = items.map(function (it, i) {
+                    return '<div class="admin-row">' +
+                        '<div class="admin-row-main">' + self.renderItem(it) + '</div>' +
+                        '<div class="admin-row-actions">' +
+                            '<button type="button" class="btn-ghost" title="Naik" onclick="editors.' + self.key + '.move(' + i + ',-1)"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>' +
+                            '<button type="button" class="btn-ghost" title="Turun" onclick="editors.' + self.key + '.move(' + i + ',1)"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>' +
+                            '<button type="button" class="btn-ghost" title="Edit" onclick="editors.' + self.key + '.edit(' + i + ')"><i class="fas fa-pen" aria-hidden="true"></i></button>' +
+                            '<button type="button" class="btn-danger" title="Hapus" onclick="editors.' + self.key + '.remove(' + i + ')"><i class="fas fa-trash" aria-hidden="true"></i></button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+                this.listEl.innerHTML = html || '<p class="text-sm text-gray-500">Belum ada item. Klik "Tambah".</p>';
+            },
+
+            openForm: function (startVals) {
+                var self = this;
+                this.formEl.innerHTML = this.formHtml();
+                this.formEl.classList.remove('hidden');
+                this.formEl.onsubmit = function (e) {
+                    e.preventDefault();
+                    self.saveForm();
+                };
+                // Isi nilai field + bind preview media (path/URL)
+                this.fields.forEach(function (f) {
+                    var el = document.getElementById(self.fieldId(f.name));
+                    if (!el) return;
+                    if (f.kind) {
+                        el.addEventListener('input', function () { refreshMediaPreview(el); });
+                    }
+                    if (startVals) {
+                        var v = startVals[f.name];
+                        if (f.type === 'textarea' && Array.isArray(v)) v = v.join('\n');
+                        el.value = (v === undefined || v === null) ? '' : v;
+                    }
+                    if (f.kind) refreshMediaPreview(el);
+                });
+            },
+
+            startAdd: function () {
+                this.editingIndex = -1;
+                this.openForm(null);
+                var first = this.formEl.querySelector('input:not([type="file"]), textarea, select');
+                if (first) first.focus();
+            },
+
+            edit: function (i) {
+                var items = this.items();
+                this.editingIndex = i;
+                this.openForm(items[i]);
+            },
+
+            saveForm: function () {
+                var self = this;
+                var btn = this.formEl.querySelector('button[type="submit"]');
+                var orig = btn ? btn.innerHTML : '';
+                if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Menyimpan…'; }
+                try {
+                    var items = this.items();
+                    var isNew = this.editingIndex < 0;
+                    var existing = isNew ? null : items[this.editingIndex];
+                    // Mulai dari item lama — field di luar form (mis. id movies)
+                    // TIDAK hilang saat edit.
+                    var obj = existing ? JSON.parse(JSON.stringify(existing)) : {};
+
+                    // Baca semua field (text/number/select/media path/URL)
+                    this.fields.forEach(function (f) {
+                        var el = document.getElementById(self.fieldId(f.name));
+                        if (!el) return;
+                        var val = el.value;
+                        if (f.type === 'number') val = val === '' ? undefined : Number(val);
+                        if (f.type === 'textarea' && f.asArray) val = val.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+                        obj[f.name] = val;
+                    });
+
+                    if (cfg.normalize) obj = cfg.normalize(obj);
+                    if (cfg.validate) {
+                        var errMsg = cfg.validate(obj);
+                        if (errMsg) { log(errMsg, 'err'); return; }
+                    }
+
+                    if (isNew) {
+                        items.push(obj);
+                        log('➕ ' + cfg.label + ': item baru ditambahkan.', 'info');
+                    } else {
+                        items[this.editingIndex] = obj;
+                        log('✏️ ' + cfg.label + ' item #' + (this.editingIndex + 1) + ' diperbarui.', 'info');
+                    }
+                    this.formEl.classList.add('hidden');
+                    this.editingIndex = -1;
+                    this.markDirty();
+                    this.render();
+                    if (cfg.onSaved) cfg.onSaved(ed, obj, isNew);
+                } catch (e) {
+                    log('✗ Gagal menyimpan: ' + e.message, 'err');
+                } finally {
+                    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+                }
+            },
+
+            cancel: function () {
+                this.formEl.classList.add('hidden');
+                this.editingIndex = -1;
+            },
+
+            remove: function (i) {
+                if (!confirm('Hapus item ini?')) return;
+                this.items().splice(i, 1);
+                log('🗑 ' + cfg.label + ' item #' + (i + 1) + ' dihapus.', 'info');
+                this.markDirty();
+                this.render();
+            },
+
+            move: function (i, dir) {
+                var items = this.items();
+                var j = i + dir;
+                if (j < 0 || j >= items.length) return;
+                var tmp = items[i];
+                items[i] = items[j];
+                items[j] = tmp;
+                this.markDirty();
+                this.render();
+            }
+        };
+        editors[cfg.key] = ed;
+        return ed;
+    }
+
+    /* ===== Editor: Berita — Tanggal, Judul, Isi Pesan, Video (Opsional) =====
+       Contoh: Tanggal 13-08-2026 · Judul "Teruslah Bersinar Untukku" ·
+       Isi: paragraf 1, paragraf 2, dst. (satu paragraf per baris). Video
+       OPSIONAL: isi path/URL video yang sudah ada (tidak di-upload di sini). */
+    makeListEditor({
+        key: 'news',
+        label: 'Berita',
+        fields: [
+            { name: 'date', label: 'Tanggal', placeholder: '13-08-2026', hint: 'Contoh: 13-08-2026 (DD-MM-YYYY) atau 2026-08-13. Pesan tampil otomatis saat tanggalnya tiba.' },
+            { name: 'title', label: 'Judul Pesan', placeholder: 'Teruslah Bersinar Untukku' },
+            { name: 'paragraphs', label: 'Isi Pesan (satu paragraf per baris)', type: 'textarea', rows: 7, asArray: true, full: true, placeholder: 'Paragraf 1\nParagraf 2\ndan seterusnya…' },
+            { name: 'video', label: 'Video (Opsional)', kind: 'video', placeholder: 'src/videos/newsandpopularpage/NAMA_VIDEO.mp4', hint: 'Opsional — kosongkan untuk pesan teks saja. Isi path/URL video yang sudah ada di repo atau hosting eksternal.' },
+            { name: 'countdown', label: 'Countdown episode berikutnya (detik)', type: 'number', placeholder: '5', hint: '(Opsional) Hanya dipakai jika ada video — default 5 detik.' }
+        ],
+        normalize: function (obj) {
+            obj.date = normalizeDate(obj.date);
+            return obj;
+        },
+        validate: function (obj) {
+            if (!obj.date) return 'Tanggal wajib diisi (contoh: 13-08-2026).';
+            if (!obj.title) return 'Judul pesan wajib diisi.';
+            if (!(obj.paragraphs && obj.paragraphs.length)) return 'Isi pesan minimal satu paragraf.';
+            return null;
+        },
+        renderItem: function (it) {
+            return '<div class="font-semibold">' + (it.title || '(tanpa judul)') + '</div>' +
+                '<div class="text-xs text-gray-400">📅 ' + (it.date || '?') + (it.video ? ' • 🎬 video' : '') + ' • ' + ((it.paragraphs || []).length || 0) + ' paragraf</div>';
+        }
+    });
+
+    /* ===== Editor: Foto Series — path/URL foto + RASIO =====
+       File TIDAK di-upload di sini: isi path file yang sudah ada di repo
+       (mis. src/images/photo/...) atau URL eksternal. */
+    makeListEditor({
+        key: 'series',
+        label: 'Foto Series',
+        fields: [
+            { name: 'src', label: 'Path / URL Foto', kind: 'image', placeholder: 'src/images/photo/NAMA_FOTO.png', hint: 'Isi path file di repo (mis. src/images/photo/…) atau URL eksternal. File TIDAK di-upload dari panel ini.' },
+            { name: 'ratio', label: 'Rasio', type: 'select', options: ['9:16', '16:9', '3:4', '4:3', '1:1'], hint: 'Contoh: 9:16 untuk foto potret HP.' },
+            { name: 'label', label: 'Label (Opsional)', placeholder: 'Video 1', hint: 'Opsional — nama yang tampil di modal. Kosongkan untuk memakai nama file.' }
+        ],
+        normalize: function (obj) {
+            if (!obj.label && obj.src) {
+                obj.label = String(obj.src).split('/').pop().replace(/\.[^.]+$/, '');
+            }
+            return obj;
+        },
+        validate: function (obj) {
+            if (!obj.src) return 'Isi path/URL foto dulu.';
+            return null;
+        },
+        renderItem: function (it) {
+            return '<div class="flex items-center gap-3">' +
+                '<img class="admin-thumb" src="' + it.src + '" alt="" onerror="this.style.display=\'none\'">' +
+                '<div><div class="font-semibold">' + (it.label || it.src) + '</div>' +
+                '<div class="text-xs text-gray-400">' + (it.ratio || '?') + (it.width ? ' • ' + it.width + '×' + it.height : '') + '</div></div></div>';
+        }
+    });
+
+    /* ===== Editor: Video Movies — path/URL video + thumbnail ===== */
+    makeListEditor({
+        key: 'movies',
+        label: 'Video Movies',
+        fields: [
+            { name: 'title', label: 'Judul Video', placeholder: 'Video 60' },
+            { name: 'video', label: 'Path / URL Video', kind: 'video', placeholder: 'src/videos/moviespage/video60.mp4', hint: 'Isi path file di repo (mis. src/videos/moviespage/…) atau URL eksternal. File TIDAK di-upload dari panel ini.' },
+            { name: 'thumbnail', label: 'Path / URL Thumbnail (Foto)', kind: 'image', placeholder: 'src/images/photo/placeholder9_16_91.png' },
+            { name: 'countdown', label: 'Countdown episode berikutnya (detik)', type: 'number', placeholder: '5' }
+        ],
+        validate: function (obj) {
+            if (!obj.video) return 'Isi path/URL video dulu.';
+            return null;
+        },
+        renderItem: function (it) {
+            var thumb = it.thumbnail
+                ? '<img class="admin-thumb-square" src="' + it.thumbnail + '" alt="" onerror="this.style.display=\'none\'">'
+                : '<div class="admin-thumb-square admin-thumb-fallback"><i class="fas fa-film" aria-hidden="true"></i></div>';
+            return '<div class="flex items-center gap-3">' + thumb +
+                '<div><div class="font-semibold">' + (it.title || ('Video ' + it.id)) + '</div>' +
+                '<div class="text-xs text-gray-400">#' + (it.id || '?') + ' • ' + (it.video || '?') + '</div></div></div>';
+        },
+        // id OTOMATIS & dipertahankan saat edit (dipakai movies.html untuk modal).
+        onSaved: function (ed, obj, isNew) {
+            if (isNew) {
+                var nextId = 1;
+                ed.items().forEach(function (it) {
+                    if (typeof it.id === 'number' && it.id >= nextId) nextId = it.id + 1;
+                });
+                obj.id = nextId;
+                ed.markDirty();
+                ed.render();
+            }
+        }
+    });
+
+    /* ===== Editor: Musik — path/URL file music + judul =====
+       Contoh judul: "Selamat Tinggal - Virgoun Ft. Audy". File TIDAK
+       di-upload di sini: isi path yang sudah ada di src/audio atau URL. */
+    makeListEditor({
+        key: 'music',
+        label: 'Musik',
+        fields: [
+            { name: 'title', label: 'Judul Lagu', placeholder: 'Selamat Tinggal - Virgoun Ft. Audy', hint: 'Contoh: Selamat Tinggal - Virgoun Ft. Audy' },
+            { name: 'src', label: 'Path / URL File Musik', kind: 'audio', placeholder: 'src/audio/NAMA_FILE.mp3', hint: 'Isi path file di repo (mis. src/audio/…) atau URL eksternal. File TIDAK di-upload dari panel ini.' }
+        ],
+        validate: function (obj) {
+            if (!obj.title) return 'Judul lagu wajib diisi.';
+            if (!obj.src) return 'Isi path/URL file music dulu.';
+            return null;
+        },
+        renderItem: function (it) {
+            return '<div class="font-semibold"><i class="fas fa-music text-red-500 mr-2" aria-hidden="true"></i>' + (it.title || it.src) + '</div>' +
+                '<div class="text-xs text-gray-400">' + (it.src || '?') + '</div>';
+        }
+    });
+
+    /* ===== Pengaturan PIN ===== */
+    function changePin() {
+        var v = document.getElementById('newPin').value.trim();
+        if (!v) { document.getElementById('pinMsg').textContent = 'Isi PIN baru dulu.'; return; }
+        LS.set('mqAdminPin', v);
+        document.getElementById('pinMsg').textContent = 'PIN baru disimpan untuk browser ini.';
+        document.getElementById('newPin').value = '';
+    }
+
+    function resetPin() {
+        LS.del('mqAdminPin');
+        document.getElementById('pinMsg').textContent = 'PIN dikembalikan ke bawaan (' + ADMIN_PIN + ').';
+    }
+    </script>
+</body>
+</html>

@@ -5,6 +5,9 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# File sisa FUSE (muncul saat file diganti/di-rename selagi dibuka proses lain)
+.fuse_hidden*
+
 # Logs
 *.log
 

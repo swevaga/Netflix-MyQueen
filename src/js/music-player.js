@@ -41,7 +41,12 @@
         try {
             sessionStorage.setItem(STATE_KEY, JSON.stringify({
                 trackIndex: trackIndex,
-                currentTime: audio && !isNaN(audio.duration) ? audio.currentTime : 0,
+                // Simpan posisi selama audio ADA (durasi belum tentu siap saat
+                // pagehide — metadata lagu besar bisa masih loading). Dulu guard
+                // !isNaN(audio.duration) membuat currentTime tersimpan 0 ketika
+                // metadata belum selesai dimuat, sehingga halaman berikutnya
+                // tidak bisa melanjutkan dari posisi yang sama.
+                currentTime: audio ? audio.currentTime : 0,
                 playing: playing,
                 started: started,
                 isOff: isOff

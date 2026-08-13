@@ -8,6 +8,14 @@
    - aria-expanded disinkronkan agar screen reader akurat.
    ========================================================================== */
 
+/* Sinkronkan posisi Dynamic Island: saat salah satu menu navbar terbuka,
+   island TURUN ke bawah sedikit (CSS body.navbar-menu-open) agar tidak
+   menutupi panel Profile/Notification/Search/menu mobile. */
+function updateIslandShift() {
+    var anyOpen = document.querySelectorAll('.dropdown-content.show, .notification.show, #mobileMenu.show').length > 0;
+    document.body.classList.toggle('navbar-menu-open', anyOpen);
+}
+
 /* Tutup SEMUA menu: dropdown (profile), notification, search, mobile menu. */
 function closeAllMenus() {
     var menus = document.querySelectorAll('.dropdown-content.show, .notification.show, #mobileMenu.show');
@@ -20,6 +28,7 @@ function closeAllMenus() {
     for (var j = 0; j < buttons.length; j++) {
         buttons[j].setAttribute('aria-expanded', 'false');
     }
+    updateIslandShift();
 }
 
 /* Helper: tutup semua, lalu toggle menu target. Mengembalikan state baru (true = terbuka). */
@@ -33,6 +42,7 @@ function toggleExclusiveMenu(menuId) {
     } else {
         menu.classList.remove('show');
     }
+    updateIslandShift();
     return willOpen;
 }
 
@@ -72,3 +82,30 @@ document.addEventListener('click', function (event) {
         closeAllMenus();
     }
 });
+
+/* ---- Teks navbar dari src/data/site-text-data.js (dikelola admin.html) ----
+   Memperbarui isi panel pencarian & notifikasi di semua halaman dari
+   window.SITE_TEXT bila tersedia (fallback: teks bawaan di HTML). */
+function applySiteText() {
+    if (!window.SITE_TEXT) return;
+    var search = document.getElementById('searchNotification');
+    if (search) {
+        var p = search.querySelector('p');
+        if (p && window.SITE_TEXT.searchNotification) {
+            p.textContent = window.SITE_TEXT.searchNotification;
+        }
+    }
+    var menu = document.getElementById('notificationMenu');
+    if (menu && Array.isArray(window.SITE_TEXT.notifications)) {
+        var html = window.SITE_TEXT.notifications.map(function (t) {
+            return '<p>' + String(t).replace(/</g, '&lt;') + '</p>';
+        }).join('');
+        if (html) menu.innerHTML = html;
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applySiteText);
+} else {
+    applySiteText();
+}

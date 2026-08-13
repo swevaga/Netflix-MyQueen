@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 
-    <!-- ==== series.html — Halaman Series — grid foto dikelompokkan otomatis per rasio (9:16, 16:9, dst) + modal video. ==== -->
+    <!-- ==== series.html — Halaman Series — grid foto data-driven dari src/data/series-data.js, dikelompokkan otomatis per rasio + modal video. ==== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Netflix - Series</title>
-    <link rel="icon" href="src/images/iconpage/netflix.ico" type="image/x-icon"/>
+    <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
     <link rel="stylesheet" href="src/css/tailwind.css?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="src/css/common.css?v=11">
+    <link rel="stylesheet" href="src/css/common.css?v=15">
     <style>
         .modal {
             display: none;
@@ -141,23 +141,25 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="src/js/debug-hud.js?v=1"></script>
-    <script src="src/js/navbar.js?v=3"></script>
+    <script src="src/js/navbar.js?v=5"></script>
     <script src="src/js/scroll-reveal.js?v=5"></script>
-    <script src="src/data/music-data.js?v=4"></script>
-    <script src="src/js/music-player.js?v=12"></script>
+    <script src="src/data/site-text-data.js?v=1"></script>
+    <script src="src/data/series-data.js?v=1"></script>
+    <script src="src/data/music-data.js?v=5"></script>
+    <script src="src/js/music-player.js?v=13"></script>
     <!-- Vercel Analytics + Speed Insights (paket resmi @vercel/analytics + @vercel/speed-insights) -->
     <script type="module" src="src/js/vercel-init.mjs"></script>
     <!-- Preload strategis: 3 foto pertama grup 16:9 (tampil paling atas). -->
-    <link rel="preload" as="image" href="src/images/seriespage/placeholder16_9.png">
-    <link rel="preload" as="image" href="src/images/seriespage/placeholder16_9pt2.png">
-    <link rel="preload" as="image" href="src/images/seriespage/placeholder16_9pt3.png">
+    <link rel="preload" as="image" href="src/images/photo/placeholder16_9_1.png">
+    <link rel="preload" as="image" href="src/images/photo/placeholder16_9_7.png">
+    <link rel="preload" as="image" href="src/images/photo/placeholder16_9_8.png">
 </head>
 <body class="bg-black text-white m-0 p-0 overflow-x-hidden">
     <a class="skip-link" href="#main-content">Langsung ke konten</a>
     <header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
         <div class="flex items-center space-x-3 md:space-x-6">
             <button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
-            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/iconpage/netflix_logo.png">
+            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
             <nav class="hidden md:flex space-x-5 text-sm">
                 <a class="text-gray-300 hover:text-white transition" href="index.html">Home</a>
                 <a class="text-white hover:text-gray-300 transition" href="series.html">Series</a>
@@ -170,20 +172,20 @@
             <div class="relative">
                 <button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
                 <div class="notification" id="searchNotification">
-                    <p>gada siapa siapa kecuali aku.me love you ~R</p>
+                    <p>Gada Siapa Siapa Kecuali Aku ~R</p>
                 </div>
             </div>
             <button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
             <div class="notification" id="notificationMenu">
                 <p>Semakin Hari Semakin Cantik Sih Kamu</p>
                 <p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
-                <p>I Love You Hehe &gt;3</p>
+                <p>I Love You Hehe >3</p>
             </div>
             <div class="dropdown">
-                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/iconpage/user_avatar.png"></button>
+                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
                 <div class="dropdown-content" id="dropdownMenu">
-                    <a href="#">Accounts</a>
-                    <a href="#">Settings</a>
+                    <a href="https://www.instagram.com/vaxetherion/">Accounts</a>
+                    <a href="admin.html">Settings</a>
                     <a href="#">Logout</a>
                 </div>
             </div>
@@ -203,335 +205,9 @@
         <section id="seriesSection" class="bg-black py-6 scroll-animate">
             <div class="container mx-auto px-4 md:px-12">
                 <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4">Divine Beauty</h2>
+                <!-- Grid dirender dari src/data/series-data.js (window.SERIES_ITEMS),
+                     dikelompokkan otomatis per rasio foto. -->
                 <div id="seriesRatioContainer"></div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 1"><img alt="Image 1" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="480" height="853" src="src/images/seriespage/placeholder1.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 2"><img alt="Image 2" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="480" height="853" src="src/images/seriespage/placeholder2.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 3"><img alt="Image 3" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="480" height="853" src="src/images/seriespage/placeholder3.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 4"><img alt="Image 4" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="480" height="853" src="src/images/seriespage/placeholder4.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 5"><img alt="Image 5" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="480" height="853" src="src/images/seriespage/placeholder5.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 6"><img alt="Image 6" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="350" height="622" src="src/images/seriespage/placeholder6.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 1"><img alt="Image 16:9 1" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="1080" height="608" src="src/images/seriespage/placeholder16_9.png"/></button>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 7"><img alt="Image 7" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="347" height="617" src="src/images/seriespage/placeholder7.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 8"><img alt="Image 8" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="347" height="617" src="src/images/seriespage/placeholder8.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 9"><img alt="Image 9" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="346" height="616" src="src/images/seriespage/placeholder9.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 10"><img alt="Image 10" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="347" height="617" src="src/images/seriespage/placeholder10.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 11"><img alt="Image 11" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="322" height="434" src="src/images/seriespage/placeholder11.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 12"><img alt="Image 12" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="305" height="542" src="src/images/seriespage/placeholder12.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 2"><img alt="Image 16:9 2" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="998" height="563" src="src/images/seriespage/placeholder16_9pt2.png"/></button>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 13"><img alt="Image 13" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="284" height="505" src="src/images/seriespage/placeholder13.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 14"><img alt="Image 14" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="341" height="606" src="src/images/seriespage/placeholder14.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 15"><img alt="Image 15" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="338" height="615" src="src/images/seriespage/placeholder15.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16"><img alt="Image 16" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="347" height="617" src="src/images/seriespage/placeholder16.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 17"><img alt="Image 17" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="349" height="621" src="src/images/seriespage/placeholder17.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 18"><img alt="Image 18" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="296" height="400" src="src/images/seriespage/placeholder18.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 3"><img alt="Image 16:9 3" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="887" height="499" src="src/images/seriespage/placeholder16_9pt3.png"/></button>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 19"><img alt="Image 19" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1920" src="src/images/seriespage/placeholder19.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 20"><img alt="Image 20" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="563" height="998" src="src/images/seriespage/placeholder20.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 21"><img alt="Image 21" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="564" height="996" src="src/images/seriespage/placeholder21.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 22"><img alt="Image 22" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="345" height="617" src="src/images/seriespage/placeholder22.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 23"><img alt="Image 23" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="347" height="619" src="src/images/seriespage/placeholder23.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 24"><img alt="Image 24" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="607" height="1080" src="src/images/seriespage/placeholder24.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 4"><img alt="Image 16:9 4" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="999" height="562" src="src/images/seriespage/placeholder16_9pt4.png"/></button>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 25"><img alt="Image 25" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="562" height="1000" src="src/images/seriespage/placeholder25.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 26"><img alt="Image 26" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="562" height="1000" src="src/images/seriespage/placeholder26.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 27"><img alt="Image 27" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="562" height="1000" src="src/images/seriespage/placeholder27.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 28"><img alt="Image 28" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="480" height="853" src="src/images/seriespage/placeholder28.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 29"><img alt="Image 29" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1920" src="src/images/seriespage/placeholder29.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 30"><img alt="Image 30" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="562" height="1000" src="src/images/seriespage/placeholder30.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 5"><img alt="Image 16:9 5" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="1000" height="562" src="src/images/seriespage/placeholder16_9pt5.png"/></button>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 31"><img alt="Image 31" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1920" src="src/images/seriespage/placeholder31.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 32"><img alt="Image 32" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1920" src="src/images/seriespage/placeholder32.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 33"><img alt="Image 33" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1920" src="src/images/seriespage/placeholder33.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 34"><img alt="Image 34" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder34.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 35"><img alt="Image 35" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder35.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="4:3" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 36"><img alt="Image 36" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="810" src="src/images/seriespage/placeholder36.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 6"><img alt="Image 16:9 6" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="998" height="563" src="src/images/seriespage/placeholder16_9pt6.png"/></button>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="4:3" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 37"><img alt="Image 37" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="810" src="src/images/seriespage/placeholder37.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="4:3" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 38"><img alt="Image 38" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="809" src="src/images/seriespage/placeholder38.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 39"><img alt="Image 39" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1439" src="src/images/seriespage/placeholder39.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="1:1" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 40"><img alt="Image 40" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1080" src="src/images/seriespage/placeholder40.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="1:1" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 41"><img alt="Image 41" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1080" src="src/images/seriespage/placeholder41.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 42"><img alt="Image 42" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder42.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 7"><img alt="Image 16:9 7" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="1080" height="607" src="src/images/seriespage/placeholder16_9pt7.png"/></button>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">
-                    <div class="text-center">
-                        <button type="button" data-ratio="4:3" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 43"><img alt="Image 43" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="809" src="src/images/seriespage/placeholder43.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="4:3" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 44"><img alt="Image 44" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="810" src="src/images/seriespage/placeholder44.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="4:3" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 45"><img alt="Image 45" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="810" src="src/images/seriespage/placeholder45.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="4:3" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 46"><img alt="Image 46" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="810" src="src/images/seriespage/placeholder46.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 47"><img alt="Image 47" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder47.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 48"><img alt="Image 48" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder48.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 49"><img alt="Image 49" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder49.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 50"><img alt="Image 50" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder50.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 51"><img alt="Image 51" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder51.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 52"><img alt="Image 52" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder52.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="4:3" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 53"><img alt="Image 53" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="810" src="src/images/seriespage/placeholder53.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="3:4" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 54"><img alt="Image 54" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="1080" height="1440" src="src/images/seriespage/placeholder54.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 55"><img alt="Image 55" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="431" height="763" src="src/images/seriespage/placeholder55.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 56"><img alt="Image 56" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder56.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 57"><img alt="Image 57" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="349" height="621" src="src/images/homepage/placeholder10.png"/></button> 
-                    </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 8"><img alt="Image 16:9 8" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="720" height="406" src="src/images/seriespage/placeholder16_9pt8.png"/></button>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 58"><img alt="Image 58" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder57.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 59"><img alt="Image 59" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder58.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 60"><img alt="Image 60" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder59.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 61"><img alt="Image 61" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder60.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 62"><img alt="Image 62" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder61.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 63"><img alt="Image 63" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder62.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 9"><img alt="Image 16:9 9" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="720" height="406" src="src/images/seriespage/placeholder16_9pt9.png"/></button>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 64"><img alt="Image 64" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder63.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 65"><img alt="Image 65" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder64.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 66"><img alt="Image 66" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder65.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 67"><img alt="Image 67" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder66.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 68"><img alt="Image 68" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder67.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 69"><img alt="Image 69" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder68.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 10"><img alt="Image 16:9 10" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="720" height="406" src="src/images/seriespage/placeholder16_9pt10.png"/></button>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 70"><img alt="Image 70" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder69.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 71"><img alt="Image 71" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder70.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 72"><img alt="Image 72" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder71.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 73"><img alt="Image 73" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder72.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 74"><img alt="Image 74" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder73.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 75"><img alt="Image 75" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder74.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 11"><img alt="Image 16:9 11" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="720" height="406" src="src/images/seriespage/placeholder16_9pt11.png"/></button>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 76"><img alt="Image 76" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder75.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 77"><img alt="Image 77" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder76.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 78"><img alt="Image 78" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder77.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 79"><img alt="Image 79" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder78.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 80"><img alt="Image 80" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder79.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="9:16" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 81"><img alt="Image 81" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="960" src="src/images/seriespage/placeholder80.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 12"><img alt="Image 16:9 12" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="720" height="406" src="src/images/seriespage/placeholder16_9pt12.png"/></button>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3 mb-4">
-                    <div class="text-center">
-                        <button type="button" data-ratio="1:1" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 82"><img alt="Image 82" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="540" src="src/images/seriespage/placeholder81.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="1:1" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 83"><img alt="Image 83" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="540" src="src/images/seriespage/placeholder82.png"/></button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" data-ratio="1:1" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 84"><img alt="Image 84" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" width="540" height="540" src="src/images/seriespage/placeholder83.png"/></button>
-                    </div>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 13"><img alt="Image 16:9 13" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="720" height="406" src="src/images/seriespage/placeholder16_9pt13.png"/></button>
-                </div>
-                <div class="mb-6 series-static-banner">
-                    <button type="button" data-ratio="16:9" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video 16:9 14"><img alt="Image 16:9 14" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" fetchpriority="high" width="960" height="540" src="src/images/seriespage/placeholder16_9pt14.png"/></button>
-                </div>
-                </div>
             </div>
         </section>
     </main>
@@ -548,111 +224,42 @@
     
     <script>
 
-        /* ===== Auto-group foto per rasio (9:16, 3:4, 4:3, 1:1, 16:9, dll) =====
-           Membaca dimensi asli tiap gambar, mengelompokkannya, dan merender
-           ulang agar foto dengan rasio sama tampil dengan ukuran seragam. */
-        function ratioBucket(w, h) {
-            if (!w || !h) return 'lainnya';
-            var r = w / h;
-            if (r > 1.5) return '16:9';
-            if (r > 1.2) return '4:3';
-            if (r > 0.9) return '1:1';
-            if (r > 0.68) return '3:4';
-            return '9:16';
-        }
-
+        /* ===== Render foto per rasio dari src/data/series-data.js =====
+           Tambah/hapus/ubah foto cukup lewat file data (atau admin.html) —
+           tanpa menyentuh HTML sama sekali. Foto dikelompokkan otomatis. */
         function bucketLabel(b) {
             return { '16:9': 'Lanskap 16:9', '4:3': 'Lanskap 4:3', '1:1': 'Persegi 1:1', '3:4': 'Potret 3:4', '9:16': 'Potret 9:16' }[b] || 'Lainnya';
         }
 
-        function organizeSeriesByRatio() {
+        function renderSeries() {
+            var items = window.SERIES_ITEMS || [];
             var container = document.getElementById('seriesRatioContainer');
             if (!container) return;
-            // Hanya kartu dari grid statis (bukan hasil render ulang) yang diproses.
-            var items = Array.prototype.slice.call(document.querySelectorAll('#seriesSection .series-item')).filter(function (btn) {
-                return !container.contains(btn);
-            });
-            if (!items.length) return;
-
+            var order = ['16:9', '4:3', '1:1', '3:4', '9:16', 'lainnya'];
             var groups = {};
-            var pending = [];
-            items.forEach(function (btn) {
-                var ratio = btn.getAttribute('data-ratio');
-                if (ratio) {
-                    (groups[ratio] = groups[ratio] || []).push(btn);
-                } else {
-                    pending.push(btn);
-                }
+            items.forEach(function (it) {
+                var b = order.indexOf(it.ratio) >= 0 ? it.ratio : 'lainnya';
+                (groups[b] = groups[b] || []).push(it);
             });
-
-            function renderGroups() {
-                // Sembunyikan grid + banner statis lama (kalau tidak, banner 16:9
-                // tampil dobel: versi asli + klon di container), lalu render grup
-                // baru dengan ratio seragam.
-                var oldGrids = document.querySelectorAll('#seriesSection .grid');
-                for (var i = 0; i < oldGrids.length; i++) oldGrids[i].style.display = 'none';
-                var oldBanners = document.querySelectorAll('#seriesSection .series-static-banner');
-                for (var i = 0; i < oldBanners.length; i++) oldBanners[i].style.display = 'none';
-
-                var order = ['16:9', '4:3', '1:1', '3:4', '9:16', 'lainnya'];
-                var html = '';
-                order.forEach(function (b) {
-                    if (!groups[b] || !groups[b].length) return;
-                    html += '<div class="mb-8">';
-                    html += '<h3 class="text-sm md:text-base font-semibold text-gray-300 mb-3">' + bucketLabel(b) + '</h3>';
-                    html += '<div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">';
-                    groups[b].forEach(function (btn) {
-                        html += btn.outerHTML;
-                    });
-                    html += '</div></div>';
+            var html = '';
+            order.forEach(function (b) {
+                if (!groups[b] || !groups[b].length) return;
+                html += '<div class="mb-8">';
+                html += '<h3 class="text-sm md:text-base font-semibold text-gray-300 mb-3">' + bucketLabel(b) + '</h3>';
+                html += '<div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">';
+                groups[b].forEach(function (it, idx) {
+                    html += '<div class="text-center">' +
+                        '<button type="button" data-ratio="' + b + '" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video ' + it.label + '">' +
+                            '<img alt="Image ' + it.label + '" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" decoding="async" width="' + (it.width || 540) + '" height="' + (it.height || 960) + '" src="' + it.src + '"/>' +
+                        '</button>' +
+                    '</div>';
                 });
-                container.innerHTML = html;
-            }
-
-            if (!pending.length) {
-                // Semua kartu punya data-ratio: render langsung, tanpa probing jaringan.
-                renderGroups();
-                return;
-            }
-
-            // Fallback untuk kartu tanpa data-ratio: cek dimensi via Image,
-            // dengan timeout per gambar agar tidak pernah menggantung.
-            var probes = pending.map(function (btn) {
-                return new Promise(function (resolve) {
-                    var img = btn.querySelector('img');
-                    var probe = new Image();
-                    var settled = false;
-                    var timer = setTimeout(function () {
-                        if (settled) return;
-                        settled = true;
-                        resolve({ btn: btn, w: 0, h: 0 });
-                    }, 3000);
-                    probe.onload = function () {
-                        if (settled) return;
-                        settled = true;
-                        clearTimeout(timer);
-                        resolve({ btn: btn, w: probe.naturalWidth, h: probe.naturalHeight });
-                    };
-                    probe.onerror = function () {
-                        if (settled) return;
-                        settled = true;
-                        clearTimeout(timer);
-                        resolve({ btn: btn, w: 0, h: 0 });
-                    };
-                    probe.src = img.getAttribute('src');
-                });
+                html += '</div></div>';
             });
-
-            Promise.all(probes).then(function (results) {
-                results.forEach(function (r) {
-                    var b = ratioBucket(r.w, r.h);
-                    (groups[b] = groups[b] || []).push(r.btn);
-                });
-                renderGroups();
-            });
+            container.innerHTML = html;
         }
         document.addEventListener('DOMContentLoaded', function() {
-            organizeSeriesByRatio();
+            renderSeries();
         });
 
         var seriesActiveModal = null;
@@ -662,17 +269,9 @@
         // di repo, jadi semua thumbnail diputar dari pool video yang tersedia.
         // TODO: ganti dengan src/videos/seriespage/videoN.mp4 saat tersedia.
         function getSeriesVideoSrc(imgSrc) {
-            // Banner 16:9 (placeholder16_9ptK.png) → video K; thumbnail biasa → video N.
-            var ptMatch = imgSrc.match(/pt(\d+)\.png/);
-            var plainMatch = imgSrc.match(/placeholder(\d+)\.png/);
-            var n;
-            if (ptMatch) {
-                n = parseInt(ptMatch[1], 10);
-            } else if (plainMatch) {
-                n = parseInt(plainMatch[1], 10);
-            } else {
-                n = 1;
-            }
+            // Nama baru: placeholder{RATIO}_{N}.{ext} → ambil angka terakhir (N).
+            var m = imgSrc.match(/placeholder(?:\d+_\d+_)?(\d+)\.(?:png|jpe?g)$/);
+            var n = m ? parseInt(m[1], 10) : 1;
             // Jumlah video di src/videos/moviespage (video1.mp4 … video59.mp4).
             var videoIndex = ((n - 1) % 59) + 1;
             return "src/videos/moviespage/video" + videoIndex + ".mp4";

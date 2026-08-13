@@ -6,19 +6,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Netflix - News &amp; Popular</title>
-    <link rel="icon" href="src/images/iconpage/netflix.ico" type="image/x-icon"/>
+    <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
     <link rel="stylesheet" href="src/css/tailwind.css?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="src/css/common.css?v=11">
+    <link rel="stylesheet" href="src/css/common.css?v=15">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="src/data/news-data.js?v=4"></script>
+    <script src="src/data/news-data.js?v=7"></script>
     <script src="src/js/debug-hud.js?v=1"></script>
-    <script src="src/js/navbar.js?v=3"></script>
+    <script src="src/js/navbar.js?v=5"></script>
     <script src="src/js/scroll-reveal.js?v=5"></script>
-    <script src="src/data/music-data.js?v=4"></script>
-    <script src="src/js/music-player.js?v=12"></script>
+    <script src="src/data/site-text-data.js?v=1"></script>
+    <script src="src/data/music-data.js?v=5"></script>
+    <script src="src/js/music-player.js?v=13"></script>
     <script src="src/js/hero-slider.js?v=5"></script>
     <script>
         // Billboard rotasi News & Popular (foto + teks berganti, ala index.html).
@@ -26,30 +27,37 @@
         // terpotong / buram saat full-screen.
         window.HERO_SLIDES = [
             {
-                img: "src/images/homepage/background_image.png",
-                imgMobile: "src/images/seriespage/placeholder1.png",
+                img: "src/images/photo/placeholder16_9_15.png",
+                imgMobile: "src/images/photo/placeholder9_16_1.png",
                 title: "News & Popular",
                 desc: "Kisah Rouf untuk Nurul — dari mengagumi dari jauh, hingga berani mengungkapkan perasaan yang selama ini dipendam."
             },
             {
-                img: "src/images/seriespage/placeholder16_9.png",
-                imgMobile: "src/images/seriespage/placeholder2.png",
+                img: "src/images/photo/placeholder16_9_1.png",
+                imgMobile: "src/images/photo/placeholder9_16_10.png",
                 title: "Dari Jauh Aku Menjagamu",
                 desc: "Setiap hari kuamati caramu menjalani hidup. Senyummu adalah alasan terbaik untuk terus berharap."
             },
             {
-                img: "src/images/seriespage/placeholder16_9pt2.png",
-                imgMobile: "src/images/seriespage/placeholder3.png",
+                img: "src/images/photo/placeholder16_9_7.png",
+                imgMobile: "src/images/photo/placeholder9_16_21.png",
                 title: "Cahayamu, Lengkapkan Hariku",
                 desc: "Ada kehangatan yang tak bisa kujelaskan setiap kali kamu hadir. Hari-hariku terasa lebih ringan hanya dengan melihatmu bahagia."
             },
             {
-                img: "src/images/seriespage/placeholder16_9pt8.png",
-                imgMobile: "src/images/seriespage/placeholder56.png",
+                img: "src/images/photo/placeholder16_9_13.png",
+                imgMobile: "src/images/photo/placeholder9_16_29.png",
                 title: "Kisah yang Terus Berjalan",
                 desc: "Setiap orang punya cerita. Yang paling indah adalah ketika cerita itu melibatkan kamu."
             }
         ];
+
+        // Judul & deskripsi hero slide pertama diatur langsung di
+        // src/data/site-text-data.js (di kode).
+        if (window.SITE_TEXT && window.SITE_TEXT.news && window.HERO_SLIDES.length) {
+            if (window.SITE_TEXT.news.heroTitle) window.HERO_SLIDES[0].title = window.SITE_TEXT.news.heroTitle;
+            if (window.SITE_TEXT.news.heroDesc) window.HERO_SLIDES[0].desc = window.SITE_TEXT.news.heroDesc;
+        }
     </script>
     <!-- Vercel Analytics + Speed Insights (paket resmi @vercel/analytics + @vercel/speed-insights) -->
     <script type="module" src="src/js/vercel-init.mjs"></script>
@@ -59,7 +67,7 @@
     <header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
         <div class="flex items-center space-x-3 md:space-x-6">
             <button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
-            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/iconpage/netflix_logo.png">
+            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
             <nav class="hidden md:flex space-x-5 text-sm">
                 <a class="text-gray-300 hover:text-white transition" href="index.html">Home</a>
                 <a class="text-gray-300 hover:text-white transition" href="series.html">Series</a>
@@ -72,20 +80,20 @@
             <div class="relative">
                 <button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
                 <div class="notification" id="searchNotification">
-                    <p>gada siapa siapa kecuali aku.me love you ~R</p>
+                    <p>Gada Siapa Siapa Kecuali Aku ~R</p>
                 </div>
             </div>
             <button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
             <div class="notification" id="notificationMenu">
                 <p>Semakin Hari Semakin Cantik Sih Kamu</p>
                 <p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
-                <p>I Love You Hehe &gt;3</p>
+                <p>I Love You Hehe >3</p>
             </div>
             <div class="dropdown">
-                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/iconpage/user_avatar.png"></button>
+                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
                 <div class="dropdown-content" id="dropdownMenu">
-                    <a href="#">Accounts</a>
-                    <a href="#">Settings</a>
+                    <a href="https://www.instagram.com/vaxetherion/">Accounts</a>
+                    <a href="admin.html">Settings</a>
                     <a href="#">Logout</a>
                 </div>
             </div>
@@ -214,42 +222,44 @@
             stopNewsCountdown(video);
         }
 
-        /* ===== Render konten News & Popular dari src/data/news-data.js =====
-           Menampilkan item dengan tanggal publish <= hari ini (data-driven,
-           update tanpa edit HTML: cukup ubah data di news-data.js). Video
-           OPSIONAL — item tanpa field "video" tampil sebagai teks saja. */
-        function renderNews() {
-            var list = document.getElementById('newsList');
-            var items = (window.NEWS_ITEMS || []).slice();
-            // Tanggal lokal (bukan UTC) agar item "hari ini" langsung tampil di zona waktu user.
-            var today = new Date();
-            var todayStr = today.getFullYear() + '-' +
-                String(today.getMonth() + 1).padStart(2, '0') + '-' +
-                String(today.getDate()).padStart(2, '0');
+        /* ===== UI News MENDATAR: tiap tanggal = satu slide, geser ke samping =====
+           Pesan bertanggal disusun HORIZONTAL (mendatar): untuk melihat pesan
+           dari tanggal berikutnya cukup digeser ke samping. Scrollbar
+           disembunyikan agar rapi. Chip tanggal di atas = navigasi cepat. */
+        var newsByDate = {};
+        var newsDates = [];
 
-            // Filter: hanya item yang tanggalnya sudah lewat / hari ini.
-            items = items.filter(function (item) {
-                return item.date <= todayStr;
-            });
-            // Urutkan terbaru dulu.
-            items.sort(function (a, b) { return b.date.localeCompare(a.date); });
+        function formatDDMMYYYY(iso) {
+            var p = String(iso).split('-');
+            return p.length === 3 ? (p[2] + '-' + p[1] + '-' + p[0]) : iso;
+        }
 
-            if (items.length === 0) {
-                list.innerHTML = '<p class="text-gray-400">Belum ada konten untuk tanggal ini. Upload video dan atur tanggal di src/data/news-data.js.</p>';
-                return;
+        function dateLabelLong(iso) {
+            return new Date(iso + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function activateNewsChip(date) {
+            var chips = document.querySelectorAll('#newsDates .news-date-chip');
+            for (var i = 0; i < chips.length; i++) {
+                var active = chips[i].getAttribute('data-date') === date;
+                chips[i].classList.toggle('is-active', active);
+                chips[i].setAttribute('aria-pressed', String(active));
             }
+        }
 
-            list.innerHTML = items.map(function (item) {
+        /* ===== Render SATU pesan (artikel + video OPSIONAL) ===== */
+        function renderNewsItemHtml(item) {
                 var paras = (item.paragraphs || []).map(function (p) {
                     return '<p>' + p.replace(/</g, '&lt;').replace(/\n/g, '<br>') + '</p>';
-                }).join('');
-                var dateLabel = new Date(item.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-                return '<article class="mb-10">' +
-                    '<div class="flex items-center gap-3 mb-4">' +
-                        '<span class="bg-gray-800 text-white text-xs font-semibold px-3 py-1 rounded-full">' + dateLabel + '</span>' +
-                        (item.title ? '<h3 class="text-base md:text-lg font-bold">' + item.title.replace(/</g, '&lt;') + '</h3>' : '') +
-                    '</div>' +
-                    (item.video ? '<div class="mb-6 relative">' +
+                });
+                // Semua paragraf langsung tampil — TANPA "Baca selengkapnya":
+                // pesan sudah dipisah per tanggal (slide mendatar), jadi tidak
+                // perlu menekan tombol lagi untuk membaca lanjutannya.
+                var bodyHtml = '<div>' + paras.join('') + '</div>';
+                return '<article class="news-message mb-8">' +
+                    '<div class="news-date-label"><i class="far fa-calendar-alt mr-1" aria-hidden="true"></i>' + formatDDMMYYYY(item.date) + '</div>' +
+                    (item.title ? '<h3 class="text-base md:text-lg font-bold mb-3">' + item.title.replace(/</g, '&lt;') + '</h3>' : '') +
+                    (item.video ? '<div class="mb-5 relative">' +
                         '<video class="news-video w-full h-auto rounded" controls autoplay muted playsinline preload="metadata" data-countdown="' + (item.countdown || 5) + '">' +
                             '<source src="' + item.video + (item.v ? '?v=' + item.v : '') + '" type="video/mp4"/>' +
                             'Your browser does not support the video tag.' +
@@ -278,12 +288,105 @@
                             '<i class="fas fa-volume-mute mr-1" aria-hidden="true"></i>Suara' +
                         '</button>' +
                     '</div>' : '') +
-                    '<div class="text-sm md:text-base text-gray-300 leading-relaxed space-y-4">' + paras + '</div>' +
+                    '<div class="text-sm md:text-base text-gray-300 leading-relaxed space-y-4">' + bodyHtml + '</div>' +
                 '</article>';
-            }).join('');
+            }
+
+        /* ===== Render konten News & Popular dari src/data/news-data.js =====
+           Menampilkan item dengan tanggal publish <= hari ini (data-driven,
+           update tanpa edit HTML: cukup ubah data di news-data.js). Video
+           OPSIONAL — item tanpa field "video" tampil sebagai teks saja.
+           Pesan disusun MENDATAR: tiap tanggal = satu slide; digeser ke
+           samping untuk melihat tanggal berikutnya. */
+        function renderNews() {
+            var list = document.getElementById('newsList');
+            var items = (window.NEWS_ITEMS || []).slice();
+            // Tanggal lokal (bukan UTC) agar item "hari ini" langsung tampil di zona waktu user.
+            var today = new Date();
+            var todayStr = today.getFullYear() + '-' +
+                String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                String(today.getDate()).padStart(2, '0');
+            // Filter: hanya item yang tanggalnya sudah lewat / hari ini.
+            items = items.filter(function (item) {
+                return item.date <= todayStr;
+            });
+            // Urutkan LAMA → BARU (string ISO YYYY-MM-DD) — mulai dari yang paling lama.
+            items.sort(function (a, b) {
+                if (a.date < b.date) return -1;
+                if (a.date > b.date) return 1;
+                return 0;
+            });
+            if (items.length === 0) {
+                list.innerHTML = '<p class="text-gray-400">Belum ada konten untuk tanggal ini. Tambah pesan & atur tanggal di src/data/news-data.js (lewat admin panel).</p>';
+                return;
+            }
+
+            // ===== Slide MENDATAR per tanggal (lama → baru) =====
+            // Tiap tanggal menjadi SATU SLIDE selebar layar; geser ke samping
+            // untuk melihat pesan tanggal berikutnya (scrollbar disembunyikan).
+            var byDate = {};
+            items.forEach(function (item) {
+                (byDate[item.date] = byDate[item.date] || []).push(item);
+            });
+            newsByDate = byDate;
+            var dates = Object.keys(byDate).sort(); // ISO YYYY-MM-DD naik
+            newsDates = dates;
+
+            list.innerHTML =
+                '<div class="news-dates" id="newsDates" role="tablist" aria-label="Tanggal berita">' +
+                    dates.map(function (date) {
+                        return '<button type="button" role="tab" class="news-date-chip" data-date="' + date + '" aria-pressed="false">' +
+                            '<span>' + dateLabelLong(date) + '</span>' +
+                            '<span class="news-date-chip-count">' + byDate[date].length + '</span>' +
+                        '</button>';
+                    }).join('') +
+                '</div>' +
+                '<div class="news-horizontal" id="newsHorizontal" role="region" aria-label="Pesan per tanggal">' +
+                    dates.map(function (date) {
+                        return '<section class="news-slide" data-date="' + date + '">' +
+                            '<h3 class="news-slide-date">' + dateLabelLong(date) + '</h3>' +
+                            (byDate[date] || []).map(renderNewsItemHtml).join('') +
+                        '</section>';
+                    }).join('') +
+                '</div>';
+
+            // Klik chip → geser ke slide tanggal itu.
+            var horiz = document.getElementById('newsHorizontal');
+            list.querySelectorAll('#newsDates .news-date-chip').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var d = btn.getAttribute('data-date');
+                    var slide = horiz.querySelector('.news-slide[data-date="' + d + '"]');
+                    if (slide) slide.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+                });
+            });
+
+            // Saat discroll, sorot chip tanggal yang sedang tampil.
+            var scrollT = null;
+            horiz.addEventListener('scroll', function () {
+                if (scrollT) clearTimeout(scrollT);
+                scrollT = setTimeout(function () {
+                    var slides = horiz.querySelectorAll('.news-slide');
+                    var mid = horiz.scrollLeft + horiz.clientWidth / 2;
+                    var cur = dates[0];
+                    for (var i = 0; i < slides.length; i++) {
+                        if (slides[i].offsetLeft <= mid) cur = slides[i].getAttribute('data-date');
+                    }
+                    activateNewsChip(cur);
+                }, 80);
+            });
+
+            // Tanggal paling lama tampil lebih dulu.
+            activateNewsChip(dates[0]);
+        }
+
+        /* ===== Bind interaksi setelah panel pesan dirender ulang ===== */
+        function bindNewsHandlers(scope) {
+            if (!scope) return;
+
+            // (Tanpa tombol "Baca selengkapnya" — semua paragraf sudah tampil.)
 
             // Tombol suara: klik = user gesture, autoplay bersuara diizinkan.
-            list.querySelectorAll('.news-sound').forEach(function (btn) {
+            scope.querySelectorAll('.news-sound').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var video = btn.closest('.relative').querySelector('video');
                     video.muted = !video.muted;
@@ -307,7 +410,7 @@
 
             // Video selesai diputar → tampilkan Replay/Tutup + kembalikan music island.
             // (Dibind sekali per video — bukan di dalam loop tombol suara.)
-            list.querySelectorAll('.news-video').forEach(function (video) {
+            scope.querySelectorAll('.news-video').forEach(function (video) {
                 video.addEventListener('ended', function () {
                     var wrap = video.closest('.relative');
                     var overlay = wrap ? wrap.querySelector('.video-ended-overlay') : null;
@@ -321,6 +424,9 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             renderNews();
+            // Bind interaksi (tombol suara, video ended, countdown) setelah
+            // konten News & Popular dirender.
+            bindNewsHandlers(document.getElementById('newsList'));
         });
     </script>
 </body>

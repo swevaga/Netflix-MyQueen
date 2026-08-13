@@ -119,7 +119,10 @@ test.describe('Series', () => {
     });
     expect(st.opacity).toBe('1');
     expect(st.groups).toBeGreaterThan(0);
-    expect(st.visibleCards).toBe(98);
+    // 105 kartu: 111 lama dikurangi 6 foto yang sudah dihapus dari
+    // src/images/photo (placeholder3_4_7/8.png & placeholder3_4_15-18.jpg)
+    // — referensi rusak tidak boleh dirender lagi.
+    expect(st.visibleCards).toBe(105);
     expect(st.dupVisible).toBe(0);
     expect(st.staticBannersVisible).toBe(0);
 
@@ -157,7 +160,7 @@ test.describe('Movies', () => {
     await page.goto('/movies.html', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
-    const cards = page.locator('img[src*="moviespage"]');
+    const cards = page.locator('#moviesSection button[aria-label^="Putar video"]');
     await expect(cards).toHaveCount(59);
 
     await page.click('button[aria-label="Putar video 1"]');
@@ -171,11 +174,54 @@ test.describe('Movies', () => {
 });
 
 test.describe('News & My List', () => {
-  test('news: 3 item berita ter-render', async ({ page }) => {
+  test('news: pesan MENDATAR per tanggal + chip navigasi + tanpa Baca selengkapnya', async ({ page }) => {
     await page.goto('/newsandpopular.html', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2500);
-    const items = page.locator('#newsList > *');
-    await expect(items).toHaveCount(3);
+
+    // Chip = 3 tanggal unik, urut MENDATAR lama → baru:
+    // 20 Maret 2025, 2 Juni 2025, 7 Desember 2025.
+    const chips = page.locator('#newsDates .news-date-chip');
+    await expect(chips).toHaveCount(3);
+
+    const labels = await chips.allTextContents();
+    expect(labels[0]).toContain('Maret 2025');
+    expect(labels[1]).toContain('Juni 2025');
+    expect(labels[2]).toContain('Desember 2025');
+
+    // Setiap tanggal = SATU slide selebar layar (pesan digeser ke samping).
+    await expect(page.locator('#newsHorizontal .news-slide')).toHaveCount(3);
+
+    // Slide pertama berisi 2 pesan (tanggal 20-03-2025); total 4 artikel.
+    const articles = page.locator('#newsHorizontal article');
+    await expect(articles).toHaveCount(4);
+    await expect(page.locator('#newsHorizontal .news-slide[data-date="2025-03-20"] article')).toHaveCount(2);
+
+    // Setiap artikel menampilkan tanggal format DD-MM-YYYY di atas judul.
+    await expect(page.locator('#newsHorizontal .news-date-label').first()).toHaveText(/\d{2}-\d{2}-\d{4}/);
+
+    // Scrollbar horizontal DISEMBUNYIKAN (tetap bisa digeser).
+    const scrollHidden = await page.evaluate(() => {
+      const el = document.getElementById('newsHorizontal');
+      return getComputedStyle(el).overflowX === 'auto' && getComputedStyle(el).scrollbarWidth === 'none';
+    });
+    expect(scrollHidden).toBe(true);
+
+    // Chip tanggal paling lama aktif secara default.
+    await expect(chips.nth(0)).toHaveAttribute('aria-pressed', 'true');
+
+    // Klik chip tanggal terakhir → slide tanggal itu aktif & ikut tergeser.
+    await chips.nth(2).click();
+    await expect(chips.nth(2)).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#newsHorizontal .news-slide[data-date="2025-12-07"]')).toBeInViewport();
+    const slideText = await page.locator('#newsHorizontal .news-slide[data-date="2025-12-07"]').textContent();
+    expect(slideText).toContain('Suara di Ujung Telepon');
+
+    // TIDAK ada tombol "Baca selengkapnya" — semua paragraf langsung tampil.
+    expect(await page.locator('a, button', { hasText: /selengkapnya/i }).count()).toBe(0);
+
+    // Semua paragraf pesan terlihat tanpa perlu klik (paragraf terakhir artikel pertama).
+    const firstArticle = await page.locator('#newsHorizontal .news-slide[data-date="2025-03-20"] article').first().textContent();
+    expect(firstArticle).toContain('Dan bagiku, itu sudah cukup.');
   });
 
   test('mylist: konten + hero slider terlihat', async ({ page }) => {
@@ -209,8 +255,10 @@ test.describe('Musik', () => {
     const timeBefore = before.audioTime;
 
     // Navigasi nyata ke halaman lain (tab sama) → state harus terpulihkan.
+    // Metadata lagu besar (8-11 MB) butuh beberapa detik → tunggu 6s agar
+    // posisi tersimpan sempat dipulihkan sebelum dibaca.
     await page.goto('/series.html', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(6000);
     const after = await page.evaluate(() => window.MusicPlayer.getState());
     expect(after.trackTitle).toBe(before.trackTitle);
     expect(after.audioTime).toBeGreaterThanOrEqual(timeBefore - 0.1);
@@ -226,8 +274,45 @@ test.describe('Musik', () => {
   });
 });
 
+test.describe('Admin Panel', () => {
+  test('PIN gatekeeper: salah → ditolak, benar → dashboard terbuka', async ({ page }) => {
+    await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#pinSection')).toBeVisible();
+    await expect(page.locator('#adminSection')).toBeHidden();
+
+    // PIN salah → error muncul, dashboard tetap terkunci.
+    await page.fill('#pinInput', '0000');
+    await page.click('#pinForm button[type="submit"]');
+    await expect(page.locator('#pinError')).toBeVisible();
+    await expect(page.locator('#adminSection')).toBeHidden();
+
+    // PIN benar (bawaan 1602) → dashboard terbuka + editor tersedia.
+    await page.fill('#pinInput', '1602');
+    await page.click('#pinForm button[type="submit"]');
+    await expect(page.locator('#adminSection')).toBeVisible();
+    await expect(page.locator('#pinSection')).toBeHidden();
+
+    // Tab editor & form berfungsi (tanpa data GitHub: form tambah tetap terbuka).
+    await page.click('.tab-btn[data-tab="tabNews"]');
+    await page.click('#tabNews button:has-text("Tambah")');
+    await expect(page.locator('#newsForm')).toBeVisible();
+    await expect(page.locator('#newsForm input, #newsForm textarea').first()).toBeVisible();
+  });
+
+  test('Tombol kunci mengembalikan ke layar PIN', async ({ page }) => {
+    await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+    await page.fill('#pinInput', '1602');
+    await page.click('#pinForm button[type="submit"]');
+    await expect(page.locator('#adminSection')).toBeVisible();
+    await page.click('button:has-text("Kunci")');
+    await expect(page.locator('#pinSection')).toBeVisible();
+    await expect(page.locator('#adminSection')).toBeHidden();
+  });
+});
+
 test.describe('Navigasi', () => {
-  test('menu navbar pindah ke halaman yang benar', async ({ page }) => {
+  // 5 pemuatan halaman berat (banyak gambar/video) → perlu timeout lebih besar.
+  test('menu navbar pindah ke halaman yang benar', { timeout: 150000 }, async ({ page }) => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
     const links = [
       ['Series', '/series'],

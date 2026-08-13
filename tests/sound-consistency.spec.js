@@ -42,7 +42,7 @@ async function expectSuppressCount(page, n) {
 }
 
 async function startMusic(page, path) {
-  await page.goto(path);
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
   // Klik pill sekali sudah memulai musik: handler pill membuka panel,
   // lalu handleInteraction (document click) memanggil togglePlay(true).
   // (Klik kedua pada #musicToggle justru PAUSE — hindari.)
@@ -131,4 +131,26 @@ test('index: musik → modal Play (iframe) → tutup → musik kembali sekali', 
   const s = await getState(page);
   expect(s.playing).toBe(true);
   expect(await suppressed(page)).toEqual({ island: false, float: false });
+});
+
+// --- Leg 4: index (modal More Info TANPA video) -----------------------------
+
+test('index: musik → modal More Info (tanpa video) → musik TETAP lanjut', async ({
+  page,
+}) => {
+  await startMusic(page, '/index.html');
+
+  // More Info tidak menampilkan video apa pun → musik tidak boleh di-suppress.
+  await page.click('button[onclick="openInfoModal()"]');
+  await expect(page.locator('#infoModal')).toBeVisible();
+  await expectSuppressCount(page, 0);
+  const s = await getState(page);
+  expect(s.playing).toBe(true);
+  expect(await suppressed(page)).toEqual({ island: false, float: false });
+
+  // Tutup modal → musik tetap berjalan (tidak ada perubahan state).
+  await page.evaluate(() => closeInfoModal());
+  await expectSuppressCount(page, 0);
+  const s2 = await getState(page);
+  expect(s2.playing).toBe(true);
 });

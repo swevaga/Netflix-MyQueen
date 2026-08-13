@@ -26,7 +26,10 @@ module.exports = defineConfig({
     },
   },
   webServer: {
-    command: 'python3 -m http.server 8000 --bind 127.0.0.1',
+    // Server statis custom dengan dukungan HTTP Range (python http.server
+    // tidak mendukung Range → seek audio/video di browser gagal, padahal
+    // Vercel mendukungnya). Lihat tests/static-server.js.
+    command: 'node tests/static-server.js',
     url: 'http://127.0.0.1:8000',
     reuseExistingServer: true,
     timeout: 30_000,

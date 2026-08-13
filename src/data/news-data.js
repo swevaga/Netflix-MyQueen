@@ -29,7 +29,7 @@
 
 window.NEWS_ITEMS = [
     {
-        date: "2026-08-11",
+        date: "2025-03-20",
         title: "Kisahku, Untukmu",
         video: "src/videos/newsandpopularpage/news_video.mp4",
         paragraphs: [
@@ -45,20 +45,57 @@ window.NEWS_ITEMS = [
         ]
     },
     {
-        date: "2026-08-10",
-        title: "Terima Kasih Sudah Hadir",
+        date: "2025-03-20",
+        title: "Bukan Sekadar Pengagum Rahasia",
         paragraphs: [
-            "Hari-hari terasa lebih ringan sejak kamu ada. Terima kasih sudah menjadi alasan senyum yang tidak pernah kupahami sebelumnya.",
-            "Aku tidak tahu bagaimana caranya berterima kasih, jadi kutulis di sini. Semoga suatu hari kamu membacanya dan tahu betapa berartinya kamu.",
-            "I Love You More Than Words Can Say ❤️"
+            "Suasana kamar malam itu hening, hanya dibiaskan oleh pendar biru dari layar laptop dan ponsel yang tergeletak di atas meja.",
+            "Tanggal 20 Maret 2025 menjadi saksi saat-saat paling menegangkan dalam hidupku. Setiap detik terasa melambat, diiringi detak jantung yang berpacu liar menanti kabar dari Nurul setelah ia menelusuri setiap sudut website yang kususun setengah mati.",
+            "Ketika tanda bahwa ia telah membaca seluruh rangkaian tulisan di website itu akhirnya muncul, yang menyertainya bukanlah luapan kegembiraan instan, melainkan sebuah gelombang keraguan yang membentang di antara kami. Lewat kepingan kata yang tersampaikan, aku bisa merasakan betapa Nurul terkejut sekaligus bimbang.",
+            "Bagi seorang gadis yang tak pernah merasa menjadi pusat perhatian di Madrasah Aliyah, perlakuan seserius ini—sebuah situs web kustom yang dirancang khusus untuknya—terasa terlalu surealis untuk dipercayai begitu saja.",
+            "Ia meragukan kesungguhanku.",
+            "Dalam benaknya, bisa jadi ini hanyalah kelakar anak muda, taruhan konyol antar teman, atau sekadar rasa penasaran sesaat yang akan menguap besok pagi.",
+            "Di situlah titik krusialnya.",
+            "Aku tak membiarkan rasa takut membuatku mundur.",
+            "Lewat ketikan yang lahir dari kejujuran paling dalam, aku membongkar seluruh dinding pertahananku.",
+            "Aku meyakinkannya bahwa setiap baris kode yang kutulis dan ribuan jam yang kulewati untuk mengamatinya dari jauh bukanlah sebuah kebetulan, apalagi permainan.",
+            "Aku mengingatkannya pada momen-momen kecil yang bahkan mungkin telah ia lupakan: saat ia terkantuk-kantuk memeluk buku pelajaran di depan perpustakaan, hingga tawanya yang selalu pecah saat kelas sedang kosong.",
+            "Aku menegaskan bahwa di mata seseorang yang tepat, ia tak pernah sekadar cewek biasa.",
+            "Menit-menit berikutnya adalah ujian kesabaran yang paling menyiksa.",
+            "Keheningan malam seolah menekan dada, menuntut keberanian penuh untuk menerima apa pun hasilnya.",
+            "Namun tepat di penghujung malam, pertahanan Nurul akhirnya runtuh. Keraguan yang tadi membentang perlahan mencair, berganti menjadi sebuah rasa hangat yang belum pernah kurasakan sebelumnya. Ia akhirnya luluh, mau membuka diri dan menerima perasaan yang telah lama kusimpan rapi dalam diam.",
+            "Malam itu, di kamar yang sunyi, aku bersandar pada kursi dengan napas lega yang panjang. Masa-masa menjadi pengagum rahasia yang hanya bisa melihat dari kejauhan telah usai. Lembaran baru resmi dimulai.",
         ]
     },
     {
-        date: "2026-08-09",
-        title: "Catatan Kecil",
+        date: "2025-06-02",
+        title: "Buket Bunga dan Penyesalan di Hari Kelulusan",
         paragraphs: [
-            "Contoh update TANPA video: cukup tulis kata-kata, simpan file ini, dan halaman langsung berubah.",
-            "Tidak perlu pusing mengunggah video kalau hanya ingin menambah cerita."
+            "Tanggal 2 Juli 2025 menjadi penanda berakhirnya masa seragam abu-abu di Madrasah Aliyah.",
+            "Hari itu terasa begitu istimewa sekaligus menyisakan ganjalan mendalam yang masih mengendap di dalam dadaku hingga saat ini.",
+            "Sesi foto kenang-kenangan yang dicetak resmi baru saja usai ketika seorang teman Nurul mendadak melambaikan tangan padaku. Ia menyuruhku masuk ke salah satu ruangan di area sekolah. Langkahku sempat tertahan di ambang pintu, bertanya-tanya ada urusan apa di dalam sana. Namun saat pintu terdorong, dadaku berdesir hangat. Di dalam ruangan yang agak tenang itu, berdiri seseorang yang selama tiga tahun ini mengisi sesak di dadaku—Nurul.",
+            "Dengan senyum tipisnya, ia melangkah mendekat dan menyerahkan sebuah buket bunga padaku. Sebuah gestur manis yang seketika membuat tanganku kaku. Di tengah riuhnya hari kelulusan, fokusku sebelumnya sepenuhnya tercurah untuk orang tuaku, hingga tak terlintas sedikit pun di benakku untuk menyiapkan kenang-kenangan balik untuknya. Aku menerima buket itu dengan ucapan terima kasih yang terasa terseok-seok, ditimbun rasa malu dan penyesalan karena tak sanggup memberikan apa-apa.",
+            "Aku berdiri terpaku, menerima buket itu dengan rasa canggung dan malu pada diri sendiri. Betapa bodoh dan tidak bermodalnya aku saat itu.",
+            "Kekacauan di dalam diriku makin menjadi sewaktu acara resmi benar-benar selesai. Di saat murid-murid lain sibuk tertawa, mengabadikan foto bersama teman-teman di setiap sudut sekolah, aku justru memilih angkat kaki. Perasaan minder membelengguku erat-erat. Aku merasa menjadi sosok yang sangat ambigu, tidak jelas, dan cowok yang tidak bermodal. Alih-alih berdiri tegak di samping gadis yang kucintai, aku malah melangkah pergi dan menghilang dari wilayah sekolah.",
+            "Rasa insecure itu justru makin memuncak. Sebenarnya dari kejauhan, aku tahu Nurul memutar pandangannya, mencariku di antara kerumunan untuk mengajak foto bersama. Momen yang seharusnya kuabadikan sebagai kenangan paling berharga malah kubuang mentah-mentah. Bukannya hadir di sampingnya, aku justru memilih menghilang, bersembunyi di balik rasa ragu dan ketidakpastian diri.",
+            "Layar ponselku menyala sore harinya, menampilkan satu baris pesan dari Nurul yang terasa bagai sentilan halus di dada:",
+            "\"Aku pengen foto bareng loh tadi...\"",
+            "Rasa bodoh itu akhirnya memukulku telak. Sebuah pesan masuk darinya, membawa kekecewaan terselubung.",
+            "Lagi-lagi karena gengsi dan rasa insecure yang menutup mata, aku mengusap wajah kasar. Karena gengsi dan rasa bersalah yang tak sanggup kuakui, aku malah mengarang alasan konyol—mengatakan bahwa aku memang tidak menyukai atau \"tidak support\" urusan berfoto. Sebuah alibi dangkal untuk menutupi kenyataan bahwa aku hanya seorang cowok yang belum siap dan terlalu penakut.",
+            "Semenjak malam itu, aku berjanji pada diriku sendiri untuk tidak akan pernah mengulangi kesalahan konyol seperti itu lagi.",
+            "Hari ini, setiap kali aku melangkah di kamar, mataku selalu tertuju pada lemari kaca. Di sana, buket bunga pemberian Nurul pada 2 Juli 2025 itu masih berdiri tegak, terawat baik dan tersimpan rapi. Bunga itu menjadi saksi bisu atas ketulusannya yang tak pernah pudar, sekaligus penanda bagiku untuk terus bertumbuh menjadi pria yang pantas di masa depan.",
+        ]
+    },
+    {
+        date: "2025-12-07",
+        title: "Suara di Ujung Telepon dan Warna Baru Liburan",
+        paragraphs: [
+            "Liburan kali ini terasa jauh berbeda dari tahun-tahun sebelumnya. Ada warna baru yang menghiasi hariku, sebab kini aku sudah memiliki pujaan hati—seseorang yang sering kali, dengan sedikit canda dan rasa bangga, kusebut sebagai \"istriku\" walau status kami di dunia nyata masih berpacaran.",
+            "Hari-hari liburan itu berjalan begitu berwarna. Salah satu momen favorit kami adalah bermain game Roblox bersama. Ya, kebanyakan orang mungkin menganggapnya sebagai game bocil, tapi ketika dimainkan bersama orang yang paling disayang, rasanya jauh berbeda. Setiap detik di dalam dunia piksel itu berubah jadi kenangan yang hangat dan menyenangkan. Meskipun kami hanya berinteraksi secara virtual dan belum sempat bertemu kembali secara langsung, aku sudah sangat bahagia saat itu.",
+            "Namun pada suatu hari, aku merasa ada sesuatu yang agak berbeda dari Nurul. Tiba-tiba saja ia mengajakku untuk melakukan panggilan suara (call) dengan dalih ada hal penting yang ingin dibicarakan. Jantungku seketika berdesir kencang. Aku sadar, semenjak kami resmi berpacaran, kami hampir tidak pernah berinteraksi secara langsung lewat suara sejak terakhir kali bertemu pandang di sekolah.",
+            "Rasa gugup dan canggung sempat mencuat, memanggil kembali ingatan masa lalu. Namun, aku teringat pada janji yang kubuat sendiri: aku harus merubah sikapku dan tidak boleh lagi bertindak bodoh atau melarikan diri seperti saat hari kelulusan dulu. Aku harus berani untuk dia.",
+            "Dengan ketetapan hati itu, aku memberanikan diri menerima ajakannya. Aku memintanya menentukan jam berapa ia senggang untuk menelepon, lalu kami menyepakati waktu yang telah ditentukan.",
+            "Saat dering telepon pertama menyapa dan aku menekan tombol hijau, lidahku mendadak kelu. Untuk beberapa detik awal, aku benar-benar bingung harus berbicara apa. Kecanggungan sempat menyelimuti, tapi perlahan-lahan suasana mencair. Aku masih tidak menyangka bisa mendengar suaranya secara langsung di telingaku, mengobrol dan saling bertukar pikiran secara nyata.",
+            "Momen malam itu ternyata menjadi pintu pembuka yang mengubah segalanya. Keesokan harinya dan hari-hari setelahnya, kami malah ketagihan untuk terus-menerus melakukan panggilan telepon—saling menceritakan hal-hal kecil dari pagi hingga malam, sampai kami sering kali lupa waktu.",
         ]
     }
 ];

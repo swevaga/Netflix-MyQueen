@@ -34,7 +34,7 @@ async function fireEnded(page) {
 test('news: countdown muncul saat video selesai (default 5)', async ({
   page,
 }) => {
-  await page.goto('/newsandpopular.html');
+  await page.goto('/newsandpopular.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.news-video')).toBeVisible();
 
   await fireEnded(page);
@@ -54,7 +54,7 @@ test('news: countdown muncul saat video selesai (default 5)', async ({
 test('news: Putar sekarang & interplay unmute (overlay + countdown tertutup)', async ({
   page,
 }) => {
-  await page.goto('/newsandpopular.html');
+  await page.goto('/newsandpopular.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.news-video')).toBeVisible();
 
   // Putar sekarang → video restart, overlay + countdown hilang.

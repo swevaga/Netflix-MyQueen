@@ -16,6 +16,42 @@ body {
     display: inline-block;
 }
 
+/* Menu mobile (hamburger) memakai Tailwind class "fixed top-11 left-3".
+   Rule `.dropdown { position: relative }` di atas menimpa utility `fixed`
+   (common.css dimuat SETELAH tailwind.css), sehingga menu ter-anchor ke
+   bagian atas dokumen — muncul di page paling atas walau user sedang
+   scroll di tengah halaman. Rule ini mengembalikan posisi fixed terhadap
+   viewport supaya menu langsung muncul di posisi klik tanpa scroll.
+
+   z-index 10001: menu mobile WAJIB di atas dynamic island (9998) — kalau
+   tidak, island yang melayang di atas tengah layar menutupi item menu dan
+   membuatnya tidak bisa diklik di HP. */
+.dropdown.fixed {
+    position: fixed;
+    z-index: 10001;
+}
+
+/* ===== Dynamic Island TIDAK boleh menutupi menu navbar =====
+   Header memakai z-40 (Tailwind), yang MEMBATASI z-index semua panel
+   di dalamnya (notification, dropdown profile, search) ke konteks 40 —
+   jauh di bawah island (9998). Akibatnya saat search/notification/profile
+   dibuka, dynamic island tetap menimpa panel dan menghalangi klik.
+   Solusi: naikkan header + seluruh menu di atas island, dan modal di atas
+   semua. (Island sendiri tetap 9998; saat video diputar ia disembunyikan
+   oleh music-player.js.) */
+header.fixed {
+    z-index: 10001;
+}
+
+.skip-link {
+    z-index: 10003;
+}
+
+/* Modal (index/movies/series) dinaikkan di atas island & navbar. */
+.modal {
+    z-index: 10002 !important;
+}
+
 .dropdown-content {
     display: none;
     position: absolute;
@@ -167,7 +203,20 @@ body {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    transition: background 0.2s ease;
+    transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
+}
+
+/* Saat menu navbar (Profile / Notification / Search / menu mobile) dibuka,
+   island TURUN ke bawah sedikit supaya tidak menutupi panel & transisinya
+   terasa smooth. Class dipasang otomatis oleh navbar.js. */
+body.navbar-menu-open .music-island-btn {
+    top: 150px;
+}
+
+@media (max-width: 640px) {
+    body.navbar-menu-open .music-island-btn {
+        top: 172px;
+    }
 }
 
 .music-island-btn:hover {
@@ -430,13 +479,13 @@ body {
    agar cascade memenangkan nilai mobile.) */
 @media (max-width: 640px) {
     .music-island-btn {
-        top: 56px;
+        top: 58px;
         padding: 6px 14px;
-        max-width: 88vw;
+        max-width: 72vw;
     }
 
     .music-expanded {
-        top: 102px;
+        top: 104px;
     }
 }
 
@@ -650,3 +699,131 @@ body {
         max-width: none;
     }
 }
+
+/* ===== News & Popular: chip tanggal MENDATAR (lama → baru) =====
+   Deretan tombol tanggal berjalan horizontal; scrollbar disembunyikan agar
+   rapi (tetap bisa digeser). Klik chip → slide tanggal terkait ikut tergeser. */
+.news-dates {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 2px 2px 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.news-dates::-webkit-scrollbar {
+    display: none;
+}
+
+.news-date-chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #d1d5db;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.news-date-chip:hover,
+.news-date-chip:focus-visible {
+    background: rgba(255, 255, 255, 0.13);
+    color: #fff;
+    outline: none;
+}
+
+.news-date-chip.is-active {
+    background: linear-gradient(135deg, #e50914, #b00610);
+    border-color: transparent;
+    color: #fff;
+}
+
+.news-date-chip-count {
+    min-width: 22px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.35);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.news-date-chip.is-active .news-date-chip-count {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+/* ===== Daftar pesan MENDATAR: tiap tanggal = satu slide, geser ke samping =====
+   Untuk melihat pesan dari tanggal berikutnya digeser ke samping; scrollbar
+   disembunyikan supaya terlihat rapi dan bersih. */
+.news-horizontal {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding: 6px 2px 14px;
+}
+
+.news-horizontal::-webkit-scrollbar {
+    display: none;
+}
+
+.news-slide {
+    flex: 0 0 100%;
+    max-width: 100%;
+    scroll-snap-align: start;
+    padding: 4px 4px 0;
+}
+
+.news-slide-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px;
+    padding-left: 10px;
+    border-left: 3px solid #e50914;
+}
+
+/* Tanggal pesan (DD-MM-YYYY) di atas judul — UI simple & jelas. */
+.news-date-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+    padding: 4px 12px;
+    border: 1px solid rgba(229, 9, 20, 0.45);
+    border-radius: 999px;
+    background: rgba(229, 9, 20, 0.12);
+    color: #ff8a90;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Pesan di daftar vertikal: pisah antar artikel dengan garis tipis agar
+   halaman panjang tetap rapi dan nyaman di-scroll. */
+.news-message {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding-bottom: 22px;
+}
+
+.news-message:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+

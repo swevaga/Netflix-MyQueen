@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 
-    <!-- ==== movies.html — Halaman Movies — grid 59 film + modal pemutar video (dengan countdown episode berikutnya). ==== -->
+    <!-- ==== movies.html — Halaman Movies — grid video data-driven dari src/data/movies-data.js + modal pemutar (dengan countdown episode berikutnya). ==== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Netflix - Movies</title>
-    <link rel="icon" href="src/images/iconpage/netflix.ico" type="image/x-icon"/>
+    <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
     <link rel="stylesheet" href="src/css/tailwind.css?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="src/css/common.css?v=11">
+    <link rel="stylesheet" href="src/css/common.css?v=15">
     <style>
         .modal {
             display: none;
@@ -116,10 +116,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="src/js/debug-hud.js?v=1"></script>
-    <script src="src/js/navbar.js?v=3"></script>
+    <script src="src/js/navbar.js?v=5"></script>
     <script src="src/js/scroll-reveal.js?v=5"></script>
-    <script src="src/data/music-data.js?v=4"></script>
-    <script src="src/js/music-player.js?v=12"></script>
+    <script src="src/data/site-text-data.js?v=1"></script>
+    <script src="src/data/movies-data.js?v=1"></script>
+    <script src="src/data/music-data.js?v=5"></script>
+    <script src="src/js/music-player.js?v=13"></script>
     <!-- Vercel Analytics + Speed Insights (paket resmi @vercel/analytics + @vercel/speed-insights) -->
     <script type="module" src="src/js/vercel-init.mjs"></script>
 </head>
@@ -128,7 +130,7 @@
     <header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
         <div class="flex items-center space-x-3 md:space-x-6">
             <button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
-            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/iconpage/netflix_logo.png">
+            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
             <nav class="hidden md:flex space-x-5 text-sm">
                 <a class="text-gray-300 hover:text-white transition" href="index.html">Home</a>
                 <a class="text-gray-300 hover:text-white transition" href="series.html">Series</a>
@@ -141,20 +143,20 @@
             <div class="relative">
                 <button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
                 <div class="notification" id="searchNotification">
-                    <p>gada siapa siapa kecuali aku.me love you ~R</p>
+                    <p>Gada Siapa Siapa Kecuali Aku ~R</p>
                 </div>
             </div>
             <button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
             <div class="notification" id="notificationMenu">
                 <p>Semakin Hari Semakin Cantik Sih Kamu</p>
                 <p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
-                <p>I Love You Hehe &gt;3</p>
+                <p>I Love You Hehe >3</p>
             </div>
             <div class="dropdown">
-                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/iconpage/user_avatar.png"></button>
+                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
                 <div class="dropdown-content" id="dropdownMenu">
-                    <a href="#">Accounts</a>
-                    <a href="#">Settings</a>
+                    <a href="https://www.instagram.com/vaxetherion/">Accounts</a>
+                    <a href="admin.html">Settings</a>
                     <a href="#">Logout</a>
                 </div>
             </div>
@@ -174,840 +176,49 @@
         <section id="moviesSection" class="bg-black py-6 scroll-animate">
             <div class="container mx-auto px-4 md:px-12">
                 <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4">Movies</h2>
-                <div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video1')" aria-label="Putar video 1">
-                            <img alt="Thumbnail 1" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder1.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video2')" aria-label="Putar video 2">
-                            <img alt="Thumbnail 2" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder2.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video3')" aria-label="Putar video 3">
-                            <img alt="Thumbnail 3" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder3.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video4')" aria-label="Putar video 4">
-                            <img alt="Thumbnail 4" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder4.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video5')" aria-label="Putar video 5">
-                            <img alt="Thumbnail 5" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder5.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video6')" aria-label="Putar video 6">
-                            <img alt="Thumbnail 6" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder6.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video7')" aria-label="Putar video 7">
-                            <img alt="Thumbnail 7" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder7.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video8')" aria-label="Putar video 8">
-                            <img alt="Thumbnail 8" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder8.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video9')" aria-label="Putar video 9">
-                            <img alt="Thumbnail 9" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder9.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video10')" aria-label="Putar video 10">
-                            <img alt="Thumbnail 10" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder10.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video11')" aria-label="Putar video 11">
-                            <img alt="Thumbnail 11" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder11.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video12')" aria-label="Putar video 12">
-                            <img alt="Thumbnail 12" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder12.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video13')" aria-label="Putar video 13">
-                            <img alt="Thumbnail 13" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder13.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video14')" aria-label="Putar video 14">
-                            <img alt="Thumbnail 14" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder14.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video15')" aria-label="Putar video 15">
-                            <img alt="Thumbnail 15" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder15.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video16')" aria-label="Putar video 16">
-                            <img alt="Thumbnail 16" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder16.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video17')" aria-label="Putar video 17">
-                            <img alt="Thumbnail 17" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder17.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video18')" aria-label="Putar video 18">
-                            <img alt="Thumbnail 18" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder18.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video19')" aria-label="Putar video 19">
-                            <img alt="Thumbnail 19" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder19.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video20')" aria-label="Putar video 20">
-                            <img alt="Thumbnail 20" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder20.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video21')" aria-label="Putar video 21">
-                            <img alt="Thumbnail 21" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder21.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video22')" aria-label="Putar video 22">
-                            <img alt="Thumbnail 22" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder22.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video23')" aria-label="Putar video 23">
-                            <img alt="Thumbnail 23" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder23.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video24')" aria-label="Putar video 24">
-                            <img alt="Thumbnail 24" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder24.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video25')" aria-label="Putar video 25">
-                            <img alt="Thumbnail 25" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder25.png"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video26')" aria-label="Putar video 26">
-                            <img alt="Thumbnail 26" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder26.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video27')" aria-label="Putar video 27">
-                            <img alt="Thumbnail 27" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder27.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video28')" aria-label="Putar video 28">
-                            <img alt="Thumbnail 28" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder28.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video29')" aria-label="Putar video 29">
-                            <img alt="Thumbnail 29" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder29.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video30')" aria-label="Putar video 30">
-                            <img alt="Thumbnail 30" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder30.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video31')" aria-label="Putar video 31">
-                            <img alt="Thumbnail 31" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder31.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video32')" aria-label="Putar video 32">
-                            <img alt="Thumbnail 32" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder32.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video33')" aria-label="Putar video 33">
-                            <img alt="Thumbnail 33" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder33.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video34')" aria-label="Putar video 34">
-                            <img alt="Thumbnail 34" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder34.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video35')" aria-label="Putar video 35">
-                            <img alt="Thumbnail 35" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder35.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video36')" aria-label="Putar video 36">
-                            <img alt="Thumbnail 36" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder36.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video37')" aria-label="Putar video 37">
-                            <img alt="Thumbnail 37" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder37.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video38')" aria-label="Putar video 38">
-                            <img alt="Thumbnail 38" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder38.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video39')" aria-label="Putar video 39">
-                            <img alt="Thumbnail 39" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder39.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video40')" aria-label="Putar video 40">
-                            <img alt="Thumbnail 40" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder40.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video41')" aria-label="Putar video 41">
-                            <img alt="Thumbnail 41" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder41.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video42')" aria-label="Putar video 42">
-                            <img alt="Thumbnail 42" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder42.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video43')" aria-label="Putar video 43">
-                            <img alt="Thumbnail 43" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder43.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video44')" aria-label="Putar video 44">
-                            <img alt="Thumbnail 44" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder44.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video45')" aria-label="Putar video 45">
-                            <img alt="Thumbnail 45" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder45.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video46')" aria-label="Putar video 46">
-                            <img alt="Thumbnail 46" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder46.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video47')" aria-label="Putar video 47">
-                            <img alt="Thumbnail 47" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder47.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video48')" aria-label="Putar video 48">
-                            <img alt="Thumbnail 48" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder48.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video49')" aria-label="Putar video 49">
-                            <img alt="Thumbnail 49" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder49.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video50')" aria-label="Putar video 50">
-                            <img alt="Thumbnail 50" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder50.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video51')" aria-label="Putar video 51">
-                            <img alt="Thumbnail 51" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder51.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video52')" aria-label="Putar video 52">
-                            <img alt="Thumbnail 52" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder52.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video53')" aria-label="Putar video 53">
-                            <img alt="Thumbnail 53" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder53.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video54')" aria-label="Putar video 54">
-                            <img alt="Thumbnail 54" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder54.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video55')" aria-label="Putar video 55">
-                            <img alt="Thumbnail 55" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder55.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video56')" aria-label="Putar video 56">
-                            <img alt="Thumbnail 56" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder56.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video57')" aria-label="Putar video 57">
-                            <img alt="Thumbnail 57" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder57.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video58')" aria-label="Putar video 58">
-                            <img alt="Thumbnail 58" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder58.jpg"/>
-                            </button>
-                    </div>
-                    <div class="text-center">
-                        <button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal('video59')" aria-label="Putar video 59">
-                            <img alt="Thumbnail 59" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" src="src/images/moviespage/placeholder59.jpg"/>
-                            </button>
-                    </div>
-                </div>
+                <!-- Grid dirender dari src/data/movies-data.js (window.MOVIES_ITEMS) -->
+                <div id="moviesGrid" class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3"></div>
             </div>
         </section>
     </main>
     
-    <div class="modal" id="video1" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video1')" aria-label="Tutup">&times;</button>
-            <video id="video1-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder1.png">
-                <source src="src/videos/moviespage/video1.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video2" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video2')" aria-label="Tutup">&times;</button>
-            <video id="video2-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder2.png">
-                <source src="src/videos/moviespage/video2.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video3" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video3')" aria-label="Tutup">&times;</button>
-            <video id="video3-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder3.png">
-                <source src="src/videos/moviespage/video3.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video4" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video4')" aria-label="Tutup">&times;</button>
-            <video id="video4-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder4.png">
-                <source src="src/videos/moviespage/video4.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video5" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video5')" aria-label="Tutup">&times;</button>
-            <video id="video5-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder5.png">
-                <source src="src/videos/moviespage/video5.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video6" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video6')" aria-label="Tutup">&times;</button>
-            <video id="video6-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder6.png">
-                <source src="src/videos/moviespage/video6.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video7" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video7')" aria-label="Tutup">&times;</button>
-            <video id="video7-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder7.png">
-                <source src="src/videos/moviespage/video7.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video8" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video8')" aria-label="Tutup">&times;</button>
-            <video id="video8-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder8.png">
-                <source src="src/videos/moviespage/video8.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video9" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video9')" aria-label="Tutup">&times;</button>
-            <video id="video9-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder9.png">
-                <source src="src/videos/moviespage/video9.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video10" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video10')" aria-label="Tutup">&times;</button>
-            <video id="video10-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder10.png">
-                <source src="src/videos/moviespage/video10.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video11" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video11')" aria-label="Tutup">&times;</button>
-            <video id="video11-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder11.png">
-                <source src="src/videos/moviespage/video11.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video12" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video12')" aria-label="Tutup">&times;</button>
-            <video id="video12-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder12.png">
-                <source src="src/videos/moviespage/video12.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video13" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video13')" aria-label="Tutup">&times;</button>
-            <video id="video13-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder13.png">
-                <source src="src/videos/moviespage/video13.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video14" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video14')" aria-label="Tutup">&times;</button>
-            <video id="video14-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder14.png">
-                <source src="src/videos/moviespage/video14.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video15" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video15')" aria-label="Tutup">&times;</button>
-            <video id="video15-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder15.png">
-                <source src="src/videos/moviespage/video15.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video16" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video16')" aria-label="Tutup">&times;</button>
-            <video id="video16-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder16.png">
-                <source src="src/videos/moviespage/video16.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video17" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video17')" aria-label="Tutup">&times;</button>
-            <video id="video17-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder17.png">
-                <source src="src/videos/moviespage/video17.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video18" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video18')" aria-label="Tutup">&times;</button>
-            <video id="video18-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder18.png">
-                <source src="src/videos/moviespage/video18.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video19" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video19')" aria-label="Tutup">&times;</button>
-            <video id="video19-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder19.png">
-                <source src="src/videos/moviespage/video19.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video20" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video20')" aria-label="Tutup">&times;</button>
-            <video id="video20-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder20.png">
-                <source src="src/videos/moviespage/video20.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video21" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video21')" aria-label="Tutup">&times;</button>
-            <video id="video21-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder21.png">
-                <source src="src/videos/moviespage/video21.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video22" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video22')" aria-label="Tutup">&times;</button>
-            <video id="video22-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder22.png">
-                <source src="src/videos/moviespage/video22.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video23" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video23')" aria-label="Tutup">&times;</button>
-            <video id="video23-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder23.png">
-                <source src="src/videos/moviespage/video23.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video24" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video24')" aria-label="Tutup">&times;</button>
-            <video id="video24-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder24.png">
-                <source src="src/videos/moviespage/video24.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video25" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video25')" aria-label="Tutup">&times;</button>
-            <video id="video25-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder25.png">
-                <source src="src/videos/moviespage/video25.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video26" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video26')" aria-label="Tutup">&times;</button>
-            <video id="video26-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder26.jpg">
-                <source src="src/videos/moviespage/video26.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video27" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video27')" aria-label="Tutup">&times;</button>
-            <video id="video27-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder27.jpg">
-                <source src="src/videos/moviespage/video27.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video28" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video28')" aria-label="Tutup">&times;</button>
-            <video id="video28-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder28.jpg">
-                <source src="src/videos/moviespage/video28.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video29" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video29')" aria-label="Tutup">&times;</button>
-            <video id="video29-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder29.jpg">
-                <source src="src/videos/moviespage/video29.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video30" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video30')" aria-label="Tutup">&times;</button>
-            <video id="video30-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder30.jpg">
-                <source src="src/videos/moviespage/video30.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video31" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video31')" aria-label="Tutup">&times;</button>
-            <video id="video31-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder31.jpg">
-                <source src="src/videos/moviespage/video31.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video32" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video32')" aria-label="Tutup">&times;</button>
-            <video id="video32-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder32.jpg">
-                <source src="src/videos/moviespage/video32.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video33" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video33')" aria-label="Tutup">&times;</button>
-            <video id="video33-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder33.jpg">
-                <source src="src/videos/moviespage/video33.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video34" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video34')" aria-label="Tutup">&times;</button>
-            <video id="video34-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder34.jpg">
-                <source src="src/videos/moviespage/video34.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video35" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video35')" aria-label="Tutup">&times;</button>
-            <video id="video35-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder35.jpg">
-                <source src="src/videos/moviespage/video35.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video36" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video36')" aria-label="Tutup">&times;</button>
-            <video id="video36-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder36.jpg">
-                <source src="src/videos/moviespage/video36.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video37" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video37')" aria-label="Tutup">&times;</button>
-            <video id="video37-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder37.jpg">
-                <source src="src/videos/moviespage/video37.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video38" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video38')" aria-label="Tutup">&times;</button>
-            <video id="video38-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder38.jpg">
-                <source src="src/videos/moviespage/video38.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video39" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video39')" aria-label="Tutup">&times;</button>
-            <video id="video39-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder39.jpg">
-                <source src="src/videos/moviespage/video39.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video40" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video40')" aria-label="Tutup">&times;</button>
-            <video id="video40-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder40.jpg">
-                <source src="src/videos/moviespage/video40.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video41" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video41')" aria-label="Tutup">&times;</button>
-            <video id="video41-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder41.jpg">
-                <source src="src/videos/moviespage/video41.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video42" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video42')" aria-label="Tutup">&times;</button>
-            <video id="video42-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder42.jpg">
-                <source src="src/videos/moviespage/video42.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video43" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video43')" aria-label="Tutup">&times;</button>
-            <video id="video43-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder43.jpg">
-                <source src="src/videos/moviespage/video43.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video44" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video44')" aria-label="Tutup">&times;</button>
-            <video id="video44-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder44.jpg">
-                <source src="src/videos/moviespage/video44.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video45" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video45')" aria-label="Tutup">&times;</button>
-            <video id="video45-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder45.jpg">
-                <source src="src/videos/moviespage/video45.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video46" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video46')" aria-label="Tutup">&times;</button>
-            <video id="video46-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder46.jpg">
-                <source src="src/videos/moviespage/video46.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video47" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video47')" aria-label="Tutup">&times;</button>
-            <video id="video47-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder47.jpg">
-                <source src="src/videos/moviespage/video47.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video48" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video48')" aria-label="Tutup">&times;</button>
-            <video id="video48-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder48.jpg">
-                <source src="src/videos/moviespage/video48.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video49" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video49')" aria-label="Tutup">&times;</button>
-            <video id="video49-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder49.jpg">
-                <source src="src/videos/moviespage/video49.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video50" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video50')" aria-label="Tutup">&times;</button>
-            <video id="video50-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder50.jpg">
-                <source src="src/videos/moviespage/video50.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video51" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video51')" aria-label="Tutup">&times;</button>
-            <video id="video51-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder51.jpg">
-                <source src="src/videos/moviespage/video51.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video52" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video52')" aria-label="Tutup">&times;</button>
-            <video id="video52-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder52.jpg">
-                <source src="src/videos/moviespage/video52.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video53" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video53')" aria-label="Tutup">&times;</button>
-            <video id="video53-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder53.jpg">
-                <source src="src/videos/moviespage/video53.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video54" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video54')" aria-label="Tutup">&times;</button>
-            <video id="video54-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder54.jpg">
-                <source src="src/videos/moviespage/video54.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video55" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video55')" aria-label="Tutup">&times;</button>
-            <video id="video55-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder55.jpg">
-                <source src="src/videos/moviespage/video55.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video56" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video56')" aria-label="Tutup">&times;</button>
-            <video id="video56-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder56.jpg">
-                <source src="src/videos/moviespage/video56.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video57" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video57')" aria-label="Tutup">&times;</button>
-            <video id="video57-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder57.jpg">
-                <source src="src/videos/moviespage/video57.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video58" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video58')" aria-label="Tutup">&times;</button>
-            <video id="video58-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder58.jpg">
-                <source src="src/videos/moviespage/video58.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    <div class="modal" id="video59" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <button type="button" class="close" onclick="closeModal('video59')" aria-label="Tutup">&times;</button>
-            <video id="video59-player" data-countdown="5" controls preload="none" poster="src/images/moviespage/placeholder59.jpg">
-                <source src="src/videos/moviespage/video59.mp4" type="video/mp4"/>
-                Your browser does not support the video tag.
-            </video>
-        </div>
-    </div>
-    
     <script>
+        /* ===== Render grid + modal video dari src/data/movies-data.js =====
+           Tambah/hapus/ubah video cukup lewat file data (atau admin.html) —
+           tanpa menyentuh HTML sama sekali. */
+        var MOVIES = window.MOVIES_ITEMS || [];
+
+        function renderMovies() {
+            var grid = document.getElementById('moviesGrid');
+            grid.innerHTML = MOVIES.map(function (m) {
+                return '<div class="text-center">' +
+                    '<button type="button" class="block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openModal(\'video' + m.id + '\')" aria-label="Putar video ' + m.id + '">' +
+                        '<img alt="Thumbnail ' + m.id + '" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async" src="' + m.thumbnail + '"/>' +
+                    '</button>' +
+                '</div>';
+            }).join('');
+
+            var modalsHtml = MOVIES.map(function (m) {
+                return '<div class="modal" id="video' + m.id + '" role="dialog" aria-modal="true" aria-label="Pemutar video">' +
+                    '<div class="modal-content">' +
+                        '<button type="button" class="close" onclick="closeModal(\'video' + m.id + '\')" aria-label="Tutup">&times;</button>' +
+                        '<video id="video' + m.id + '-player" data-countdown="' + (m.countdown || 5) + '" controls preload="none" poster="' + m.thumbnail + '">' +
+                            '<source src="' + m.video + '" type="video/mp4"/>' +
+                            'Your browser does not support the video tag.' +
+                        '</video>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+            document.body.insertAdjacentHTML('beforeend', '<div id="moviesModals">' + modalsHtml + '</div>');
+        }
+
+        function movieById(id) {
+            for (var i = 0; i < MOVIES.length; i++) {
+                if (MOVIES[i].id === id) return MOVIES[i];
+            }
+            return null;
+        }
+
         var activeModal = null;
         var lastFocusedElement = null;
 
@@ -1024,7 +235,9 @@
                 var closeBtn = modal.querySelector('.close');
                 var header = document.createElement('div');
                 header.className = 'movies-modal-header';
-                header.innerHTML = '<div><span class="movies-modal-badge">Now Playing</span><h3 class="movies-modal-title">Video ' + videoId.replace('video', '') + '</h3></div>';
+                var item = movieById(parseInt(videoId.replace('video', ''), 10));
+                var title = item && item.title ? item.title : 'Video ' + videoId.replace('video', '');
+                header.innerHTML = '<div><span class="movies-modal-badge">Now Playing</span><h3 class="movies-modal-title">' + title.replace(/</g, '&lt;') + '</h3></div>';
                 // Tombol close DIPINDAHKAN ke dalam header (bukan sibling) agar
                 // tidak ter-clip oleh overflow:hidden panel dan .close:static berlaku.
                 header.appendChild(closeBtn);
@@ -1115,7 +328,7 @@
         /* ===== Countdown "Memutar episode berikutnya" (ala Netflix) =====
            Sama seperti series: setelah video selesai, hitung mundur 10 detik
            dengan ring, lalu video diputar ulang otomatis. Per-modal (tiap
-           videoId punya timer sendiri) karena movies punya 25 modal. */
+           videoId punya timer sendiri) karena movies punya banyak modal. */
         var MOVIES_COUNTDOWN_TOTAL = 10; // default jika tidak ada data-countdown
         var moviesCountdownTimers = {};
         var moviesCountdownLeft = {};
@@ -1213,6 +426,9 @@
             }
         });
 
+        document.addEventListener('DOMContentLoaded', function () {
+            renderMovies();
+        });
     </script>
 </body>
 </html>
