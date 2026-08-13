@@ -1,38 +1,14 @@
 /* ==========================================================================
-   news-data.js — Konten News & Popular (data-driven, TANPA edit HTML)
-   --------------------------------------------------------------------------
-   CARA UPDATE (cukup lakukan ini, tanpa menyentuh newsandpopular.html):
-
-     1. Tambah/ubah satu object di daftar NEWS_ITEMS di bawah.
-
-        {                               // item LENGKAP (dengan video):
-            date: "2026-08-11",         //   tanggal PUBLISH manual (batas tampil)
-            title: "Judul Postingan",
-            video: "src/videos/newsandpopularpage/NAMA_VIDEO.mp4",
-            countdown: 5,               //   (OPSIONAL) durasi countdown auto-replay; default 5
-            paragraphs: [ "paragraf 1", "paragraf 2", ... ]
-        }
-
-        {                               // item TEKS SAJA (TANPA video):
-            date: "2026-08-10",         //   hapus baris "video" → cukup kata-kata
-            title: "Judul Postingan",
-            paragraphs: [ "paragraf 1", "paragraf 2", ... ]
-        }
-
-     2. Simpan. Halaman otomatis menampilkan item yang tanggalnya SUDAH LEWAT
-        (date <= hari ini). Item ber-tanggal masa depan disembunyikan sampai
-        tanggalnya tiba. Item terbaru tampil paling atas.
-
-   Video OPSIONAL: kalau hanya ingin menambah kata-kata/cerita, cukup isi
-   date + title + paragraphs tanpa field "video" — tidak perlu upload video.
-   ========================================================================== */
+   src/data/news-data.js — DIKELOLA OTOMATIS oleh admin.html
+   Jangan edit manual jika tidak perlu — perubahan bisa tertimpa
+   saat admin.html menyimpan. ========================================================================== */
 
 window.NEWS_ITEMS = [
     {
-        date: "2025-03-20",
-        title: "Kisahku, Untukmu",
-        video: "src/videos/newsandpopularpage/news_video.mp4",
-        paragraphs: [
+        "date": "2025-03-20",
+        "title": "Kisahku, Untukmu",
+        "video": "src/videos/newsandpopularpage/news_video.mp4",
+        "paragraphs": [
             "Hari pertama masuk MA, aku melihatnya—Nurul. Gadis yang tidak terlalu mencolok, tapi entah kenapa, ada sesuatu dalam dirinya yang membuatku terus memperhatikannya. Aku tidak tahu kenapa, tapi sejak hari itu, aku mulai mengamatinya dari jauh, tanpa pernah benar-benar berani mendekat.",
             "Tahun pertama berlalu dengan cepat. Aku hanya bisa melihatnya tertawa bersama teman-temannya, mengerjakan tugas dengan serius, atau sesekali termenung di bangku sekolah. Aku ingin menyapanya, tapi entah kenapa, keberanian itu tidak pernah muncul.",
             "Tahun kedua, aku mulai lebih mengenalnya, meskipun masih dari kejauhan. Aku tahu, aku semakin jatuh hati. Tapi tetap saja, aku hanya diam.",
@@ -45,9 +21,9 @@ window.NEWS_ITEMS = [
         ]
     },
     {
-        date: "2025-03-20",
-        title: "Bukan Sekadar Pengagum Rahasia",
-        paragraphs: [
+        "date": "2025-03-20",
+        "title": "Bukan Sekadar Pengagum Rahasia",
+        "paragraphs": [
             "Suasana kamar malam itu hening, hanya dibiaskan oleh pendar biru dari layar laptop dan ponsel yang tergeletak di atas meja.",
             "Tanggal 20 Maret 2025 menjadi saksi saat-saat paling menegangkan dalam hidupku. Setiap detik terasa melambat, diiringi detak jantung yang berpacu liar menanti kabar dari Nurul setelah ia menelusuri setiap sudut website yang kususun setengah mati.",
             "Ketika tanda bahwa ia telah membaca seluruh rangkaian tulisan di website itu akhirnya muncul, yang menyertainya bukanlah luapan kegembiraan instan, melainkan sebuah gelombang keraguan yang membentang di antara kami. Lewat kepingan kata yang tersampaikan, aku bisa merasakan betapa Nurul terkejut sekaligus bimbang.",
@@ -63,13 +39,13 @@ window.NEWS_ITEMS = [
             "Menit-menit berikutnya adalah ujian kesabaran yang paling menyiksa.",
             "Keheningan malam seolah menekan dada, menuntut keberanian penuh untuk menerima apa pun hasilnya.",
             "Namun tepat di penghujung malam, pertahanan Nurul akhirnya runtuh. Keraguan yang tadi membentang perlahan mencair, berganti menjadi sebuah rasa hangat yang belum pernah kurasakan sebelumnya. Ia akhirnya luluh, mau membuka diri dan menerima perasaan yang telah lama kusimpan rapi dalam diam.",
-            "Malam itu, di kamar yang sunyi, aku bersandar pada kursi dengan napas lega yang panjang. Masa-masa menjadi pengagum rahasia yang hanya bisa melihat dari kejauhan telah usai. Lembaran baru resmi dimulai.",
+            "Malam itu, di kamar yang sunyi, aku bersandar pada kursi dengan napas lega yang panjang. Masa-masa menjadi pengagum rahasia yang hanya bisa melihat dari kejauhan telah usai. Lembaran baru resmi dimulai."
         ]
     },
     {
-        date: "2025-06-02",
-        title: "Buket Bunga dan Penyesalan di Hari Kelulusan",
-        paragraphs: [
+        "date": "2025-06-02",
+        "title": "Buket Bunga dan Penyesalan di Hari Kelulusan",
+        "paragraphs": [
             "Tanggal 2 Juli 2025 menjadi penanda berakhirnya masa seragam abu-abu di Madrasah Aliyah.",
             "Hari itu terasa begitu istimewa sekaligus menyisakan ganjalan mendalam yang masih mengendap di dalam dadaku hingga saat ini.",
             "Sesi foto kenang-kenangan yang dicetak resmi baru saja usai ketika seorang teman Nurul mendadak melambaikan tangan padaku. Ia menyuruhku masuk ke salah satu ruangan di area sekolah. Langkahku sempat tertahan di ambang pintu, bertanya-tanya ada urusan apa di dalam sana. Namun saat pintu terdorong, dadaku berdesir hangat. Di dalam ruangan yang agak tenang itu, berdiri seseorang yang selama tiga tahun ini mengisi sesak di dadaku—Nurul.",
@@ -82,20 +58,23 @@ window.NEWS_ITEMS = [
             "Rasa bodoh itu akhirnya memukulku telak. Sebuah pesan masuk darinya, membawa kekecewaan terselubung.",
             "Lagi-lagi karena gengsi dan rasa insecure yang menutup mata, aku mengusap wajah kasar. Karena gengsi dan rasa bersalah yang tak sanggup kuakui, aku malah mengarang alasan konyol—mengatakan bahwa aku memang tidak menyukai atau \"tidak support\" urusan berfoto. Sebuah alibi dangkal untuk menutupi kenyataan bahwa aku hanya seorang cowok yang belum siap dan terlalu penakut.",
             "Semenjak malam itu, aku berjanji pada diriku sendiri untuk tidak akan pernah mengulangi kesalahan konyol seperti itu lagi.",
-            "Hari ini, setiap kali aku melangkah di kamar, mataku selalu tertuju pada lemari kaca. Di sana, buket bunga pemberian Nurul pada 2 Juli 2025 itu masih berdiri tegak, terawat baik dan tersimpan rapi. Bunga itu menjadi saksi bisu atas ketulusannya yang tak pernah pudar, sekaligus penanda bagiku untuk terus bertumbuh menjadi pria yang pantas di masa depan.",
-        ]
+            "Hari ini, setiap kali aku melangkah di kamar, mataku selalu tertuju pada lemari kaca. Di sana, buket bunga pemberian Nurul pada 2 Juli 2025 itu masih berdiri tegak, terawat baik dan tersimpan rapi. Bunga itu menjadi saksi bisu atas ketulusannya yang tak pernah pudar, sekaligus penanda bagiku untuk terus bertumbuh menjadi pria yang pantas di masa depan."
+        ],
+        "video": ""
     },
     {
-        date: "2025-12-07",
-        title: "Suara di Ujung Telepon dan Warna Baru Liburan",
-        paragraphs: [
+        "date": "2025-12-07",
+        "title": "Suara di Ujung Telepon dan Warna Baru Liburan",
+        "paragraphs": [
             "Liburan kali ini terasa jauh berbeda dari tahun-tahun sebelumnya. Ada warna baru yang menghiasi hariku, sebab kini aku sudah memiliki pujaan hati—seseorang yang sering kali, dengan sedikit canda dan rasa bangga, kusebut sebagai \"istriku\" walau status kami di dunia nyata masih berpacaran.",
             "Hari-hari liburan itu berjalan begitu berwarna. Salah satu momen favorit kami adalah bermain game Roblox bersama. Ya, kebanyakan orang mungkin menganggapnya sebagai game bocil, tapi ketika dimainkan bersama orang yang paling disayang, rasanya jauh berbeda. Setiap detik di dalam dunia piksel itu berubah jadi kenangan yang hangat dan menyenangkan. Meskipun kami hanya berinteraksi secara virtual dan belum sempat bertemu kembali secara langsung, aku sudah sangat bahagia saat itu.",
             "Namun pada suatu hari, aku merasa ada sesuatu yang agak berbeda dari Nurul. Tiba-tiba saja ia mengajakku untuk melakukan panggilan suara (call) dengan dalih ada hal penting yang ingin dibicarakan. Jantungku seketika berdesir kencang. Aku sadar, semenjak kami resmi berpacaran, kami hampir tidak pernah berinteraksi secara langsung lewat suara sejak terakhir kali bertemu pandang di sekolah.",
-            "Rasa gugup dan canggung sempat mencuat, memanggil kembali ingatan masa lalu. Namun, aku teringat pada janji yang kubuat sendiri: aku harus merubah sikapku dan tidak boleh lagi bertindak bodoh atau melarikan diri seperti saat hari kelulusan dulu. Aku harus berani untuk dia.",
+            "Rasa gugup dan canggung sempat mencuat, memanggil kembali ingatan masa lalu. Namun, aku teringat pada janji yang kubuat sendiri: aku harus merubah sikapku dan tidak boleh lagi bertindak bodoh atau melarikan diri seperti saat hari kelulusan dulu.",
+            "Aku harus berani untuk dia.",
             "Dengan ketetapan hati itu, aku memberanikan diri menerima ajakannya. Aku memintanya menentukan jam berapa ia senggang untuk menelepon, lalu kami menyepakati waktu yang telah ditentukan.",
             "Saat dering telepon pertama menyapa dan aku menekan tombol hijau, lidahku mendadak kelu. Untuk beberapa detik awal, aku benar-benar bingung harus berbicara apa. Kecanggungan sempat menyelimuti, tapi perlahan-lahan suasana mencair. Aku masih tidak menyangka bisa mendengar suaranya secara langsung di telingaku, mengobrol dan saling bertukar pikiran secara nyata.",
-            "Momen malam itu ternyata menjadi pintu pembuka yang mengubah segalanya. Keesokan harinya dan hari-hari setelahnya, kami malah ketagihan untuk terus-menerus melakukan panggilan telepon—saling menceritakan hal-hal kecil dari pagi hingga malam, sampai kami sering kali lupa waktu.",
-        ]
+            "Momen itu ternyata menjadi pintu pembuka yang mengubah segalanya. Keesokan harinya dan hari-hari setelahnya, kami malah ketagihan untuk terus-menerus melakukan panggilan telepon—saling menceritakan hal-hal kecil dari pagi hingga malam, sampai kami sering kali lupa waktu."
+        ],
+        "video": ""
     }
 ];
