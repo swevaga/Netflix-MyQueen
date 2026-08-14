@@ -91,7 +91,13 @@
 - Batas ukuran: foto ±20 MB, video ±70 MB (batas GitHub Contents API).
 - Setelah upload, path tampil di area upload + preview muncul otomatis.
   Tombol **Ganti** mengganti file, tombol **Hapus** mengosongkan field
-  (referensi di data saja — file di repo tidak dihapus).
+  (referensi di data saja — file di repo tidak ikut dihapus saat itu).
+- **Menghapus item** (tombol sampah di daftar) sekarang juga menghapus file
+  media-nya dari repo lewat GitHub API — selama file itu tidak dipakai item
+  lain dan token sudah terisi. Konfirmasi menunjukkan file mana yang akan
+  dihapus. File URL eksternal (hosting lain) tidak pernah dihapus.
+  Tanpa token, item tetap dihapus dari data tapi file di repo tidak ikut
+  terhapus (log memberi tahu).
 - **Musik** tetap diisi **path/URL manual** (tidak ada upload) — file harus
   sudah ada di `src/audio/…` atau hosting eksternal.
 
@@ -111,7 +117,12 @@ Menu **Profile → Settings** di navbar semua halaman membuka `admin.html`
 
 - PIN default ada di konstanta `ADMIN_PIN` di bagian atas `<script>` `admin.html`
   — ganti angkanya, atau pakai tab *Pengaturan* untuk PIN khusus per perangkat.
+- **Anti brute-force**: setelah 5 percobaan PIN salah, form terkunci 60 detik.
+- **Anti-XSS**: semua data (judul/path) di-escape sebelum dirender di daftar
+  admin, dan file data divalidasi sebagai literal JSON/JS murni sebelum
+  diproses (kode berbahaya ditolak).
 - PAT hanya disimpan di `localStorage` browser kamu. **Jangan pernah menaruh
-  token di dalam file repository.**
+  token di dalam file repository.** Gunakan tombol *Bersihkan Token &
+  Konfigurasi* (tab Pengaturan) saat selesai di perangkat bersama.
 - Jika repo bersifat publik, siapa pun bisa *melihat* kode — lapisan keamanan
   sebenarnya adalah token (tulis) + PIN (tampilan form admin).

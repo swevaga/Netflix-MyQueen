@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Netflix</title>
     <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
-    <link rel="stylesheet" href="src/css/tailwind.css?v=3">
+    <link rel="stylesheet" href="src/css/tailwind.css?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="src/css/common.css?v=15">
     <link rel="stylesheet" href="src/css/index.css?v=5">
@@ -73,7 +73,7 @@
     
     <main id="main-content" tabindex="-1" class="relative h-screen overflow-hidden">
         <div id="heroSlides" class="absolute inset-0">
-            <img id="heroImg" alt="Background Image" class="w-full h-full object-cover object-center transition-opacity duration-700" src="src/images/photo/placeholder16_9_15.png">
+            <img id="heroImg" alt="Background Image" fetchpriority="high" decoding="async" class="w-full h-full object-cover object-center transition-opacity duration-700" src="src/images/photo/placeholder16_9_15.png">
         </div>
         <div class="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent"></div>
         <div class="absolute inset-0 flex flex-col justify-center items-start px-4 md:px-12 pb-32 md:pb-40">
@@ -138,8 +138,8 @@
             "placeholder9_16_24.png", "placeholder9_16_25.png", "placeholder3_4_3.png", "placeholder3_4_4.png", 
             "placeholder4_3_1.png", "placeholder4_3_2.png", "placeholder4_3_3.png", "placeholder3_4_5.png", 
             "placeholder1_1_1.png", "placeholder1_1_2.png", "placeholder3_4_6.png", "placeholder4_3_4.png", 
-            "placeholder4_3_5.png", "placeholder4_3_6.png", "placeholder4_3_7.png", "placeholder3_4_7.png", 
-            "placeholder3_4_8.png", "placeholder3_4_9.png", "placeholder3_4_10.png", "placeholder3_4_11.png", 
+            "placeholder4_3_5.png", "placeholder4_3_6.png", "placeholder4_3_7.png", 
+            "placeholder3_4_9.png", "placeholder3_4_10.png", "placeholder3_4_11.png", 
             "placeholder3_4_12.png", "placeholder4_3_8.png", "placeholder3_4_13.png", "placeholder9_16_28.png", 
             "placeholder9_16_29.png", "placeholder9_16_30.png", "placeholder9_16_31.png", "placeholder9_16_32.png", 
             "placeholder9_16_34.png", "placeholder9_16_35.png", "placeholder9_16_36.png", "placeholder9_16_37.png", 
@@ -287,8 +287,8 @@
             
             grid.innerHTML = initialImages.map((img, index) => `
                 <div class="image-container aspect-[2/3] rounded overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-300">
-                    <img alt="Image" class="active" loading="lazy" src="src/images/photo/${img}">
-                    <img alt="Image" class="inactive" loading="lazy">
+                    <img alt="Image" class="active" loading="lazy" decoding="async" src="src/images/photo/${img}">
+                    <img alt="Image" class="inactive" loading="lazy" decoding="async">
                 </div>
             `).join('');
             
@@ -368,7 +368,12 @@
         }
 
         // Pesan dari iframe play.html: kelola musik + tutup modal.
+        // Hanya terima pesan dari asal situs sendiri (anti spoofing lintas-origin).
+        function isTrustedOrigin(origin) {
+            return origin === window.location.origin || origin === 'null';
+        }
         window.addEventListener('message', function (e) {
+            if (!isTrustedOrigin(e.origin)) return;
             if (!window.MusicPlayer) return;
             if (e.data === 'netflix-video-ended') {
                 // Video selesai → kembalikan music island.

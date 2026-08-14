@@ -14,3 +14,9 @@ Thumbs.db
 # Playwright artifacts
 playwright-report/
 test-results/
+
+# Direktori kerja internal (DB desktop, skrip diagnosa) — bukan bagian repo
+.freebuff/
+
+# Backup data saat pemeliharaan
+.backup-data/

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Netflix - Play</title>
-    <link rel="stylesheet" href="src/css/tailwind.css?v=3">
+    <link rel="stylesheet" href="src/css/tailwind.css?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <link rel="stylesheet" href="src/css/common.css?v=15">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,7 +116,11 @@
             });
 
             // Dipanggil dari index.html (modal Play): aktifkan suara setelah klik Play.
+            // Hanya terima pesan dari asal situs sendiri (anti-spoofing lintas-origin).
             window.addEventListener('message', function (event) {
+                var okOrigin = false;
+                try { okOrigin = event.origin === window.location.origin || event.origin === 'null'; } catch (e) {}
+                if (!okOrigin) return;
                 if (event.data === 'netflix-unmute') setSound(true);
                 if (event.data === 'netflix-mute') setSound(false);
             });

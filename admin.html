@@ -36,7 +36,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Netflix - Admin</title>
     <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
-    <link rel="stylesheet" href="src/css/tailwind.css?v=3">
+    <link rel="stylesheet" href="src/css/tailwind.css?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -463,6 +463,11 @@
                     <p id="pinMsg" class="text-sm mt-3"></p>
                 </div>
                 <div class="admin-card">
+                    <h2 class="font-bold mb-3">🧹 Keamanan &amp; Privasi</h2>
+                    <p class="text-sm text-gray-400 mb-3">Hapus token GitHub, konfigurasi repo, dan PIN yang tersimpan di browser ini (localStorage). Setelah dibersihkan, panel kembali ke layar PIN.</p>
+                    <button type="button" class="btn btn-danger" onclick="clearStoredConfig()"><i class="fas fa-eraser" aria-hidden="true"></i> Bersihkan Token &amp; Konfigurasi</button>
+                </div>
+                <div class="admin-card">
                     <h2 class="font-bold mb-3">ℹ️ Cara Pakai</h2>
                     <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
                         <li>Isi Owner / Repository / Branch / Token GitHub, lalu <b>Tes Koneksi</b>.</li>
@@ -494,6 +499,19 @@
         del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
     };
 
+    /* Escape HTML untuk mencegah XSS saat data (judul/path dari repo) ditampilkan
+       di daftar item admin. Data dikelola lewat GitHub, jadi aman untuk asumsi
+       tepercaya — tapi jangan pernah mengandalkannya: judul/path bisa berisi
+       karakter HTML (<, >, ") dari input pengguna atau repo publik. */
+    function esc(s) {
+        return String(s === undefined || s === null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     var DATA_FILES = [
         { key: 'news',   varName: 'NEWS_ITEMS',     path: 'src/data/news-data.js',      label: 'Pesan Berita' },
         { key: 'series', varName: 'SERIES_ITEMS',   path: 'src/data/series-data.js',    label: 'Foto Series' },
@@ -521,15 +539,42 @@
         return saved ? saved : ADMIN_PIN;
     }
 
+    /* ---- Proteksi brute-force PIN ----
+       Setelah 5 percobaan salah, form PIN terkunci 60 detik (anti tebak
+       PIN berulang). Batas & durasi disimpan di memori (per tab). */
+    var PIN_MAX_FAILURES = 5;
+    var PIN_LOCK_MS = 60000;
+    var pinFailures = 0;
+    var pinLockUntil = 0;
+
+    function showPinError(msg) {
+        var err = document.getElementById('pinError');
+        err.classList.remove('hidden');
+        err.textContent = msg;
+    }
+
     document.getElementById('pinForm').addEventListener('submit', function (e) {
         e.preventDefault();
+        var now = Date.now();
+        if (now < pinLockUntil) {
+            showPinError('Terlalu banyak percobaan. Coba lagi dalam ' + Math.ceil((pinLockUntil - now) / 1000) + ' detik.');
+            return;
+        }
         var val = document.getElementById('pinInput').value.trim();
         if (val === currentPin()) {
+            pinFailures = 0;
+            pinLockUntil = 0;
             try { sessionStorage.setItem('mqAdminUnlocked', '1'); } catch (err) {}
             openDashboard();
         } else {
-            var err = document.getElementById('pinError');
-            err.classList.remove('hidden');
+            pinFailures++;
+            if (pinFailures >= PIN_MAX_FAILURES) {
+                pinLockUntil = now + PIN_LOCK_MS;
+                pinFailures = 0;
+                showPinError('Terlalu banyak percobaan PIN. Terkunci 60 detik.');
+            } else {
+                showPinError('PIN salah. Sisa percobaan: ' + (PIN_MAX_FAILURES - pinFailures));
+            }
             document.getElementById('pinInput').value = '';
             document.getElementById('pinInput').focus();
         }
@@ -598,7 +643,23 @@
         if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token;
         var opts = { method: method || 'GET', headers: headers };
         if (body !== undefined) opts.body = JSON.stringify(body);
-        var res = await fetch('https://api.github.com' + path, opts);
+        // Timeout 30 dtk agar request yang menggantung tidak membuat UI terkunci.
+        var controller = null, timer = null;
+        if (typeof AbortController !== 'undefined') {
+            controller = new AbortController();
+            timer = setTimeout(function () { controller.abort(); }, 30000);
+            opts.signal = controller.signal;
+        }
+        var res;
+        try {
+            res = await fetch('https://api.github.com' + path, opts);
+        } catch (e) {
+            if (controller) clearTimeout(timer);
+            throw new Error(e && e.name === 'AbortError'
+                ? 'Waktu tunggu habis (30 detik) — periksa koneksi internet.'
+                : 'Gagal menghubungi GitHub: ' + (e && e.message ? e.message : e));
+        }
+        if (controller) clearTimeout(timer);
         var data = null;
         try { data = await res.json(); } catch (e) {}
         if (!res.ok) {
@@ -634,6 +695,23 @@
         if (sha) body.sha = sha;
         var data = await ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path, 'PUT', body);
         return data;
+    }
+
+    /* Hapus file dari repo (Contents API DELETE). SHA diambil dulu dari file
+       saat ini agar DELETE diterima GitHub (API mewajibkan sha blob terbaru). */
+    async function ghDeleteFile(path, message) {
+        var cfg = ghConfig();
+        var info = await ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path + '?ref=' + encodeURIComponent(cfg.branch));
+        var body = { message: message || ('Hapus ' + path + ' via admin.html'), branch: cfg.branch, sha: info.sha };
+        return ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path, 'DELETE', body);
+    }
+
+    /* Apakah path media milik repo ini (bukan URL eksternal / blob: / data:)?
+       File eksternal (hosting sendiri) TIDAK dihapus dari sini. */
+    function isRepoPath(p) {
+        p = String(p || '');
+        if (/^(https?:|blob:|data:)/i.test(p)) return false;
+        return /^(src\/|\.\/|\/)/.test(p);
     }
 
     async function testConnection() {
@@ -679,8 +757,22 @@
             else if (c === close) { depth--; if (depth === 0) break; }
         }
         var body = src.slice(start, i + 1);
+        // Pertahanan berlapis: pastikan body HANYA literal data (string, angka,
+        // boolean, null, array, object). Menolak kode JS seperti [x=alert(1)]
+        // atau pemanggilan fungsi sebelum dievaluasi.
+        if (!isDataLiteral(body)) throw new Error('Isi ' + varName + ' tidak aman / bukan literal data.');
         // eslint-disable-next-line no-new-func
         return (new Function('return ' + body + ';'))();
+    }
+
+    /* Validasi: setelah string (dalam tanda kutip) dibuang, yang tersisa hanya
+       karakter token literal. Menolak operator (= ; < ` %), kurung panggilan
+       fungsi, dan kata kunci — tanpa mengubah data teks di dalam string. */
+    function isDataLiteral(body) {
+        var noStrings = body.replace(/"(?:\\.|[^"\\])*"/g, '""');
+        if (/[^\s\[\]{}\]:,+.\-0-9a-zA-Z"]/.test(noStrings)) return false;
+        if (/[A-Za-z_$][A-Za-z0-9_$]*\s*\(/.test(noStrings)) return false;
+        return true;
     }
 
     function fileHeader(path) {
@@ -712,7 +804,10 @@
                 log('✓ ' + df.label + ' dimuat dari GitHub (' + df.path + ')', 'ok');
                 loaded++;
             } catch (e) {
-                if (String(e.message).indexOf('404') >= 0) {
+                // GitHub mengembalikan pesan "Not Found" (tanpa teks "404")
+                // untuk file yang tidak ada → cek kedua-duanya.
+                var eMsg = String(e && e.message ? e.message : e);
+                if (eMsg.indexOf('404') >= 0 || /not found/i.test(eMsg)) {
                     log('⚠ ' + df.path + ' belum ada di GitHub — coba ambil dari situs ini…', 'info');
                     var local = await tryLoadLocal(df);
                     if (local) {
@@ -776,8 +871,10 @@
             var content = serializeFile(df.path, df.varName, s.data);
             var message = 'update ' + df.path + ' via admin.html';
             try {
-                await ghPutFile(df.path, content, message, s.sha);
-                state[key].sha = null; // sha baru diambil ulang saat load berikutnya
+                var res = await ghPutFile(df.path, content, message, s.sha);
+                // Simpan sha BARU dari respons agar simpan berikutnya tetap valid
+                // (tanpa sha, PUT ke file yang sudah ada ditolak GitHub).
+                state[key].sha = (res && res.content && res.content.sha) ? res.content.sha : null;
                 state[key].dirty = false;
                 log('✓ ' + df.label + ' tersimpan → ' + message, 'ok');
                 ok++;
@@ -933,8 +1030,15 @@
         }
 
         function doUpload(file) {
+            // MIME bisa kosong / generik (application/octet-stream) di sebagian
+            // browser & OS (mis. HP Android untuk .mp4) → validasi juga ekstensi.
             var okType = kind === 'video' ? /^video\// : /^image\//;
-            if (!okType.test(file.type || '')) {
+            var name = String(file.name || '').toLowerCase();
+            var okExt = kind === 'video'
+                ? /\.(mp4|webm|ogg|ogv|mov|m4v)$/.test(name)
+                : /\.(png|jpe?g|webp|gif|avif)$/.test(name);
+            var mimeOk = okType.test(String(file.type || '').toLowerCase());
+            if (!(mimeOk || okExt)) {
                 setStatus('Tipe file tidak didukung.', 'err');
                 return;
             }
@@ -985,7 +1089,7 @@
             clearBtn.addEventListener('click', function (e) {
                 e.preventDefault(); e.stopPropagation();
                 setUploadZoneValue(zone, '');
-                setStatus('File dikosongkan — seret & letakkan file baru atau klik area upload.');
+                setStatus('File dikosongkan dari item — file di repo tidak ikut dihapus. Untuk menghapus file juga, hapus item-nya.');
             });
         }
     }
@@ -1028,7 +1132,12 @@
 
             get listEl() { return document.getElementById(cfg.key + 'List'); },
             get formEl() { return document.getElementById(cfg.key + 'Form'); },
-            items: function () { return state[cfg.key] ? state[cfg.key].data : []; },
+            items: function () {
+                // Inisialisasi otomatis bila data belum dimuat: pengeditan/tambah
+                // tetap tersimpan (dirty) walau user lupa klik "Muat Data" dulu.
+                if (!state[cfg.key]) state[cfg.key] = { data: [], sha: null, dirty: true };
+                return state[cfg.key].data;
+            },
             fieldId: function (name) { return 'fld_' + cfg.key + '_' + name; },
 
             markDirty: function () {
@@ -1219,11 +1328,59 @@
             },
 
             remove: function (i) {
-                if (!confirm('Hapus item ini?')) return;
-                this.items().splice(i, 1);
-                log('🗑 ' + cfg.label + ' item #' + (i + 1) + ' dihapus.', 'info');
+                var self = this;
+                var items = this.items();
+                var item = items[i];
+                // File media yang direferensikan item ini (kalau ada).
+                var mediaPaths = cfg.mediaPaths ? cfg.mediaPaths(item) : [];
+                var mediaStr = mediaPaths.length
+                    ? '\n\nFile media di repo yang akan dihapus:\n' + mediaPaths.map(function (p) { return '  • ' + p; }).join('\n')
+                    : '';
+                if (!confirm('Hapus item ini dari data?' + mediaStr +
+                    '\n\nFile yang masih dipakai item lain TIDAK akan dihapus.')) return;
+
+                // Tentukan file yang aman dihapus: path repo & tidak dipakai item lain.
+                var toDelete = [];
+                var token = ghConfig().token;
+                if (token) {
+                    mediaPaths.forEach(function (p) {
+                        if (!isRepoPath(p)) return;
+                        var usedElsewhere = false;
+                        items.forEach(function (other, j) {
+                            if (j === i) return;
+                            var paths = (cfg.mediaPaths ? cfg.mediaPaths(other) : []);
+                            if (paths.indexOf(p) >= 0) usedElsewhere = true;
+                        });
+                        if (!usedElsewhere) toDelete.push(p);
+                    });
+                }
+
+                items.splice(i, 1);
+                log('🗑 ' + cfg.label + ' item #' + (i + 1) + ' dihapus dari data.', 'info');
                 this.markDirty();
                 this.render();
+
+                if (toDelete.length) {
+                    log('Menghapus ' + toDelete.length + ' file media dari repo…', 'info');
+                    (async function () {
+                        var ok = 0;
+                        for (var k = 0; k < toDelete.length; k++) {
+                            try {
+                                await ghDeleteFile(toDelete[k]);
+                                log('✓ file dihapus dari repo: ' + toDelete[k], 'ok');
+                                ok++;
+                            } catch (e) {
+                                log('✗ Gagal hapus ' + toDelete[k] + ': ' + e.message, 'err');
+                            }
+                        }
+                        if (ok === toDelete.length) log('Semua file media berhasil dihapus dari repo. 🧹', 'ok');
+                        else log('Beberapa file media GAGAL dihapus — cek log di atas.', 'err');
+                    })();
+                } else if (token) {
+                    log('Tidak ada file media yang perlu dihapus (bukan path repo / masih dipakai item lain).', 'info');
+                } else {
+                    log('Token belum diisi — item dihapus dari data, file media di repo TIDAK ikut terhapus.', 'info');
+                }
             },
 
             duplicate: function (i) {
@@ -1277,9 +1434,10 @@
             return null;
         },
         renderItem: function (it) {
-            return '<div class="font-semibold">' + (it.title || '(tanpa judul)') + '</div>' +
-                '<div class="text-xs text-gray-400">📅 ' + (it.date || '?') + (it.video ? ' • 🎬 video' : '') + ' • ' + ((it.paragraphs || []).length || 0) + ' paragraf</div>';
-        }
+            return '<div class="font-semibold">' + esc(it.title || '(tanpa judul)') + '</div>' +
+                '<div class="text-xs text-gray-400">📅 ' + esc(it.date || '?') + (it.video ? ' • 🎬 video' : '') + ' • ' + ((it.paragraphs || []).length || 0) + ' paragraf</div>';
+        },
+        mediaPaths: function (it) { return it.video ? [it.video] : []; }
     });
 
     /* ===== Editor: Foto Series — upload foto (drag & drop) + RASIO =====
@@ -1290,7 +1448,7 @@
         key: 'series',
         label: 'Foto Series',
         fields: [
-            { name: 'src', label: 'Foto Series', upload: { kind: 'image', folder: 'src/images/photo/', accept: 'image/*', icon: 'fa-image', title: 'Seret & letakkan foto di sini', maxSize: 20 * 1024 * 1024 }, hint: 'Upload langsung ke <code>src/images/photo/</code> di repo (drag &amp; drop / klik) — path otomatis terisi. File lama tidak dihapus dari repo.' },
+            { name: 'src', label: 'Foto Series', upload: { kind: 'image', folder: 'src/images/photo/', accept: 'image/*', icon: 'fa-image', title: 'Seret & letakkan foto di sini', maxSize: 20 * 1024 * 1024 }, hint: 'Upload langsung ke <code>src/images/photo/</code> di repo (drag &amp; drop / klik) — path otomatis terisi. Saat item dihapus, file media ikut dihapus dari repo (jika tidak dipakai item lain).' },
             { name: 'ratio', label: 'Rasio', type: 'select', options: ['9:16', '16:9', '3:4', '4:3', '1:1'], hint: 'Contoh: 9:16 untuk foto potret HP.' },
             { name: 'label', label: 'Label (Opsional)', placeholder: 'Video 1', hint: 'Opsional — nama yang tampil di modal. Kosongkan untuk memakai nama file.' }
         ],
@@ -1306,10 +1464,11 @@
         },
         renderItem: function (it) {
             return '<div class="flex items-center gap-3">' +
-                '<img class="admin-thumb" src="' + it.src + '" alt="" onerror="this.style.display=\'none\'">' +
-                '<div><div class="font-semibold">' + (it.label || it.src) + '</div>' +
-                '<div class="text-xs text-gray-400">' + (it.ratio || '?') + (it.width ? ' • ' + it.width + '×' + it.height : '') + '</div></div></div>';
-        }
+                '<img class="admin-thumb" src="' + esc(it.src) + '" alt="" onerror="this.style.display=\'none\'">' +
+                '<div><div class="font-semibold">' + esc(it.label || it.src) + '</div>' +
+                '<div class="text-xs text-gray-400">' + esc(it.ratio || '?') + (it.width ? ' • ' + esc(String(it.width)) + '×' + esc(String(it.height)) : '') + '</div></div></div>';
+        },
+        mediaPaths: function (it) { return it.src ? [it.src] : []; }
     });
 
     /* ===== Editor: Video Movies — upload video & thumbnail (drag & drop) ===== */
@@ -1328,11 +1487,17 @@
         },
         renderItem: function (it) {
             var thumb = it.thumbnail
-                ? '<img class="admin-thumb-square" src="' + it.thumbnail + '" alt="" onerror="this.style.display=\'none\'">'
+                ? '<img class="admin-thumb-square" src="' + esc(it.thumbnail) + '" alt="" onerror="this.style.display=\'none\'">'
                 : '<div class="admin-thumb-square admin-thumb-fallback"><i class="fas fa-film" aria-hidden="true"></i></div>';
             return '<div class="flex items-center gap-3">' + thumb +
-                '<div><div class="font-semibold">' + (it.title || ('Video ' + it.id)) + '</div>' +
-                '<div class="text-xs text-gray-400">#' + (it.id || '?') + ' • ' + (it.video || '?') + '</div></div></div>';
+                '<div><div class="font-semibold">' + esc(it.title || ('Video ' + it.id)) + '</div>' +
+                '<div class="text-xs text-gray-400">#' + esc(String(it.id || '?')) + ' • ' + esc(it.video || '?') + '</div></div></div>';
+        },
+        mediaPaths: function (it) {
+            var a = [];
+            if (it.video) a.push(it.video);
+            if (it.thumbnail) a.push(it.thumbnail);
+            return a;
         },
         // id OTOMATIS & dipertahankan saat edit (dipakai movies.html untuk modal).
         onSaved: function (ed, obj, isNew) {
@@ -1364,9 +1529,10 @@
             return null;
         },
         renderItem: function (it) {
-            return '<div class="font-semibold"><i class="fas fa-music text-red-500 mr-2" aria-hidden="true"></i>' + (it.title || it.src) + '</div>' +
-                '<div class="text-xs text-gray-400">' + (it.src || '?') + '</div>';
-        }
+            return '<div class="font-semibold"><i class="fas fa-music text-red-500 mr-2" aria-hidden="true"></i>' + esc(it.title || it.src) + '</div>' +
+                '<div class="text-xs text-gray-400">' + esc(it.src || '?') + '</div>';
+        },
+        mediaPaths: function (it) { return it.src ? [it.src] : []; }
     });
 
     /* ===== Pengaturan PIN ===== */
@@ -1381,6 +1547,19 @@
     function resetPin() {
         LS.del('mqAdminPin');
         document.getElementById('pinMsg').textContent = 'PIN dikembalikan ke bawaan (' + ADMIN_PIN + ').';
+    }
+
+    /* Bersihkan semua data tersimpan (token GitHub, konfigurasi repo, PIN)
+       dari browser ini, lalu kunci panel. */
+    function clearStoredConfig() {
+        if (!confirm('Hapus token GitHub, konfigurasi repo, dan PIN tersimpan dari browser ini?')) return;
+        LS.del('mqGhOwner');
+        LS.del('mqGhRepo');
+        LS.del('mqGhBranch');
+        LS.del('mqGhToken');
+        LS.del('mqAdminPin');
+        log('Token & konfigurasi dihapus dari browser ini.', 'ok');
+        lockAdmin();
     }
     </script>
 </body>
