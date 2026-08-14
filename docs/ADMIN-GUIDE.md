@@ -41,9 +41,9 @@
    **Tes Koneksi**.
 5. Klik **Muat Data dari GitHub** → semua konten situs terambil dari repo.
 6. Edit konten di tab **Berita / Foto Series / Video Movies / Musik**.
-   Media diisi sebagai **path/URL** (file harus sudah ada di repo atau di
-   hosting eksternal) — preview foto/video/audio muncul otomatis saat path
-   diketik. Tidak ada upload media dari panel ini.
+   Foto/video/thumbnail **di-upload langsung dari panel ini** lewat
+   drag & drop / pilih file — path otomatis terisi, tidak perlu mengetik
+   path manual. Musik tetap diisi path/URL (file sudah ada di repo/hosting).
 7. Klik **Simpan Perubahan ke GitHub** → commit dibuat otomatis → Vercel
    auto re-deploy (±1 menit) → konten baru langsung tampil.
 
@@ -55,7 +55,7 @@
 | **Foto Series** | `src/data/series-data.js` | Grid foto `series.html` (dikelompokkan otomatis per rasio) |
 | **Video Movies** | `src/data/movies-data.js` | Video + thumbnail di `movies.html` |
 | **Musik** | `src/data/music-data.js` | Playlist Dynamic Island (semua halaman) |
-| **Media Path/URL** | `src/images/photo`, `src/videos/*`, `src/audio` | Field foto/video/audio hanya menerima path/URL — file TIDAK di-upload dari panel |
+| **Media (Upload)** | `src/images/photo`, `src/videos/moviespage`, `src/videos/newsandpopularpage` | Foto/video/thumbnail di-upload drag & drop dari panel (path otomatis). Musik tetap path/URL |
 
 > ℹ️ **Teks situs** (kata-kata di index/news/mylist/play + More Info) tidak lagi
 > dikelola dari admin — diatur langsung di kode (`src/data/site-text-data.js`).
@@ -65,29 +65,35 @@
 - **Berita**: tanggal menerima format `DD-MM-YYYY` (contoh `13-08-2026`)
   atau `YYYY-MM-DD` — disimpan otomatis sebagai `YYYY-MM-DD`. Item dengan
   tanggal mendatang disembunyikan sampai tanggalnya tiba. Isi pesan cukup
-  ditulis satu paragraf per baris. **Video (Opsional)**: isi path/URL video
-  yang sudah ada — kosongkan untuk pesan teks saja.
+  ditulis satu paragraf per baris. **Video (Opsional)**: upload drag & drop
+  ke `src/videos/newsandpopularpage/` — kosongkan untuk pesan teks saja.
   Contoh: tanggal `13-08-2026`, judul *"Teruslah Bersinar Untukku"*.
-- **Foto Series**: isi **path/URL foto + pilih rasio** — `ratio` menentukan
-  kelompok tampilan (9:16, 16:9, 3:4, 4:3, 1:1). `label` opsional (otomatis
-  diambil dari nama file jika kosong). Foto yang sudah dihapus dari repo
-  **tidak boleh** dipakai lagi (gambar rusak).
-- **Video Movies**: isi **path/URL video + thumbnail (foto)** — `id` diisi
-  otomatis & dipertahankan saat edit.
+- **Foto Series**: upload **foto (drag & drop)** ke `src/images/photo/`
+  (folder ini satu-satunya yang dipakai) + pilih **rasio** — `ratio`
+  menentukan kelompok tampilan (9:16, 16:9, 3:4, 4:3, 1:1). `label` opsional
+  (otomatis diambil dari nama file jika kosong). Foto yang sudah dihapus
+  dari repo **tidak boleh** dipakai lagi (gambar rusak).
+- **Video Movies**: upload **video** ke `src/videos/moviespage/` +
+  **thumbnail (foto)** ke `src/images/photo/` — `id` diisi otomatis &
+  dipertahankan saat edit.
 - **Musik**: isi **path/URL file music** + tulis **judul lagu** (contoh
   *"Selamat Tinggal - Virgoun Ft. Audy"*).
 
-### Media (Path/URL, tanpa Upload)
+### Media (Upload Drag & Drop)
 
-- Field foto/video/audio hanya menerima **teks path/URL** — tidak ada tombol
-  upload/drag & drop dari panel ini.
-- File harus sudah ada di repository (mis. `src/images/photo/…`,
-  `src/videos/moviespage/…`, `src/audio/…`) atau di hosting eksternal
-  (URL lengkap `https://…`).
-- Preview (foto tampil, video/audio punya kontrol putar) muncul otomatis
-  saat path diketik — path yang salah/rusak tidak menampilkan preview.
-- Untuk menambah file media baru ke repo, gunakan git biasa (commit + push),
-  lalu isi path-nya di panel ini.
+- Foto/video/thumbnail **di-upload langsung dari panel ini** — seret &
+  letakkan file ke area upload, atau klik area untuk memilih file. Path
+  otomatis terisi di data; **tidak ada input path manual** untuk media ini.
+- Folder tujuan sudah ditentukan (tertulis di setiap area upload):
+  - **Foto Series & thumbnail** → `src/images/photo/`
+  - **Video Movies** → `src/videos/moviespage/`
+  - **Video Berita** → `src/videos/newsandpopularpage/`
+- Batas ukuran: foto ±20 MB, video ±70 MB (batas GitHub Contents API).
+- Setelah upload, path tampil di area upload + preview muncul otomatis.
+  Tombol **Ganti** mengganti file, tombol **Hapus** mengosongkan field
+  (referensi di data saja — file di repo tidak dihapus).
+- **Musik** tetap diisi **path/URL manual** (tidak ada upload) — file harus
+  sudah ada di `src/audio/…` atau hosting eksternal.
 
 ## Estimasi Waktu
 

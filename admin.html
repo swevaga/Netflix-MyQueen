@@ -13,8 +13,8 @@
 
          Yang bisa dikelola (semua lewat file data di src/data/):
            1. Berita  → news-data.js     (Tanggal DD-MM-YYYY, Judul, Isi, Video Opsional)
-           2. Foto    → series-data.js    (path/URL foto + pilih RASIO)
-           3. Video   → movies-data.js    (path/URL video + thumbnail)
+           2. Foto    → series-data.js    (upload drag&drop ke src/images/photo + RASIO)
+           3. Video   → movies-data.js    (upload drag&drop ke src/videos/moviespage + thumbnail)
            4. Musik   → music-data.js     (path/URL lagu + judul)
 
          Teks situs DIKELOLA LANGSUNG DI KODE (site-text-data.js) — tidak ada
@@ -23,10 +23,14 @@
          Alur: buka admin.html → PIN → isi Owner/Repo/Branch/Token → "Muat Data"
          → edit → "Simpan ke GitHub" → Vercel auto re-deploy (~1 menit).
 
-         MEDIA TIDAK DI-UPLOAD dari panel ini: field foto/video/audio hanya
-         menerima teks path/URL — file harus sudah ada di repo (mis.
-         src/images/photo/...) atau di hosting eksternal. Preview otomatis
-         muncul saat path diketik.
+         MEDIA DI-UPLOAD LANGSUNG dari panel ini (drag & drop / pilih file):
+           • Foto Series  → src/images/photo/
+           • Video Movies → src/videos/moviespage/  (video & thumbnail)
+         File dikirim ke repo lewat GitHub Contents API; path-nya otomatis
+         terisi di data. Path/URL TIDAK bisa diketik manual untuk foto/video/
+         thumbnail — cukup drag & drop / klik area upload. Preview muncul
+         otomatis. Musik tetap isi path manual (file sudah ada di repo /
+         hosting eksternal).
          ========================================================================== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -183,6 +187,76 @@
         .media-preview video, .media-preview audio { display: block; width: 100%; }
         .media-preview audio { border-radius: 8px; }
 
+        /* ===== Drag & drop upload (foto series / video movies / thumbnail) ===== */
+        .upload-zone {
+            position: relative;
+            border: 2px dashed #3d3d3d;
+            border-radius: 14px;
+            background: #0d0d0d;
+            padding: 24px 16px 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .15s ease, background .15s ease, transform .1s ease;
+            overflow: hidden;
+        }
+        .upload-zone:hover { border-color: var(--red); background: #121212; }
+        .upload-zone.drag { border-color: var(--red); background: rgba(229,9,20,.08); transform: scale(1.01); }
+        .uz-content { pointer-events: none; }
+        .uz-content i { font-size: 26px; color: var(--muted); margin-bottom: 8px; display: block; transition: color .15s ease; }
+        .upload-zone:hover .uz-content i, .upload-zone.drag .uz-content i { color: var(--red); }
+        .uz-title { font-size: 13.5px; font-weight: 700; color: #e5e5e5; }
+        .uz-sub { font-size: 11.5px; color: #7a7a7a; margin-top: 3px; }
+        .uz-name { font-size: 11.5px; color: var(--ok); word-break: break-all; margin-top: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+        .uz-preview { margin-top: 12px; pointer-events: auto; }
+        .uz-preview img, .uz-preview video { display: block; width: 100%; max-height: 220px; object-fit: contain; border-radius: 8px; background: #000; border: 1px solid #232323; }
+        .uz-progress { margin-top: 10px; height: 8px; border-radius: 999px; background: #232323; overflow: hidden; position: relative; }
+        .uz-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--red), #ff6b6b); border-radius: 999px; transition: width .1s linear; }
+        .uz-progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.8); }
+        .uz-status { margin-top: 9px; font-size: 11.5px; color: #8a8a8a; min-height: 15px; word-break: break-word; }
+        .uz-status.ok { color: var(--ok); }
+        .uz-status.err { color: #ff8080; }
+        .uz-folder {
+            margin-top: 7px; font-size: 10.5px; color: #8a8a8a;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            word-break: break-all;
+        }
+        .uz-folder i { color: var(--red); margin-right: 5px; font-size: 11px; }
+        /* Zona sudah terisi file: border solid hijau; hover merah = siap ganti */
+        .upload-zone.has-file { border-style: solid; border-color: rgba(29,185,84,.4); background: #0e1410; }
+        .upload-zone.has-file:hover { border-color: var(--red); background: rgba(229,9,20,.06); }
+        .uz-actions { margin-top: 10px; display: flex; gap: 8px; justify-content: center; pointer-events: auto; }
+        .uz-actions[hidden] { display: none; }
+        .uz-replace {
+            background: transparent; border: 1px solid #3a3a3a; color: #ccc;
+            border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 13px; cursor: pointer;
+            transition: background .15s ease, color .15s ease;
+        }
+        .uz-replace:hover { background: #2f2f2f; color: #fff; }
+        .uz-clear {
+            background: transparent; border: 1px solid #6b2b2b; color: #ff9a9a;
+            border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 13px; cursor: pointer;
+            transition: background .15s ease, color .15s ease;
+        }
+        .uz-clear:hover { background: #6b2b2b; color: #fff; }
+        .uz-preview[hidden], .uz-progress[hidden] { display: none; }
+
+        /* ===== Toast notifikasi ===== */
+        #toastBox { position: fixed; right: 16px; bottom: 16px; z-index: 999; display: flex; flex-direction: column; gap: 8px; max-width: min(92vw, 400px); }
+        .toast { background: #1d1d1d; border: 1px solid var(--line); border-left: 3px solid var(--red); border-radius: 10px; padding: 10px 14px; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,.5); animation: toastIn .25s ease; word-break: break-word; }
+        .toast.ok { border-left-color: var(--ok); }
+        .toast.err { border-left-color: #ff6b6b; }
+        .toast.out { opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .3s ease; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* ===== Polish: kartu & judul ===== */
+        .admin-card { position: relative; }
+        .admin-card::before {
+            content: '';
+            position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(229,9,20,.55), transparent);
+        }
+        .brand-title { background: linear-gradient(90deg, #fff 30%, #ff6b6b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
         /* ===== Fallback thumbnail tanpa foto ===== */
         .admin-thumb-fallback {
             display: flex !important;
@@ -199,6 +273,37 @@
             scrollbar-width: none;
         }
         .tab-bar::-webkit-scrollbar { display: none; }
+
+        /* ===== Header sticky dengan blur ===== */
+        .admin-header-bar {
+            position: sticky; top: 0; z-index: 40;
+            background: rgba(10,10,10,.85);
+            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,.05);
+        }
+
+        /* ===== Badge jumlah item di tab ===== */
+        .tab-count {
+            display: inline-block; margin-left: 6px; min-width: 20px;
+            background: rgba(255,255,255,.12); color: #fff;
+            font-size: 10.5px; font-weight: 700; border-radius: 999px;
+            padding: 1px 7px; text-align: center; vertical-align: middle;
+        }
+        .tab-btn.active .tab-count { background: rgba(255,255,255,.25); }
+
+        /* ===== Empty state daftar item ===== */
+        .empty-state { text-align: center; color: #7a7a7a; padding: 30px 0; font-size: 13.5px; }
+        .empty-state i { display: block; font-size: 26px; color: #3a3a3a; margin-bottom: 8px; }
+
+        /* ===== Focus terlihat untuk aksesibilitas ===== */
+        .btn:focus-visible, .btn-ghost:focus-visible, .btn-danger:focus-visible,
+        .uz-replace:focus-visible, .uz-clear:focus-visible,
+        .admin-input:focus-visible { outline: 2px solid rgba(229,9,20,.6); outline-offset: 2px; }
+
+        /* ===== Scrollbar log yang halus ===== */
+        #logBox::-webkit-scrollbar { width: 8px; }
+        #logBox::-webkit-scrollbar-thumb { background: #333; border-radius: 999px; }
+        #logBox::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -222,10 +327,10 @@
     <div id="adminSection" class="hidden px-4 md:px-8 py-6">
         <div class="max-w-5xl mx-auto">
 
-            <!-- Header -->
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+            <!-- Header (sticky) -->
+            <div class="admin-header-bar -mx-4 md:-mx-8 px-4 md:px-8 py-3 mb-5 flex flex-wrap items-center justify-between gap-2">
                 <div class="flex items-center gap-3 min-w-0">
-                    <h1 class="text-xl md:text-2xl font-bold">Admin Panel</h1>
+                    <h1 class="brand-title text-xl md:text-2xl font-bold">Admin Panel</h1>
                     <span id="connStatus" class="text-xs text-gray-400"></span>
                 </div>
                 <button type="button" class="btn btn-gray" onclick="lockAdmin()"><i class="fas fa-lock" aria-hidden="true"></i> Kunci</button>
@@ -261,7 +366,7 @@
                     <button type="button" class="btn btn-green" onclick="loadAllData()"><i class="fas fa-download" aria-hidden="true"></i> Muat Data dari GitHub</button>
                     <button type="button" class="btn btn-red" onclick="saveAllData()"><i class="fas fa-upload" aria-hidden="true"></i> Simpan Perubahan ke GitHub</button>
                 </div>
-                <p class="admin-hint mt-3">Media <b>tidak di-upload</b> dari panel ini — isi saja path/URL file yang sudah ada di repo (mis. <code class="text-red-400">src/images/photo/…</code>) atau di hosting eksternal. Preview muncul otomatis saat path diketik.</p>
+                <p class="admin-hint mt-3">Media <b>di-upload langsung</b> dari panel ini — seret &amp; letakkan (drag &amp; drop) foto/video atau klik area upload. File otomatis masuk repo: <code class="text-red-400">src/images/photo/</code> (foto series &amp; thumbnail) · <code class="text-red-400">src/videos/moviespage/</code> (video movies). Path terisi otomatis.</p>
             </div>
 
             <!-- Log -->
@@ -270,12 +375,15 @@
                 <div id="logBox">Menunggu perintah…</div>
             </div>
 
+            <!-- Toast notifikasi upload -->
+            <div id="toastBox" aria-live="polite"></div>
+
             <!-- ===== Tabs ===== -->
             <div class="tab-bar flex flex-wrap gap-1 border-b border-gray-800 mb-5 pb-2 overflow-x-auto">
-                <button type="button" class="tab-btn active" data-tab="tabNews" onclick="switchTab('tabNews')">Berita</button>
-                <button type="button" class="tab-btn" data-tab="tabSeries" onclick="switchTab('tabSeries')">Foto Series</button>
-                <button type="button" class="tab-btn" data-tab="tabMovies" onclick="switchTab('tabMovies')">Video Movies</button>
-                <button type="button" class="tab-btn" data-tab="tabMusic" onclick="switchTab('tabMusic')">Musik</button>
+                <button type="button" class="tab-btn active" data-tab="tabNews" onclick="switchTab('tabNews')">Berita<span class="tab-count" id="tabCount_news"></span></button>
+                <button type="button" class="tab-btn" data-tab="tabSeries" onclick="switchTab('tabSeries')">Foto Series<span class="tab-count" id="tabCount_series"></span></button>
+                <button type="button" class="tab-btn" data-tab="tabMovies" onclick="switchTab('tabMovies')">Video Movies<span class="tab-count" id="tabCount_movies"></span></button>
+                <button type="button" class="tab-btn" data-tab="tabMusic" onclick="switchTab('tabMusic')">Musik<span class="tab-count" id="tabCount_music"></span></button>
                 <button type="button" class="tab-btn" data-tab="tabSettings" onclick="switchTab('tabSettings')">Pengaturan</button>
             </div>
 
@@ -285,7 +393,7 @@
                     <div class="flex items-center justify-between mb-3">
                         <div>
                             <h2 class="font-bold">Pesan Berita &amp; Popular</h2>
-                            <p class="text-xs text-gray-500">Tanggal (DD-MM-YYYY) · Judul Pesan · Isi Pesan · Video (Opsional) — tampil di newsandpopular.html</p>
+                            <p class="text-xs text-gray-500">Tanggal (DD-MM-YYYY) · Judul Pesan · Isi Pesan · Video (Opsional, drag &amp; drop) — tampil di newsandpopular.html</p>
                         </div>
                         <button type="button" class="btn btn-red" onclick="editors.news.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
                     </div>
@@ -300,7 +408,7 @@
                     <div class="flex items-center justify-between mb-3">
                         <div>
                             <h2 class="font-bold">Foto Series</h2>
-                            <p class="text-xs text-gray-500">Path/URL foto + pilih rasio — tampil di series.html</p>
+                            <p class="text-xs text-gray-500">Upload foto (drag &amp; drop) + pilih rasio — tampil di series.html</p>
                         </div>
                         <button type="button" class="btn btn-red" onclick="editors.series.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
                     </div>
@@ -315,7 +423,7 @@
                     <div class="flex items-center justify-between mb-3">
                         <div>
                             <h2 class="font-bold">Video Movies</h2>
-                            <p class="text-xs text-gray-500">Path/URL video + thumbnail (foto) — tampil di movies.html</p>
+                            <p class="text-xs text-gray-500">Upload video &amp; thumbnail (drag &amp; drop) — tampil di movies.html</p>
                         </div>
                         <button type="button" class="btn btn-red" onclick="editors.movies.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
                     </div>
@@ -359,8 +467,8 @@
                     <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
                         <li>Isi Owner / Repository / Branch / Token GitHub, lalu <b>Tes Koneksi</b>.</li>
                         <li>Klik <b>Muat Data dari GitHub</b> — semua konten situs diambil dari repo.</li>
-                        <li>Edit konten: <b>Berita</b> (tanggal, judul, isi, video opsional) · <b>Foto Series</b> (path/URL foto + rasio) · <b>Video Movies</b> (path/URL video + thumbnail) · <b>Musik</b> (path/URL lagu + judul).</li>
-                        <li>Media diisi sebagai <b>path/URL</b> — file harus sudah ada di repo atau hosting eksternal (tidak di-upload dari panel ini). Preview muncul otomatis saat path diketik.</li>
+                        <li>Edit konten: <b>Berita</b> (tanggal, judul, isi, video opsional) · <b>Foto Series</b> (upload foto + rasio) · <b>Video Movies</b> (upload video + thumbnail) · <b>Musik</b> (path/URL lagu + judul).</li>
+                        <li>Media foto/video <b>di-upload langsung</b> lewat drag &amp; drop / pilih file — path otomatis terisi: Foto Series &amp; thumbnail → <b>src/images/photo</b>, Video Movies → <b>src/videos/moviespage</b>, Video Berita → <b>src/videos/newsandpopularpage</b>. Musik tetap path/URL (file sudah ada di repo/hosting).</li>
                         <li>Klik <b>Simpan Perubahan ke GitHub</b> — commit dibuat otomatis (Vercel auto re-deploy ±1 menit).</li>
                     </ol>
                     <p class="text-xs text-gray-500 mt-3">⚠️ Token hanya disimpan di browser kamu. Jangan pernah menaruh token di dalam file repo.</p>
@@ -696,10 +804,11 @@
         }
     }
 
-    /* ===== Preview media dari path/URL (foto / video / audio) =====
-       Media TIDAK di-upload dari panel ini — cukup tulis path file yang
-       sudah ada di repo atau URL eksternal. Preview (kalau path valid)
-       muncul otomatis saat user mengetik / saat form diedit. */
+    /* ===== Preview media dari path/URL (khusus field path manual) =====
+       Dipakai untuk Musik (path/URL lagu) — foto/video/thumbnail di
+       tab Berita/Series/Movies kini UPLOAD drag & drop (tanpa path manual),
+       jadi preview-nya diurus upload-zone. Fungsi ini tetap dipakai untuk
+       field teks path (mis. Musik) agar preview muncul saat mengetik. */
     function refreshMediaPreview(input) {
         var prev = input.nextElementSibling;
         if (!prev || !prev.classList || !prev.classList.contains('media-preview')) return;
@@ -717,6 +826,181 @@
             prev.src = val;
             prev.classList.add('show');
         }
+    }
+
+    /* ===== Upload media ke GitHub (drag & drop / pilih file) =====
+       Foto Series  → src/images/photo/
+       Video Movies → src/videos/moviespage/  (video & thumbnail)
+       File dikirim lewat GitHub Contents API (base64). Path hasil upload
+       otomatis ditulis ke field tersembunyi & preview muncul. */
+    function sanitizeFileName(name) {
+        return String(name).replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'file';
+    }
+
+    function readFileAsBase64(file, onProgress) {
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onprogress = function (e) {
+                if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
+            };
+            reader.onload = function () {
+                var s = String(reader.result);
+                var i = s.indexOf('base64,');
+                resolve(i >= 0 ? s.slice(i + 7) : s);
+            };
+            reader.onerror = function () { reject(new Error('Gagal membaca file.')); };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function ghPutBinary(path, b64, message) {
+        var cfg = ghConfig();
+        var body = { message: message, content: b64, branch: cfg.branch };
+        return ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path, 'PUT', body);
+    }
+
+    async function uploadMediaToGitHub(file, folder, onProgress) {
+        var cfg = ghConfig();
+        if (!cfg.owner || !cfg.repo) throw new Error('Isi Owner & Repository dulu di koneksi GitHub.');
+        if (!cfg.token) throw new Error('Isi Token GitHub dulu di koneksi GitHub.');
+        var ext = (String(file.name).match(/\.[^.]+$/) || [''])[0].toLowerCase();
+        var base = sanitizeFileName(String(file.name).replace(/\.[^.]+$/, ''));
+        var path = folder + base + '_' + Date.now() + ext;
+        var b64 = await readFileAsBase64(file, onProgress);
+        await ghPutBinary(path, b64, 'Upload media ' + path + ' via admin.html');
+        return path;
+    }
+
+    function setUploadZoneValue(zone, path) {
+        var valueInput = zone.querySelector('input[type="hidden"]');
+        var nameEl = zone.querySelector('.uz-name');
+        var previewEl = zone.querySelector('.uz-preview');
+        var actionsEl = zone.querySelector('.uz-actions');
+        path = path || '';
+        if (valueInput) valueInput.value = path;
+        if (nameEl) nameEl.textContent = path;
+        zone.classList.toggle('has-file', !!path);
+        if (actionsEl) actionsEl.hidden = !path;
+        if (!previewEl) return;
+        previewEl.innerHTML = '';
+        if (path) {
+            var kind = zone.getAttribute('data-kind');
+            if (kind === 'video') {
+                var v = document.createElement('video');
+                v.controls = true;
+                v.preload = 'metadata';
+                v.src = path;
+                previewEl.appendChild(v);
+            } else {
+                var img = document.createElement('img');
+                img.alt = 'Pratinjau';
+                img.src = path;
+                img.onerror = function () { previewEl.hidden = true; };
+                previewEl.appendChild(img);
+            }
+            previewEl.hidden = false;
+        } else {
+            previewEl.hidden = true;
+        }
+    }
+
+    function initUploadZone(zone, opts) {
+        var fileInput = zone.querySelector('input[type="file"]');
+        var progressEl = zone.querySelector('.uz-progress');
+        var progressBar = zone.querySelector('.uz-progress-bar');
+        var progressText = zone.querySelector('.uz-progress-text');
+        var statusEl = zone.querySelector('.uz-status');
+        var clearBtn = zone.querySelector('.uz-clear');
+        var replaceBtn = zone.querySelector('.uz-replace');
+        var kind = zone.getAttribute('data-kind');
+        var maxSize = opts.maxSize || ((kind === 'video' ? 70 : 20) * 1024 * 1024);
+
+        function setStatus(msg, cls) {
+            if (!statusEl) return;
+            statusEl.className = 'uz-status' + (cls ? ' ' + cls : '');
+            statusEl.textContent = msg;
+        }
+        function setProgress(p) {
+            if (!progressEl) return;
+            progressEl.hidden = false;
+            progressBar.style.width = Math.round(p * 100) + '%';
+            progressText.textContent = Math.round(p * 100) + '%';
+        }
+        function clearProgress() {
+            if (!progressEl) return;
+            progressEl.hidden = true;
+            progressBar.style.width = '0%';
+        }
+
+        function doUpload(file) {
+            var okType = kind === 'video' ? /^video\// : /^image\//;
+            if (!okType.test(file.type || '')) {
+                setStatus('Tipe file tidak didukung.', 'err');
+                return;
+            }
+            if (file.size > maxSize) {
+                setStatus('File terlalu besar — maks ' + Math.round(maxSize / 1048576) + ' MB.', 'err');
+                return;
+            }
+            setStatus('Mengupload ke repo…');
+            uploadMediaToGitHub(file, zone.getAttribute('data-folder'), setProgress)
+                .then(function (path) {
+                    clearProgress();
+                    setUploadZoneValue(zone, path);
+                    setStatus('✓ Ter-upload: ' + path, 'ok');
+                    toast('Media ter-upload: ' + path, 'ok');
+                })
+                .catch(function (err) {
+                    clearProgress();
+                    setStatus('✗ Gagal: ' + err.message, 'err');
+                    toast('Upload gagal: ' + err.message, 'err');
+                });
+        }
+
+        zone.addEventListener('click', function (e) {
+            if (e.target.closest('.uz-preview video')) return;
+            if (e.target.closest('.uz-actions')) return;
+            fileInput.click();
+        });
+        fileInput.addEventListener('change', function () {
+            if (fileInput.files && fileInput.files[0]) doUpload(fileInput.files[0]);
+            fileInput.value = '';
+        });
+        zone.addEventListener('dragover', function (e) { e.preventDefault(); e.stopPropagation(); zone.classList.add('drag'); });
+        zone.addEventListener('dragleave', function () { zone.classList.remove('drag'); });
+        zone.addEventListener('drop', function (e) {
+            e.preventDefault(); e.stopPropagation();
+            zone.classList.remove('drag');
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) doUpload(e.dataTransfer.files[0]);
+        });
+
+        // Kontrol penuh tanpa mengetik path: ganti file, atau kosongkan.
+        if (replaceBtn) {
+            replaceBtn.addEventListener('click', function (e) {
+                e.preventDefault(); e.stopPropagation();
+                fileInput.click();
+            });
+        }
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function (e) {
+                e.preventDefault(); e.stopPropagation();
+                setUploadZoneValue(zone, '');
+                setStatus('File dikosongkan — seret & letakkan file baru atau klik area upload.');
+            });
+        }
+    }
+
+    function toast(msg, type) {
+        var box = document.getElementById('toastBox');
+        if (!box) return;
+        var t = document.createElement('div');
+        t.className = 'toast ' + (type || 'info');
+        t.textContent = msg;
+        box.appendChild(t);
+        setTimeout(function () {
+            t.classList.add('out');
+            setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 400);
+        }, 3800);
     }
 
     /* ===== Normalisasi tanggal: terima DD-MM-YYYY / YYYY-MM-DD ===== */
@@ -754,26 +1038,52 @@
 
             formHtml: function () {
                 var self = this;
-                return '<div class="admin-form-grid">' +
+                return '<div class="admin-form-header flex items-center justify-between mb-3">' +
+                    '<h3 class="font-bold text-sm">' + (this.editingIndex >= 0 ? '✏️ Edit item #' + (this.editingIndex + 1) : '➕ Tambah item baru') + '</h3>' +
+                '</div>' +
+                '<div class="admin-form-grid">' +
                 this.fields.map(function (f) {
                     var id = self.fieldId(f.name);
                     var label = '<label class="admin-label" for="' + id + '">' + f.label + '</label>';
-                    var input;
+                    var input, preview = '';
                     if (f.type === 'textarea') {
                         input = '<textarea id="' + id + '" class="admin-input" rows="' + (f.rows || 4) + '" placeholder="' + (f.placeholder || '') + '"></textarea>';
                     } else if (f.type === 'select') {
                         input = '<select id="' + id + '" class="admin-input">' +
                             (f.options || []).map(function (o) { return '<option value="' + o + '">' + o + '</option>'; }).join('') +
                             '</select>';
+                    } else if (f.upload) {
+                        // Drag & drop / pilih file — upload langsung ke repo.
+                        // Path/URL TIDAK bisa diketik manual: file harus di-upload
+                        // (drag & drop / klik). Folder tujuan sudah ditentukan.
+                        var folder = f.upload.folder || '';
+                        var accept = f.upload.accept || '*/*';
+                        input = '<div class="upload-zone" data-kind="' + (f.upload.kind || 'image') + '" data-folder="' + folder + '">' +
+                            '<input id="' + id + '" type="hidden">' +
+                            '<input type="file" accept="' + accept + '" hidden>' +
+                            '<div class="uz-content">' +
+                                '<i class="fas ' + (f.upload.icon || 'fa-cloud-upload-alt') + '"></i>' +
+                                '<p class="uz-title">' + (f.upload.title || 'Seret & letakkan file di sini') + '</p>' +
+                                '<p class="uz-sub">atau klik untuk memilih file</p>' +
+                                '<p class="uz-folder"><i class="fas fa-folder" aria-hidden="true"></i>' + folder + '</p>' +
+                                '<p class="uz-name"></p>' +
+                            '</div>' +
+                            '<div class="uz-actions" hidden>' +
+                                '<button type="button" class="uz-replace"><i class="fas fa-sync-alt" aria-hidden="true"></i> Ganti</button>' +
+                                '<button type="button" class="uz-clear"><i class="fas fa-times" aria-hidden="true"></i> Hapus</button>' +
+                            '</div>' +
+                            '<div class="uz-preview" hidden></div>' +
+                            '<div class="uz-progress" hidden><div class="uz-progress-bar"></div><span class="uz-progress-text"></span></div>' +
+                            '<div class="uz-status"></div>' +
+                        '</div>';
                     } else if (f.kind) {
                         input = '<input id="' + id + '" type="text" class="admin-input" placeholder="' + (f.placeholder || '') + '" autocomplete="off" spellcheck="false">';
+                        if (f.kind === 'image') preview = '<img class="media-preview" alt="Pratinjau foto" hidden>';
+                        else if (f.kind === 'video') preview = '<video class="media-preview" controls preload="metadata" hidden></video>';
+                        else if (f.kind === 'audio') preview = '<audio class="media-preview" controls preload="none" hidden></audio>';
                     } else {
                         input = '<input id="' + id + '" type="' + (f.type || 'text') + '" class="admin-input" placeholder="' + (f.placeholder || '') + '">';
                     }
-                    var preview = '';
-                    if (f.kind === 'image') preview = '<img class="media-preview" alt="Pratinjau foto" hidden>';
-                    else if (f.kind === 'video') preview = '<video class="media-preview" controls preload="metadata" hidden></video>';
-                    else if (f.kind === 'audio') preview = '<audio class="media-preview" controls preload="none" hidden></audio>';
                     return '<div class="form-field' + (f.full ? ' form-field-full' : '') + '">' +
                         label + input + preview +
                         (f.hint ? '<p class="admin-hint">' + f.hint + '</p>' : '') +
@@ -796,12 +1106,15 @@
                         '<div class="admin-row-actions">' +
                             '<button type="button" class="btn-ghost" title="Naik" onclick="editors.' + self.key + '.move(' + i + ',-1)"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>' +
                             '<button type="button" class="btn-ghost" title="Turun" onclick="editors.' + self.key + '.move(' + i + ',1)"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>' +
+                            '<button type="button" class="btn-ghost" title="Salin" onclick="editors.' + self.key + '.duplicate(' + i + ')"><i class="fas fa-copy" aria-hidden="true"></i></button>' +
                             '<button type="button" class="btn-ghost" title="Edit" onclick="editors.' + self.key + '.edit(' + i + ')"><i class="fas fa-pen" aria-hidden="true"></i></button>' +
                             '<button type="button" class="btn-danger" title="Hapus" onclick="editors.' + self.key + '.remove(' + i + ')"><i class="fas fa-trash" aria-hidden="true"></i></button>' +
                         '</div>' +
                     '</div>';
                 }).join('');
-                this.listEl.innerHTML = html || '<p class="text-sm text-gray-500">Belum ada item. Klik "Tambah".</p>';
+                this.listEl.innerHTML = html || '<div class="empty-state"><i class="fas fa-inbox" aria-hidden="true"></i><p>Belum ada item — klik "Tambah".</p></div>';
+                var badge = document.getElementById('tabCount_' + this.key);
+                if (badge) badge.textContent = items.length > 0 ? String(items.length) : '';
             },
 
             openForm: function (startVals) {
@@ -812,10 +1125,21 @@
                     e.preventDefault();
                     self.saveForm();
                 };
-                // Isi nilai field + bind preview media (path/URL)
+                // Isi nilai field + bind preview media & drag-and-drop upload
                 this.fields.forEach(function (f) {
                     var el = document.getElementById(self.fieldId(f.name));
                     if (!el) return;
+                    if (f.upload) {
+                        var zone = el.closest('.upload-zone');
+                        if (zone) {
+                            initUploadZone(zone, { kind: f.upload.kind, folder: f.upload.folder, maxSize: f.upload.maxSize });
+                            if (startVals) {
+                                var u = startVals[f.name];
+                                if (u) setUploadZoneValue(zone, u);
+                            }
+                        }
+                        return;
+                    }
                     if (f.kind) {
                         el.addEventListener('input', function () { refreshMediaPreview(el); });
                     }
@@ -831,7 +1155,7 @@
             startAdd: function () {
                 this.editingIndex = -1;
                 this.openForm(null);
-                var first = this.formEl.querySelector('input:not([type="file"]), textarea, select');
+                var first = this.formEl.querySelector('input:not([type="file"]):not([type="hidden"]), textarea, select');
                 if (first) first.focus();
             },
 
@@ -902,6 +1226,17 @@
                 this.render();
             },
 
+            duplicate: function (i) {
+                var items = this.items();
+                var copy = JSON.parse(JSON.stringify(items[i]));
+                items.splice(i + 1, 0, copy);
+                log('📄 ' + cfg.label + ' item #' + (i + 1) + ' disalin.', 'info');
+                this.markDirty();
+                this.render();
+                // id unik tetap diurus oleh onSaved (mis. Video Movies).
+                if (cfg.onSaved) cfg.onSaved(this, copy, true);
+            },
+
             move: function (i, dir) {
                 var items = this.items();
                 var j = i + dir;
@@ -920,7 +1255,7 @@
     /* ===== Editor: Berita — Tanggal, Judul, Isi Pesan, Video (Opsional) =====
        Contoh: Tanggal 13-08-2026 · Judul "Teruslah Bersinar Untukku" ·
        Isi: paragraf 1, paragraf 2, dst. (satu paragraf per baris). Video
-       OPSIONAL: isi path/URL video yang sudah ada (tidak di-upload di sini). */
+       OPSIONAL: upload drag & drop ke src/videos/newsandpopularpage/. */
     makeListEditor({
         key: 'news',
         label: 'Berita',
@@ -928,7 +1263,7 @@
             { name: 'date', label: 'Tanggal', placeholder: '13-08-2026', hint: 'Contoh: 13-08-2026 (DD-MM-YYYY) atau 2026-08-13. Pesan tampil otomatis saat tanggalnya tiba.' },
             { name: 'title', label: 'Judul Pesan', placeholder: 'Teruslah Bersinar Untukku' },
             { name: 'paragraphs', label: 'Isi Pesan (satu paragraf per baris)', type: 'textarea', rows: 7, asArray: true, full: true, placeholder: 'Paragraf 1\nParagraf 2\ndan seterusnya…' },
-            { name: 'video', label: 'Video (Opsional)', kind: 'video', placeholder: 'src/videos/newsandpopularpage/NAMA_VIDEO.mp4', hint: 'Opsional — kosongkan untuk pesan teks saja. Isi path/URL video yang sudah ada di repo atau hosting eksternal.' },
+            { name: 'video', label: 'Video (Opsional)', upload: { kind: 'video', folder: 'src/videos/newsandpopularpage/', accept: 'video/*', icon: 'fa-video', title: 'Seret & letakkan video di sini', maxSize: 70 * 1024 * 1024 }, hint: 'Opsional — kosongkan untuk pesan teks saja. Upload langsung ke <code>src/videos/newsandpopularpage/</code> (drag &amp; drop / klik).' },
             { name: 'countdown', label: 'Countdown episode berikutnya (detik)', type: 'number', placeholder: '5', hint: '(Opsional) Hanya dipakai jika ada video — default 5 detik.' }
         ],
         normalize: function (obj) {
@@ -947,14 +1282,15 @@
         }
     });
 
-    /* ===== Editor: Foto Series — path/URL foto + RASIO =====
-       File TIDAK di-upload di sini: isi path file yang sudah ada di repo
-       (mis. src/images/photo/...) atau URL eksternal. */
+    /* ===== Editor: Foto Series — upload foto (drag & drop) + RASIO =====
+       Foto di-upload langsung ke src/images/photo/ lewat GitHub API.
+       HANYA folder src/images/photo/ yang dipakai — path otomatis terisi,
+       tidak ada input path manual. */
     makeListEditor({
         key: 'series',
         label: 'Foto Series',
         fields: [
-            { name: 'src', label: 'Path / URL Foto', kind: 'image', placeholder: 'src/images/photo/NAMA_FOTO.png', hint: 'Isi path file di repo (mis. src/images/photo/…) atau URL eksternal. File TIDAK di-upload dari panel ini.' },
+            { name: 'src', label: 'Foto Series', upload: { kind: 'image', folder: 'src/images/photo/', accept: 'image/*', icon: 'fa-image', title: 'Seret & letakkan foto di sini', maxSize: 20 * 1024 * 1024 }, hint: 'Upload langsung ke <code>src/images/photo/</code> di repo (drag &amp; drop / klik) — path otomatis terisi. File lama tidak dihapus dari repo.' },
             { name: 'ratio', label: 'Rasio', type: 'select', options: ['9:16', '16:9', '3:4', '4:3', '1:1'], hint: 'Contoh: 9:16 untuk foto potret HP.' },
             { name: 'label', label: 'Label (Opsional)', placeholder: 'Video 1', hint: 'Opsional — nama yang tampil di modal. Kosongkan untuk memakai nama file.' }
         ],
@@ -976,14 +1312,14 @@
         }
     });
 
-    /* ===== Editor: Video Movies — path/URL video + thumbnail ===== */
+    /* ===== Editor: Video Movies — upload video & thumbnail (drag & drop) ===== */
     makeListEditor({
         key: 'movies',
         label: 'Video Movies',
         fields: [
             { name: 'title', label: 'Judul Video', placeholder: 'Video 60' },
-            { name: 'video', label: 'Path / URL Video', kind: 'video', placeholder: 'src/videos/moviespage/video60.mp4', hint: 'Isi path file di repo (mis. src/videos/moviespage/…) atau URL eksternal. File TIDAK di-upload dari panel ini.' },
-            { name: 'thumbnail', label: 'Path / URL Thumbnail (Foto)', kind: 'image', placeholder: 'src/images/photo/placeholder9_16_91.png' },
+            { name: 'video', label: 'File Video', upload: { kind: 'video', folder: 'src/videos/moviespage/', accept: 'video/*', icon: 'fa-video', title: 'Seret & letakkan video di sini', maxSize: 70 * 1024 * 1024 }, hint: 'Upload langsung ke <code>src/videos/moviespage/</code> di repo (drag &amp; drop / klik). Maks ±70 MB (batas GitHub Contents API).' },
+            { name: 'thumbnail', label: 'Thumbnail (Foto)', upload: { kind: 'image', folder: 'src/images/photo/', accept: 'image/*', icon: 'fa-image', title: 'Seret & letakkan thumbnail di sini', maxSize: 20 * 1024 * 1024 }, hint: 'Opsional — upload ke <code>src/images/photo/</code>. Kosongkan untuk thumbnail bawaan.' },
             { name: 'countdown', label: 'Countdown episode berikutnya (detik)', type: 'number', placeholder: '5' }
         ],
         validate: function (obj) {
