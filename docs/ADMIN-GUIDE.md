@@ -205,7 +205,10 @@ Menu **Profile → Settings** di navbar semua halaman membuka panel admin
   **cookie `queen_admin_banned`** (kadaluarsa ±999.999.999 tahun) —
   membersihkan satu tempat saja tidak cukup. Lapisan ke-4: IP ikut dicatat
   ke `src/data/banned_ips.json` lewat `/api/post.js` (Vercel, pakai
-  `GITHUB_TOKEN`), dicek otomatis saat membuka panel. Layar blokir
+  `GITHUB_TOKEN`). Struktur file (JSON murni tanpa komentar):
+  `{ "banned": [], "attempts": {} }`. **PIN benar SELALU diterima** —
+  saat verifikasi, PIN dicek lebih dulu dan otomatis meng-unban IP
+  (pemilik yang tidak sengaja terblokir tetap bisa masuk). Layar blokir
   menampilkan tombol kontak **Telegram @axetherion**.
 - **Error PIN dihapus**: sesuai permintaan pemilik, tidak ada lagi teks error
   di bawah input PIN — percobaan salah hanya mengosongkan input (blokir

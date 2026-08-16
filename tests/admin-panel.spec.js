@@ -233,12 +233,15 @@ test.describe('Admin Panel — PIN brute-force protection', () => {
     await expect(page.locator('#adminSection')).toBeHidden();
 
     // Triple-Lock Multi Storage: status blokir tersimpan di 3 tempat sekaligus.
+    // Kunci kanonik: mqBlocked='1' (lokal) + queen_admin_banned='true' (cookie).
     const locks = await page.evaluate(() => ({
       ls: localStorage.getItem('mqBlocked'),
+      ls2: localStorage.getItem('queen_admin_banned'),
       ss: sessionStorage.getItem('mqBlocked'),
-      cookie: /queen_admin_banned=1/.test(document.cookie),
+      cookie: /queen_admin_banned=true/.test(document.cookie),
     }));
     expect(locks.ls).toBe('1');
+    expect(locks.ls2).toBe('true');
     expect(locks.ss).toBe('1');
     expect(locks.cookie).toBe(true);
 

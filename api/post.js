@@ -8,6 +8,9 @@
  *   - Pengecekan status IP terblokir di `src/data/banned_ips.json`
  *     via GitHub REST API (`GITHUB_TOKEN`).
  *   - Auto-ban IP server-side setelah 3x salah PIN.
+ *   - PIN BENAR SELALU DITERIMA: saat verifikasi, PIN dicek TERLEBIH
+ *     DAHULU — bila benar, IP otomatis di-unban & hitungan di-reset
+ *     (pemilik yang tidak sengaja terblokir tetap bisa masuk).
  *   - Unban / kelola daftar IP terblokir.
  *
  * BACKEND CRUD (FULL CRUD ke repository via GitHub API):
@@ -53,20 +56,25 @@ const MAX_PIN_FAILURES = 3;
 const sha256 = (s) => crypto.createHash('sha256').update(String(s)).digest('hex');
 
 // Verifikasi PIN: bandingkan hash SHA-256 input dengan ADMIN_PIN (env)
-// atau hash bawaan. Perbandingan konstan waktu untuk mencegah timing attack.
+// atau hash bawaan. ADMIN_PIN boleh berisi PIN mentah ATAU hash SHA-256
+// (keduanya didukung agar tidak ada mismatch). Perbandingan konstan waktu
+// untuk mencegah timing attack.
+function constantEq(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 function pinMatches(input) {
   const hash = sha256(input);
   if (ADMIN_PIN) {
-    const expected = sha256(ADMIN_PIN);
-    if (hash.length !== expected.length) return false;
-    let diff = 0;
-    for (let i = 0; i < hash.length; i++) diff |= hash.charCodeAt(i) ^ expected.charCodeAt(i);
-    return diff === 0;
+    // Case 1: ADMIN_PIN diisi HASH → cocokkan langsung.
+    if (constantEq(hash, ADMIN_PIN)) return true;
+    // Case 2: ADMIN_PIN diisi PIN mentah → bandingkan hash-nya.
+    return constantEq(hash, sha256(ADMIN_PIN));
   }
-  if (hash.length !== DEFAULT_PIN_HASH.length) return false;
-  let diff = 0;
-  for (let i = 0; i < hash.length; i++) diff |= hash.charCodeAt(i) ^ DEFAULT_PIN_HASH.charCodeAt(i);
-  return diff === 0;
+  return constantEq(hash, DEFAULT_PIN_HASH);
 }
 
 // Hanya izinkan path di dalam direktori konten repo (cegah path traversal).
@@ -152,24 +160,45 @@ async function ghDeleteFile(owner, repo, branch, path, message) {
 }
 
 /* --------------------------------------------------------------------------
- * Daftar IP terblokir (server-side) — baca/tulis via GitHub API.
- * Format JSON murni, contoh:
- *   [ { "ip": "203.0.113.7", "reason": "3x salah PIN", "added": "2026-08-17", "fails": 3 } ]
+ * Data IP terblokir (server-side) — baca/tulis via GitHub API.
+ * Format JSON murni TANPA komentar (#), struktur OBJEK:
+ *   {
+ *     "banned":  [ { "ip": "203.0.113.7", "reason": "3x salah PIN", "added": "2026-08-17", "fails": 3 } ],
+ *     "attempts": { "203.0.113.9": 2 }
+ *   }
+ *   - banned  : daftar IP yang benar-benar diblokir.
+ *   - attempts: hitungan PIN salah per IP (di bawah ambang ban).
  * ------------------------------------------------------------------------ */
-async function loadBannedList(owner, repo, branch) {
+async function loadBanData(owner, repo, branch) {
   try {
     const { content } = await ghGetFile(owner, repo, branch, BANNED_IPS_PATH);
     const parsed = JSON.parse(content);
-    return Array.isArray(parsed) ? parsed : [];
+    if (Array.isArray(parsed)) {
+      // Migrasi otomatis dari format lama (array entri) → struktur objek baru.
+      const banned = parsed.filter((x) => x && x.ip && Number(x.fails) >= MAX_PIN_FAILURES);
+      const attempts = {};
+      parsed.forEach((x) => {
+        if (x && x.ip && typeof x.fails === 'number' && x.fails > 0 && x.fails < MAX_PIN_FAILURES) {
+          attempts[x.ip] = x.fails;
+        }
+      });
+      return { banned, attempts };
+    }
+    return {
+      banned: Array.isArray(parsed.banned) ? parsed.banned : [],
+      attempts: parsed.attempts && typeof parsed.attempts === 'object' && !Array.isArray(parsed.attempts)
+        ? parsed.attempts
+        : {},
+    };
   } catch (e) {
-    // 404 = file belum ada → daftar kosong (bukan error).
-    if (e.status === 404) return [];
+    // 404 = file belum ada → data kosong (bukan error).
+    if (e.status === 404) return { banned: [], attempts: {} };
     throw e;
   }
 }
 
-async function saveBannedList(owner, repo, branch, list) {
-  const pretty = JSON.stringify(list, null, 4) + '\n';
+async function saveBanData(owner, repo, branch, data) {
+  const pretty = JSON.stringify({ banned: data.banned, attempts: data.attempts }, null, 4) + '\n';
   let sha = null;
   try {
     const existing = await ghGetFile(owner, repo, branch, BANNED_IPS_PATH);
@@ -234,10 +263,10 @@ module.exports = async function handler(req, res) {
       /* ======================= KEAMANAN ======================= */
       case 'status': {
         // Cek apakah IP/Fingerprint terblokir di banned_ips.json.
-        const list = await loadBannedList(owner, repo, branch);
+        const data = await loadBanData(owner, repo, branch);
         const ip = String(body.ip || '').trim().toLowerCase();
         const fp = String(body.fingerprint || '').trim().toLowerCase();
-        const hit = list.find((b) => {
+        const hit = data.banned.find((b) => {
           if (!b) return false;
           const v = String(b.ip || '').trim().toLowerCase();
           return (ip && v === ip) || (fp && v === fp);
@@ -250,74 +279,72 @@ module.exports = async function handler(req, res) {
       }
 
       case 'verify': {
-        // Verifikasi PIN server-side. 3x salah → auto-ban IP.
+        // Verifikasi PIN server-side — PIN dicek TERLEBIH DAHULU agar
+        // pemilik dengan PIN benar SELALU bisa masuk (dan otomatis
+        // di-unban bila IP-nya sempat terblokir).
         const ip = String(body.ip || '').trim();
         const fingerprint = String(body.fingerprint || '').trim();
         if (!ip && !fingerprint) {
           return json(res, 400, { ok: false, error: 'IP wajib dikirim untuk verifikasi.' });
         }
 
-        const list = await loadBannedList(owner, repo, branch);
+        const data = await loadBanData(owner, repo, branch);
         const key = ip || fingerprint;
-        if (findBan(list, key) >= 0) {
-          return json(res, 403, { ok: false, banned: true, error: 'IP Anda diblokir di server.' });
-        }
-
         const pin = String(body.pin || '');
+
         if (pinMatches(pin)) {
-          // PIN benar → reset hitungan gagal untuk IP ini.
-          const idx = findBan(list, ip);
-          if (idx >= 0 && list[idx] && list[idx].fails) {
-            list[idx].fails = 0;
-            await saveBannedList(owner, repo, branch, list);
-          }
+          // PIN BENAR → unban IP ini + reset hitungan, lalu sukses.
+          const idx = findBan(data.banned, key);
+          if (idx >= 0) data.banned.splice(idx, 1);
+          if (ip && data.attempts[ip]) delete data.attempts[ip];
+          await saveBanData(owner, repo, branch, data);
           return json(res, 200, { ok: true, verified: true });
         }
 
-        // PIN salah → naikkan hitungan; 3x → auto-ban.
-        let idx = findBan(list, ip);
-        if (idx < 0) {
-          list.push({ ip, reason: '', added: todayISO(), fails: 1, lastAttempt: new Date().toISOString() });
-          idx = list.length - 1;
-        } else {
-          list[idx].fails = (list[idx].fails || 0) + 1;
-          list[idx].lastAttempt = new Date().toISOString();
+        // PIN SALAH → IP yang sudah diblokir tetap 403.
+        if (findBan(data.banned, key) >= 0) {
+          return json(res, 403, { ok: false, banned: true, error: 'IP Anda diblokir di server.' });
         }
 
-        const fails = list[idx].fails || 0;
-        if (fails >= MAX_PIN_FAILURES) {
-          list[idx].reason = '3x salah PIN (auto-ban server-side)';
-          list[idx].bannedAt = new Date().toISOString();
-          await saveBannedList(owner, repo, branch, list);
-          return json(res, 403, {
+        // Naikkan hitungan percobaan; 3x → auto-ban.
+        if (ip) {
+          data.attempts[ip] = (data.attempts[ip] || 0) + 1;
+          const fails = data.attempts[ip];
+          if (fails >= MAX_PIN_FAILURES) {
+            delete data.attempts[ip];
+            data.banned.push({
+              ip,
+              reason: '3x salah PIN (auto-ban server-side)',
+              added: todayISO(),
+              fails,
+              bannedAt: new Date().toISOString(),
+            });
+            await saveBanData(owner, repo, branch, data);
+            return json(res, 403, {
+              ok: false,
+              banned: true,
+              error: 'Terlalu banyak percobaan salah PIN. IP Anda diblokir.',
+              reason: '3x salah PIN (auto-ban server-side)',
+            });
+          }
+          await saveBanData(owner, repo, branch, data);
+          return json(res, 200, {
             ok: false,
-            banned: true,
-            error: 'Terlalu banyak percobaan salah PIN. IP Anda diblokir.',
-            reason: '3x salah PIN (auto-ban server-side)',
+            banned: false,
+            attemptsLeft: MAX_PIN_FAILURES - fails,
           });
         }
-
-        await saveBannedList(owner, repo, branch, list);
-        return json(res, 200, {
-          ok: false,
-          banned: false,
-          attemptsLeft: MAX_PIN_FAILURES - fails,
-        });
+        return json(res, 400, { ok: false, error: 'IP wajib dikirim untuk melacak percobaan.' });
       }
 
       case 'reset': {
-        // Reset hitungan gagal untuk IP (dipanggil saat login sukses).
+        // Reset hitungan gagal untuk IP (bukan unban — unban lewat verify/unban).
         const ip = String(body.ip || '').trim();
         if (!ip) return json(res, 400, { ok: false, error: 'IP wajib dikirim.' });
-        const list = await loadBannedList(owner, repo, branch);
-        const idx = findBan(list, ip);
-        if (idx >= 0) {
-          if (list[idx].reason) {
-            // Entri yang benar-benar diblokir TIDAK di-reset di sini (pakai unban).
-          } else {
-            list.splice(idx, 1); // hapus entri hitungan gagal saja
-          }
-          await saveBannedList(owner, repo, branch, list);
+        const data = await loadBanData(owner, repo, branch);
+        if (data.attempts[ip]) {
+          delete data.attempts[ip];
+          await saveBanData(owner, repo, branch, data);
         }
         return json(res, 200, { ok: true });
       }
@@ -326,38 +353,38 @@ module.exports = async function handler(req, res) {
         // Tambah IP ke daftar blokir server (manual / auto).
         const ip = String(body.ip || '').trim();
         if (!ip) return json(res, 400, { ok: false, error: 'IP wajib dikirim.' });
-        const list = await loadBannedList(owner, repo, branch);
-        let idx = findBan(list, ip);
+        const data = await loadBanData(owner, repo, branch);
+        let idx = findBan(data.banned, ip);
         if (idx < 0) {
-          list.push({
+          data.banned.push({
             ip,
             reason: String(body.reason || 'Diblokir via admin panel').trim(),
             added: todayISO(),
             fails: Number(body.fails) || 0,
           });
         } else {
-          list[idx].reason = String(body.reason || list[idx].reason || 'Diblokir via admin panel').trim();
+          data.banned[idx].reason = String(body.reason || data.banned[idx].reason || 'Diblokir via admin panel').trim();
         }
-        await saveBannedList(owner, repo, branch, list);
+        if (data.attempts[ip]) delete data.attempts[ip];
+        await saveBanData(owner, repo, branch, data);
         return json(res, 200, { ok: true, ip });
       }
 
       case 'unban': {
-        // Hapus IP dari daftar blokir.
+        // Hapus IP dari daftar blokir + bersihkan hitungan.
         const ip = String(body.ip || '').trim();
         if (!ip) return json(res, 400, { ok: false, error: 'IP wajib dikirim.' });
-        const list = await loadBannedList(owner, repo, branch);
-        const idx = findBan(list, ip);
-        if (idx >= 0) {
-          list.splice(idx, 1);
-          await saveBannedList(owner, repo, branch, list);
-        }
+        const data = await loadBanData(owner, repo, branch);
+        const idx = findBan(data.banned, ip);
+        if (idx >= 0) data.banned.splice(idx, 1);
+        if (data.attempts[ip]) delete data.attempts[ip];
+        await saveBanData(owner, repo, branch, data);
         return json(res, 200, { ok: true, ip });
       }
 
       case 'list': {
-        const list = await loadBannedList(owner, repo, branch);
-        return json(res, 200, { ok: true, banned: list });
+        const data = await loadBanData(owner, repo, branch);
+        return json(res, 200, { ok: true, banned: data.banned, attempts: data.attempts });
       }
 
       /* ======================= FULL CRUD ======================= */
