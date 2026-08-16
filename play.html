@@ -1,145 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ==== play.html — Halaman Play — pemutar video fullscreen (dipakai iframe dari modal Play halaman utama). ==== -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netflix - Play</title>
-    <link rel="stylesheet" href="src/css/tailwind.css?v=4">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="src/css/common.css?v=15">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="src/data/site-text-data.js?v=1"></script>
-    <script src="src/data/music-data.js?v=5"></script>
-    <script src="src/js/debug-hud.js?v=1"></script>
-    <script src="src/js/music-player.js?v=13"></script>
-    <!-- Vercel Analytics + Speed Insights (paket resmi @vercel/analytics + @vercel/speed-insights) -->
-    <script type="module" src="src/js/vercel-init.mjs"></script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix - Play</title>
+<link rel="stylesheet" href="src/css/tailwind.css?v=5">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="src/css/common.css?v=16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="src/data/site-text-data.js?v=2"></script>
+<script src="src/data/play-video-data.js?v=2"></script>
+<script src="src/data/music-data.js?v=6"></script>
+<script src="src/js/debug-hud.js?v=2"></script>
+<script src="src/js/music-player.js?v=14"></script>
+
+<script type="module" src="src/js/vercel-init.mjs"></script>
 </head>
 <body class="bg-black text-white m-0 p-0">
-    <a class="skip-link" href="#main-content">Langsung ke konten</a>
-    <main id="main-content" tabindex="-1">
-        <div class="relative">
-            <div class="relative w-full aspect-video">
-                <video id="heroVideo" class="absolute top-0 left-0 w-full h-full object-cover" controls autoplay muted playsinline preload="metadata">
-                    <source src="src/videos/playpage/video.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-                <!-- Overlay Replay / Tutup saat video hero selesai (konsisten dgn movies/series). -->
-                <div class="video-ended-overlay" id="playEndedOverlay">
-                    <button type="button" class="ended-btn ended-replay" id="playReplayBtn" aria-label="Putar ulang" title="Putar ulang"><i class="fas fa-redo" aria-hidden="true"></i></button>
-                    <button type="button" class="ended-btn ended-close" id="playCloseBtn" aria-label="Tutup" title="Tutup"><i class="fas fa-times" aria-hidden="true"></i></button>
-                </div>
-                <button type="button" id="soundToggle" aria-label="Aktifkan suara" aria-pressed="false"
-                        class="absolute bottom-4 right-4 z-10 bg-black/70 hover:bg-black text-white border border-white/60 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer hidden">
-                    <i class="fas fa-volume-mute mr-2" aria-hidden="true"></i>Suara
-                </button>
-            </div>
-        </div>
-        <div class="bg-black p-6 md:p-8 max-w-4xl mx-auto">
-            <!-- Judul & paragraf diisi dari src/data/site-text-data.js (diatur langsung di kode) -->
-            <h1 id="playTitle" class="text-2xl md:text-3xl font-bold mb-4">I Love You &gt;3</h1>
-            <div id="playBody" class="text-sm md:text-base text-gray-300 leading-relaxed space-y-3">
-                <p>Hai, kamu...</p>
-            </div>
-        </div>
-    </main>
-    <script>
-        (function () {
-            var video = document.getElementById('heroVideo');
-            var toggle = document.getElementById('soundToggle');
+<a class="skip-link" href="#main-content">Langsung ke konten</a>
+<main id="main-content" tabindex="-1">
+<div class="relative">
+<div class="relative w-full aspect-video">
+<video id="heroVideo" class="absolute top-0 left-0 w-full h-full object-cover" controls autoplay muted playsinline preload="metadata">
+<source id="playVideoSource" src="src/videos/playpage/video.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
 
-            function setSound(on) {
-                video.muted = !on;
-                toggle.setAttribute('aria-pressed', on ? 'true' : 'false');
-                toggle.innerHTML = on
-                    ? '<i class="fas fa-volume-up mr-2" aria-hidden="true"></i>Suara Aktif'
-                    : '<i class="fas fa-volume-mute mr-2" aria-hidden="true"></i>Suara';
-                // Klik = user gesture: autoplay bersuara diizinkan setelah interaksi.
-                if (on) { var p = video.play(); if (p && p.catch) p.catch(function(){}); }
-                // Jangan biarkan musik island berbunyi bersamaan dengan video
-                // (berlaku juga saat halaman dibuka langsung, bukan via modal).
-                if (window.MusicPlayer) {
-                    if (on) window.MusicPlayer.pauseForVideo();
-                    else window.MusicPlayer.resumeFromVideo();
-                }
-            }
+<div class="video-ended-overlay" id="playEndedOverlay">
+<button type="button" class="ended-btn ended-replay" id="playReplayBtn" aria-label="Putar ulang" title="Putar ulang"><i class="fas fa-redo" aria-hidden="true"></i></button>
+<button type="button" class="ended-btn ended-close" id="playCloseBtn" aria-label="Tutup" title="Tutup"><i class="fas fa-times" aria-hidden="true"></i></button>
+</div>
+<button type="button" id="soundToggle" aria-label="Aktifkan suara" aria-pressed="false"
+class="absolute bottom-4 right-4 z-10 bg-black/70 hover:bg-black text-white border border-white/60 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer hidden">
+<i class="fas fa-volume-mute mr-2" aria-hidden="true"></i>Suara
+</button>
+</div>
+</div>
+<div class="bg-black p-6 md:p-8 max-w-4xl mx-auto">
 
-            // Tombol suara tampil setelah video siap (autoplay muted berjalan).
-            video.addEventListener('loadedmetadata', function () {
-                toggle.classList.remove('hidden');
-            });
-
-            toggle.addEventListener('click', function () {
-                setSound(video.muted);
-            });
-
-            // Overlay Replay / Tutup saat video hero selesai.
-            var overlay = document.getElementById('playEndedOverlay');
-
-            function replayHero() {
-                overlay.classList.remove('show');
-                video.currentTime = 0;
-                var p = video.play();
-                if (p && p.catch) p.catch(function () {});
-                // Suara video aktif lagi → suppress musik (island sendiri + induk).
-                if (!video.muted) {
-                    if (window.MusicPlayer) window.MusicPlayer.pauseForVideo();
-                    try { window.parent.postMessage('netflix-video-playing', '*'); } catch (e) {}
-                }
-            }
-
-            function closeHero() {
-                var inIframe = false;
-                try { inIframe = window.self !== window.top; } catch (e) { inIframe = true; }
-                if (inIframe) {
-                    // Diputar di dalam modal index.html → minta induk menutup modal.
-                    try { window.parent.postMessage('netflix-close', '*'); } catch (e) {}
-                } else {
-                    // Dibuka langsung → kembali ke beranda.
-                    window.location.href = 'index.html';
-                }
-            }
-
-            document.getElementById('playReplayBtn').addEventListener('click', replayHero);
-            document.getElementById('playCloseBtn').addEventListener('click', closeHero);
-
-            // Video selesai → tampilkan Replay/Tutup + pulihkan musik.
-            video.addEventListener('ended', function () {
-                overlay.classList.add('show');
-                // Pulihkan music island sendiri bila sedang di-suppress suara video.
-                if (window.MusicPlayer && window.MusicPlayer.isSuppressed()) window.MusicPlayer.resumeFromVideo();
-                // Beri tahu halaman induk agar music island kembali.
-                try { window.parent.postMessage('netflix-video-ended', '*'); } catch (e) {}
-            });
-
-            // Dipanggil dari index.html (modal Play): aktifkan suara setelah klik Play.
-            // Hanya terima pesan dari asal situs sendiri (anti-spoofing lintas-origin).
-            window.addEventListener('message', function (event) {
-                var okOrigin = false;
-                try { okOrigin = event.origin === window.location.origin || event.origin === 'null'; } catch (e) {}
-                if (!okOrigin) return;
-                if (event.data === 'netflix-unmute') setSound(true);
-                if (event.data === 'netflix-mute') setSound(false);
-            });
-
-            // Isi judul & paragraf dari src/data/site-text-data.js (di kode).
-            if (window.SITE_TEXT && window.SITE_TEXT.play) {
-                var st = window.SITE_TEXT.play;
-                var titleEl = document.getElementById('playTitle');
-                if (titleEl && st.title) titleEl.textContent = st.title;
-                var bodyEl = document.getElementById('playBody');
-                if (bodyEl && Array.isArray(st.paragraphs) && st.paragraphs.length) {
-                    bodyEl.innerHTML = st.paragraphs.map(function (p) {
-                        return '<p>' + String(p).replace(/</g, '&lt;') + '</p>';
-                    }).join('');
-                }
-            }
-
-            // Fallback: jika halaman dibuka langsung (bukan via modal), tetap senyap sesuai kebijakan browser.
-        })();
-    </script>
+<h1 id="playTitle" class="text-2xl md:text-3xl font-bold mb-4">I Love You &gt;3</h1>
+<div id="playBody" class="text-sm md:text-base text-gray-300 leading-relaxed space-y-3">
+<p>Hai, kamu...</p>
+</div>
+</div>
+</main>
+<script>!function(){var e=document.getElementById("heroVideo"),t=document.getElementById("soundToggle");if(window.PLAY_VIDEO&&window.PLAY_VIDEO.src){var n=document.getElementById("playVideoSource");n&&(n.setAttribute("src",window.PLAY_VIDEO.src),e.load())}function i(n){if(e.muted=!n,t.setAttribute("aria-pressed",n?"true":"false"),t.innerHTML=n?'<i class="fas fa-volume-up mr-2" aria-hidden="true"></i>Suara Aktif':'<i class="fas fa-volume-mute mr-2" aria-hidden="true"></i>Suara',n){var i=e.play();i&&i.catch&&i.catch(function(){})}window.MusicPlayer&&(n?window.MusicPlayer.pauseForVideo():window.MusicPlayer.resumeFromVideo())}e.addEventListener("loadedmetadata",function(){t.classList.remove("hidden")}),t.addEventListener("click",function(){i(e.muted)});var a=document.getElementById("playEndedOverlay");if(document.getElementById("playReplayBtn").addEventListener("click",function(){a.classList.remove("show"),e.currentTime=0;var t=e.play();if(t&&t.catch&&t.catch(function(){}),!e.muted){window.MusicPlayer&&window.MusicPlayer.pauseForVideo();try{window.parent.postMessage("netflix-video-playing","*")}catch(e){}}}),document.getElementById("playCloseBtn").addEventListener("click",function(){var e=!1;try{e=window.self!==window.top}catch(t){e=!0}if(e)try{window.parent.postMessage("netflix-close","*")}catch(e){}else window.location.href="index.html"}),e.addEventListener("ended",function(){a.classList.add("show"),window.MusicPlayer&&window.MusicPlayer.isSuppressed()&&window.MusicPlayer.resumeFromVideo();try{window.parent.postMessage("netflix-video-ended","*")}catch(e){}}),window.addEventListener("message",function(e){var t=!1;try{t=e.origin===window.location.origin||"null"===e.origin}catch(e){}t&&("netflix-unmute"===e.data&&i(!0),"netflix-mute"===e.data&&i(!1))}),window.SITE_TEXT&&window.SITE_TEXT.play){var d=window.SITE_TEXT.play,o=document.getElementById("playTitle");o&&d.title&&(o.textContent=d.title);var r=document.getElementById("playBody");r&&Array.isArray(d.paragraphs)&&d.paragraphs.length&&(r.innerHTML=d.paragraphs.map(function(e){return"<p>"+String(e).replace(/</g,"&lt;")+"</p>"}).join(""))}}();</script>
 </body>
 </html>

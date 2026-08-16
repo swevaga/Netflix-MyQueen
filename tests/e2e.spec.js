@@ -17,6 +17,9 @@
 // ==========================================================================
 const { test, expect } = require('@playwright/test');
 
+// PIN bawaan baru (sesuai permintaan pemilik).
+const ADMIN_PIN = '9999999990000000000222222222244444444446666666666111111111133333333335555555555A';
+
 const PAGES = [
   { path: '/index.html', title: 'Netflix', sectionId: null },
   { path: '/movies.html', title: 'Netflix - Movies', sectionId: 'moviesSection' },
@@ -88,7 +91,7 @@ test.describe('Semua halaman: dasar', () => {
 });
 
 test.describe('Series', () => {
-  test('98 kartu unik terlihat tanpa duplikat banner + modal video terbuka', async ({ page }) => {
+  test('98 kartu unik terlihat tanpa duplikat banner; foto DISPLAY-ONLY (tanpa modal video)', async ({ page }) => {
     await page.goto('/series.html', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(4000);
     await scrollAll(page);
@@ -126,13 +129,12 @@ test.describe('Series', () => {
     expect(st.dupVisible).toBe(0);
     expect(st.staticBannersVisible).toBe(0);
 
-    // Klik kartu pertama → modal terbuka dengan sumber video.
+    // FOTO DISPLAY-ONLY: klik foto TIDAK membuka modal video (fitur
+    // "foto play video" dihapus — halaman series hanya menampilkan foto).
     await page.click('#seriesRatioContainer .series-item');
-    await expect(page.locator('#seriesModal')).toBeVisible();
-    const videoSrc = await page.locator('#seriesVideo').getAttribute('src');
-    expect(videoSrc).toMatch(/\.mp4$/);
-    await page.click('#seriesModal .close');
-    await expect(page.locator('#seriesModal')).toBeHidden();
+    await page.waitForTimeout(400);
+    await expect(page.locator('#seriesModal')).toHaveCount(0);
+    expect(await page.locator('#seriesVideo').count()).toBe(0);
   });
 });
 
@@ -160,10 +162,10 @@ test.describe('Movies', () => {
     await page.goto('/movies.html', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
-    const cards = page.locator('#moviesSection button[aria-label^="Putar video"]');
+    const cards = page.locator('#moviesSection button[aria-label^="Putar Video"]');
     await expect(cards).toHaveCount(59);
 
-    await page.click('button[aria-label="Putar video 1"]');
+    await page.click('button[aria-label="Putar Video 1"]');
     await expect(page.locator('#video1')).toBeVisible();
     // Sumber video ada di <source> (bukan atribut src <video>).
     const src = await page.locator('#video1-player source').getAttribute('src');
@@ -178,43 +180,67 @@ test.describe('News & My List', () => {
     await page.goto('/newsandpopular.html', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2500);
 
-    // Chip = 3 tanggal unik, urut MENDATAR lama → baru:
-    // 20 Maret 2025, 2 Juni 2025, 7 Desember 2025.
+    // Chip = 6 tanggal unik, urut MENDATAR lama → baru (dari data saat ini):
+    // 20-03-2025, 31-03-2025, 02-06-2025, 04-06-2025, 07-12-2025, 05-03-2026.
     const chips = page.locator('#newsDates .news-date-chip');
-    await expect(chips).toHaveCount(3);
+    await expect(chips).toHaveCount(6);
 
     const labels = await chips.allTextContents();
     expect(labels[0]).toContain('Maret 2025');
-    expect(labels[1]).toContain('Juni 2025');
-    expect(labels[2]).toContain('Desember 2025');
+    expect(labels[1]).toContain('Maret 2025');
+    expect(labels[2]).toContain('Juni 2025');
+    expect(labels[3]).toContain('Juni 2025');
+    expect(labels[4]).toContain('Desember 2025');
+    expect(labels[5]).toContain('Maret 2026');
 
     // Setiap tanggal = SATU slide selebar layar (pesan digeser ke samping).
-    await expect(page.locator('#newsHorizontal .news-slide')).toHaveCount(3);
+    await expect(page.locator('#newsHorizontal .news-slide')).toHaveCount(6);
 
-    // Slide pertama berisi 2 pesan (tanggal 20-03-2025); total 4 artikel.
+    // Slide pertama berisi 2 pesan (tanggal 20-03-2025); total 7 artikel.
     const articles = page.locator('#newsHorizontal article');
-    await expect(articles).toHaveCount(4);
+    await expect(articles).toHaveCount(7);
     await expect(page.locator('#newsHorizontal .news-slide[data-date="2025-03-20"] article')).toHaveCount(2);
 
     // Setiap artikel menampilkan tanggal format DD-MM-YYYY di atas judul.
     await expect(page.locator('#newsHorizontal .news-date-label').first()).toHaveText(/\d{2}-\d{2}-\d{4}/);
 
-    // Scrollbar horizontal DISEMBUNYIKAN (tetap bisa digeser).
-    const scrollHidden = await page.evaluate(() => {
+    // Scrollbar horizontal TRANSPARAN tapi masih terlihat samar (bukan
+    // disembunyikan total) — user tahu daftar bisa digeser.
+    const scrollbar = await page.evaluate(() => {
       const el = document.getElementById('newsHorizontal');
-      return getComputedStyle(el).overflowX === 'auto' && getComputedStyle(el).scrollbarWidth === 'none';
+      const cs = getComputedStyle(el);
+      return { overflowX: cs.overflowX, width: cs.scrollbarWidth };
     });
-    expect(scrollHidden).toBe(true);
+    expect(scrollbar.overflowX).toBe('auto');
+    expect(scrollbar.width).not.toBe('none');
+
+    // Tombol panah kiri/kanan navigasi antar tanggal tersedia.
+    await expect(page.locator('#newsNavPrev')).toBeVisible();
+    await expect(page.locator('#newsNavNext')).toBeVisible();
+    // Di tanggal paling lama (slide pertama), panah kiri nonaktif.
+    await expect(page.locator('#newsNavPrev')).toBeDisabled();
+
+    // Jarak paragraf berita diambil dari SITE_SETTINGS.newsParagraphSpacing.
+    const gap = await page.evaluate(() => {
+      const el = document.querySelector('.news-paragraphs');
+      return el ? getComputedStyle(el).gap : null;
+    });
+    expect(gap).toBe('16px');
 
     // Chip tanggal paling lama aktif secara default.
     await expect(chips.nth(0)).toHaveAttribute('aria-pressed', 'true');
 
     // Klik chip tanggal terakhir → slide tanggal itu aktif & ikut tergeser.
-    await chips.nth(2).click();
-    await expect(chips.nth(2)).toHaveAttribute('aria-pressed', 'true');
+    await chips.nth(5).click();
+    await expect(chips.nth(5)).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#newsHorizontal .news-slide[data-date="2026-03-05"]')).toBeInViewport();
+    const slideText = await page.locator('#newsHorizontal .news-slide[data-date="2026-03-05"]').textContent();
+    expect(slideText).toContain('Kepanikan di Bulan Ramadhan');
+
+    // Tombol panah kiri menggeser kembali ke tanggal sebelumnya (07-12-2025).
+    await expect(page.locator('#newsNavPrev')).toBeEnabled();
+    await page.click('#newsNavPrev');
     await expect(page.locator('#newsHorizontal .news-slide[data-date="2025-12-07"]')).toBeInViewport();
-    const slideText = await page.locator('#newsHorizontal .news-slide[data-date="2025-12-07"]').textContent();
-    expect(slideText).toContain('Suara di Ujung Telepon');
 
     // TIDAK ada tombol "Baca selengkapnya" — semua paragraf langsung tampil.
     expect(await page.locator('a, button', { hasText: /selengkapnya/i }).count()).toBe(0);
@@ -286,8 +312,10 @@ test.describe('Admin Panel', () => {
     await expect(page.locator('#pinError')).toBeVisible();
     await expect(page.locator('#adminSection')).toBeHidden();
 
-    // PIN benar (bawaan 1602) → dashboard terbuka + editor tersedia.
-    await page.fill('#pinInput', '1602');
+    // Jeda antar percobaan (anti brute-force 700ms) sebelum PIN benar.
+    await page.waitForTimeout(800);
+    // PIN benar (bawaan baru) → dashboard terbuka + editor tersedia.
+    await page.fill('#pinInput', ADMIN_PIN);
     await page.click('#pinForm button[type="submit"]');
     await expect(page.locator('#adminSection')).toBeVisible();
     await expect(page.locator('#pinSection')).toBeHidden();
@@ -301,7 +329,7 @@ test.describe('Admin Panel', () => {
 
   test('Tombol kunci mengembalikan ke layar PIN', async ({ page }) => {
     await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
-    await page.fill('#pinInput', '1602');
+    await page.fill('#pinInput', ADMIN_PIN);
     await page.click('#pinForm button[type="submit"]');
     await expect(page.locator('#adminSection')).toBeVisible();
     await page.click('button:has-text("Kunci")');

@@ -1,1566 +1,316 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <!-- ==========================================================================
-         admin.html — Admin Panel Netflix-MyQueen (v3.0)
-         --------------------------------------------------------------------------
-         Panel pengelolaan konten TANPA edit kode sama sekali:
 
-           • LAPIS 1 (klien) : PIN gatekeeper — form tersembunyi sampai PIN benar.
-           • LAPIS 2 (GitHub): Personal Access Token (PAT) — satu-satunya yang bisa
-                               menulis ke repository. Token TIDAK ada di kode ini;
-                               disimpan di localStorage browser pemilik.
-
-         Yang bisa dikelola (semua lewat file data di src/data/):
-           1. Berita  → news-data.js     (Tanggal DD-MM-YYYY, Judul, Isi, Video Opsional)
-           2. Foto    → series-data.js    (upload drag&drop ke src/images/photo + RASIO)
-           3. Video   → movies-data.js    (upload drag&drop ke src/videos/moviespage + thumbnail)
-           4. Musik   → music-data.js     (path/URL lagu + judul)
-
-         Teks situs DIKELOLA LANGSUNG DI KODE (site-text-data.js) — tidak ada
-         editor Teks di panel ini.
-
-         Alur: buka admin.html → PIN → isi Owner/Repo/Branch/Token → "Muat Data"
-         → edit → "Simpan ke GitHub" → Vercel auto re-deploy (~1 menit).
-
-         MEDIA DI-UPLOAD LANGSUNG dari panel ini (drag & drop / pilih file):
-           • Foto Series  → src/images/photo/
-           • Video Movies → src/videos/moviespage/  (video & thumbnail)
-         File dikirim ke repo lewat GitHub Contents API; path-nya otomatis
-         terisi di data. Path/URL TIDAK bisa diketik manual untuk foto/video/
-         thumbnail — cukup drag & drop / klik area upload. Preview muncul
-         otomatis. Musik tetap isi path manual (file sudah ada di repo /
-         hosting eksternal).
-         ========================================================================== -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netflix - Admin</title>
-    <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
-    <link rel="stylesheet" href="src/css/tailwind.css?v=4">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --red: #e50914;
-            --red-hover: #ff1a2b;
-            --card: #151515;
-            --card-2: #1d1d1d;
-            --line: #2a2a2a;
-            --muted: #a3a3a3;
-            --ok: #1db954;
-        }
-        body { font-family: 'Roboto', sans-serif; background: radial-gradient(1200px 600px at 50% -10%, rgba(229,9,20,.08), transparent), #0a0a0a; color: #fff; }
-        .admin-card {
-            background: linear-gradient(180deg, var(--card), #101010);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 18px;
-            box-shadow: 0 10px 30px rgba(0,0,0,.45);
-        }
-        .admin-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .05em;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
-        .admin-input {
-            width: 100%;
-            background: #0d0d0d;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #fff;
-            padding: 10px 12px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color .15s ease, box-shadow .15s ease;
-        }
-        .admin-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(229,9,20,.15); }
-        textarea.admin-input { line-height: 1.55; }
-        .admin-hint { font-size: 11.5px; color: #7a7a7a; margin-top: 5px; }
-        .btn {
-            display: inline-flex; align-items: center; gap: 7px;
-            border: none; border-radius: 8px; cursor: pointer;
-            font-size: 13px; font-weight: 700; padding: 10px 16px;
-            transition: background .15s ease, transform .1s ease;
-        }
-        .btn:active { transform: scale(.97); }
-        .btn-red { background: var(--red); color: #fff; }
-        .btn-red:hover { background: var(--red-hover); }
-        .btn-gray { background: #2a2a2a; color: #fff; }
-        .btn-gray:hover { background: #3a3a3a; }
-        .btn-green { background: var(--ok); color: #fff; }
-        .btn-green:hover { background: #1ed760; }
-        .btn-ghost {
-            background: transparent; border: 1px solid #3a3a3a; color: #ccc;
-            border-radius: 7px; cursor: pointer; width: 32px; height: 32px;
-            font-size: 13px; display: inline-flex; align-items: center; justify-content: center;
-            transition: background .15s ease;
-        }
-        .btn-ghost:hover { background: #2f2f2f; color: #fff; }
-        .btn-danger { background: transparent; border: 1px solid #7a1f1f; color: #ff6b6b; border-radius: 7px; cursor: pointer; width: 32px; height: 32px; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; }
-        .btn-danger:hover { background: #7a1f1f; color: #fff; }
-        .tab-btn {
-            background: transparent; border: none; color: var(--muted);
-            font-weight: 700; font-size: 13.5px; padding: 9px 14px; cursor: pointer;
-            border-radius: 999px; transition: background .15s ease, color .15s ease;
-            white-space: nowrap;
-        }
-        .tab-btn:hover { color: #fff; background: rgba(255,255,255,.06); }
-        .tab-btn.active { background: var(--red); color: #fff; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-        .admin-row {
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            background: #0d0d0d; border: 1px solid #232323; border-radius: 10px;
-            padding: 10px 14px; margin-bottom: 8px;
-            transition: border-color .15s ease;
-        }
-        .admin-row:hover { border-color: #3a3a3a; }
-        .admin-row-main { flex: 1; min-width: 0; font-size: 14px; }
-        .admin-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
-        .admin-thumb { width: 44px; height: 64px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
-        .admin-thumb-square { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
-        #logBox {
-            background: #0d0d0d; border: 1px solid #232323; border-radius: 10px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            font-size: 12px; line-height: 1.65; color: #9fe8a5;
-            padding: 12px 14px; max-height: 220px; overflow-y: auto; white-space: pre-wrap;
-        }
-        #logBox .err { color: #ff8080; }
-        #logBox .ok { color: #7ee787; }
-        #logBox .info { color: var(--muted); }
-        .pin-card { max-width: 400px; margin: 12vh auto 0; text-align: center; }
-        .status-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
-        .dirty-badge {
-            display: inline-block; background: #b45309; color: #fff; font-size: 11px;
-            font-weight: 700; border-radius: 999px; padding: 2px 9px; margin-left: 6px;
-        }
-        .grid-cols-2-gap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-        a { color: var(--red); }
-
-        /* ===== Responsif dasar ===== */
-        @media (max-width: 640px) {
-            .admin-card { padding: 16px; }
-            .admin-row { flex-wrap: wrap; }
-            .admin-row-main { flex: 1 1 100%; }
-            .admin-row-actions { margin-left: auto; }
-            .admin-thumb, .admin-thumb-square { width: 40px; height: 58px; }
-            .admin-thumb-square { width: 48px; height: 34px; }
-        }
-
-        /* ===== Form editor: grid responsif (1 kolom mobile, 2 kolom desktop) ===== */
-        .admin-form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 14px;
-        }
-        @media (min-width: 768px) {
-            .admin-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .admin-form-grid .form-field-full { grid-column: 1 / -1; }
-        }
-        .form-field { min-width: 0; }
-
-        /* ===== Preview media path/URL (foto / video / audio) ===== */
-        .media-preview {
-            display: none;
-            margin-top: 8px;
-            width: 100%;
-            max-width: 340px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #000;
-            overflow: hidden;
-        }
-        .media-preview.show { display: block; }
-        .media-preview img {
-            display: block;
-            width: 100%;
-            max-height: 200px;
-            object-fit: contain;
-        }
-        .media-preview video, .media-preview audio { display: block; width: 100%; }
-        .media-preview audio { border-radius: 8px; }
-
-        /* ===== Drag & drop upload (foto series / video movies / thumbnail) ===== */
-        .upload-zone {
-            position: relative;
-            border: 2px dashed #3d3d3d;
-            border-radius: 14px;
-            background: #0d0d0d;
-            padding: 24px 16px 18px;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color .15s ease, background .15s ease, transform .1s ease;
-            overflow: hidden;
-        }
-        .upload-zone:hover { border-color: var(--red); background: #121212; }
-        .upload-zone.drag { border-color: var(--red); background: rgba(229,9,20,.08); transform: scale(1.01); }
-        .uz-content { pointer-events: none; }
-        .uz-content i { font-size: 26px; color: var(--muted); margin-bottom: 8px; display: block; transition: color .15s ease; }
-        .upload-zone:hover .uz-content i, .upload-zone.drag .uz-content i { color: var(--red); }
-        .uz-title { font-size: 13.5px; font-weight: 700; color: #e5e5e5; }
-        .uz-sub { font-size: 11.5px; color: #7a7a7a; margin-top: 3px; }
-        .uz-name { font-size: 11.5px; color: var(--ok); word-break: break-all; margin-top: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-        .uz-preview { margin-top: 12px; pointer-events: auto; }
-        .uz-preview img, .uz-preview video { display: block; width: 100%; max-height: 220px; object-fit: contain; border-radius: 8px; background: #000; border: 1px solid #232323; }
-        .uz-progress { margin-top: 10px; height: 8px; border-radius: 999px; background: #232323; overflow: hidden; position: relative; }
-        .uz-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--red), #ff6b6b); border-radius: 999px; transition: width .1s linear; }
-        .uz-progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.8); }
-        .uz-status { margin-top: 9px; font-size: 11.5px; color: #8a8a8a; min-height: 15px; word-break: break-word; }
-        .uz-status.ok { color: var(--ok); }
-        .uz-status.err { color: #ff8080; }
-        .uz-folder {
-            margin-top: 7px; font-size: 10.5px; color: #8a8a8a;
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            word-break: break-all;
-        }
-        .uz-folder i { color: var(--red); margin-right: 5px; font-size: 11px; }
-        /* Zona sudah terisi file: border solid hijau; hover merah = siap ganti */
-        .upload-zone.has-file { border-style: solid; border-color: rgba(29,185,84,.4); background: #0e1410; }
-        .upload-zone.has-file:hover { border-color: var(--red); background: rgba(229,9,20,.06); }
-        .uz-actions { margin-top: 10px; display: flex; gap: 8px; justify-content: center; pointer-events: auto; }
-        .uz-actions[hidden] { display: none; }
-        .uz-replace {
-            background: transparent; border: 1px solid #3a3a3a; color: #ccc;
-            border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 13px; cursor: pointer;
-            transition: background .15s ease, color .15s ease;
-        }
-        .uz-replace:hover { background: #2f2f2f; color: #fff; }
-        .uz-clear {
-            background: transparent; border: 1px solid #6b2b2b; color: #ff9a9a;
-            border-radius: 8px; font-size: 12px; font-weight: 700; padding: 7px 13px; cursor: pointer;
-            transition: background .15s ease, color .15s ease;
-        }
-        .uz-clear:hover { background: #6b2b2b; color: #fff; }
-        .uz-preview[hidden], .uz-progress[hidden] { display: none; }
-
-        /* ===== Toast notifikasi ===== */
-        #toastBox { position: fixed; right: 16px; bottom: 16px; z-index: 999; display: flex; flex-direction: column; gap: 8px; max-width: min(92vw, 400px); }
-        .toast { background: #1d1d1d; border: 1px solid var(--line); border-left: 3px solid var(--red); border-radius: 10px; padding: 10px 14px; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,.5); animation: toastIn .25s ease; word-break: break-word; }
-        .toast.ok { border-left-color: var(--ok); }
-        .toast.err { border-left-color: #ff6b6b; }
-        .toast.out { opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .3s ease; }
-        @keyframes toastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-
-        /* ===== Polish: kartu & judul ===== */
-        .admin-card { position: relative; }
-        .admin-card::before {
-            content: '';
-            position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(229,9,20,.55), transparent);
-        }
-        .brand-title { background: linear-gradient(90deg, #fff 30%, #ff6b6b); -webkit-background-clip: text; background-clip: text; color: transparent; }
-
-        /* ===== Fallback thumbnail tanpa foto ===== */
-        .admin-thumb-fallback {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            background: #1d1d1d;
-            color: #666;
-            font-size: 15px;
-        }
-
-        /* ===== Tab bar: scroll halus & scrollbar disembunyikan (mobile) ===== */
-        .tab-bar {
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        .tab-bar::-webkit-scrollbar { display: none; }
-
-        /* ===== Header sticky dengan blur ===== */
-        .admin-header-bar {
-            position: sticky; top: 0; z-index: 40;
-            background: rgba(10,10,10,.85);
-            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,.05);
-        }
-
-        /* ===== Badge jumlah item di tab ===== */
-        .tab-count {
-            display: inline-block; margin-left: 6px; min-width: 20px;
-            background: rgba(255,255,255,.12); color: #fff;
-            font-size: 10.5px; font-weight: 700; border-radius: 999px;
-            padding: 1px 7px; text-align: center; vertical-align: middle;
-        }
-        .tab-btn.active .tab-count { background: rgba(255,255,255,.25); }
-
-        /* ===== Empty state daftar item ===== */
-        .empty-state { text-align: center; color: #7a7a7a; padding: 30px 0; font-size: 13.5px; }
-        .empty-state i { display: block; font-size: 26px; color: #3a3a3a; margin-bottom: 8px; }
-
-        /* ===== Focus terlihat untuk aksesibilitas ===== */
-        .btn:focus-visible, .btn-ghost:focus-visible, .btn-danger:focus-visible,
-        .uz-replace:focus-visible, .uz-clear:focus-visible,
-        .admin-input:focus-visible { outline: 2px solid rgba(229,9,20,.6); outline-offset: 2px; }
-
-        /* ===== Scrollbar log yang halus ===== */
-        #logBox::-webkit-scrollbar { width: 8px; }
-        #logBox::-webkit-scrollbar-thumb { background: #333; border-radius: 999px; }
-        #logBox::-webkit-scrollbar-track { background: transparent; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix - Admin</title>
+<link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
+<link rel="stylesheet" href="src/css/tailwind.css?v=5">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>:root{--red:#e50914;--red-hover:#ff1a2b;--card:#151515;--card-2:#1d1d1d;--line:#2a2a2a;--muted:#a3a3a3;--ok:#1db954}body{background:radial-gradient(1200px 600px at 50% -10%,rgba(229,9,20,.08),transparent),#0a0a0a;color:#fff;font-family:Roboto,sans-serif}.admin-card{background:linear-gradient(180deg,var(--card),#101010);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.45);margin-bottom:18px;padding:20px}.admin-label{color:var(--muted);display:block;font-size:12px;font-weight:700;letter-spacing:.05em;margin-bottom:6px;text-transform:uppercase}.admin-input{background:#0d0d0d;border:1px solid #333;border-radius:8px;color:#fff;font-size:14px;outline:none;padding:10px 12px;transition:border-color .15s ease,box-shadow .15s ease;width:100%}.admin-input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(229,9,20,.15)}textarea.admin-input{line-height:1.55}.admin-hint{color:#7a7a7a;font-size:11.5px;margin-top:5px}.btn{align-items:center;border:none;border-radius:8px;cursor:pointer;display:inline-flex;font-size:13px;font-weight:700;gap:7px;padding:10px 16px;transition:background .15s ease,transform .1s ease}.btn:active{transform:scale(.97)}.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:var(--red-hover)}.btn-gray{background:#2a2a2a;color:#fff}.btn-gray:hover{background:#3a3a3a}.btn-green{background:var(--ok);color:#fff}.btn-green:hover{background:#1ed760}.btn-ghost{align-items:center;background:transparent;border:1px solid #3a3a3a;border-radius:7px;color:#ccc;cursor:pointer;display:inline-flex;font-size:13px;height:32px;justify-content:center;transition:background .15s ease;width:32px}.btn-ghost:hover{background:#2f2f2f;color:#fff}.btn-danger{align-items:center;background:transparent;border:1px solid #7a1f1f;border-radius:7px;color:#ff6b6b;cursor:pointer;display:inline-flex;font-size:13px;height:32px;justify-content:center;width:32px}.btn-danger:hover{background:#7a1f1f;color:#fff}.tab-btn{background:transparent;border:none;border-radius:999px;color:var(--muted);cursor:pointer;font-size:13.5px;font-weight:700;padding:9px 14px;transition:background .15s ease,color .15s ease;white-space:nowrap}.tab-btn:hover{background:hsla(0,0%,100%,.06);color:#fff}.tab-btn.active{background:var(--red);color:#fff}.tab-panel{display:none}.tab-panel.active{display:block}.admin-row{align-items:center;background:#0d0d0d;border:1px solid #232323;border-radius:10px;display:flex;gap:12px;justify-content:space-between;margin-bottom:8px;padding:10px 14px;transition:border-color .15s ease}.admin-row:hover{border-color:#3a3a3a}.admin-row-main{flex:1;font-size:14px;min-width:0}.admin-row-actions{display:flex;flex-shrink:0;gap:6px}.admin-thumb{height:64px;width:44px}.admin-thumb,.admin-thumb-square{border-radius:6px;flex-shrink:0;object-fit:cover}.admin-thumb-square{height:40px;width:56px}#logBox{background:#0d0d0d;border:1px solid #232323;border-radius:10px;color:#9fe8a5;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.65;max-height:220px;overflow-y:auto;padding:12px 14px;white-space:pre-wrap}#logBox .err{color:#ff8080}#logBox .ok{color:#7ee787}#logBox .info{color:var(--muted)}.pin-card{margin:12vh auto 0;max-width:400px;text-align:center}.status-dot{border-radius:50%;display:inline-block;height:9px;margin-right:6px;width:9px}.dirty-badge{background:#b45309;border-radius:999px;color:#fff;display:inline-block;font-size:11px;font-weight:700;margin-left:6px;padding:2px 9px}.grid-cols-2-gap{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}a{color:var(--red)}@media (max-width:640px){.admin-card{padding:16px}.admin-row{flex-wrap:wrap}.admin-row-main{flex:1 1 100%}.admin-row-actions{margin-left:auto}.admin-thumb,.admin-thumb-square{height:58px;width:40px}.admin-thumb-square{height:34px;width:48px}}.admin-form-grid{display:grid;gap:14px;grid-template-columns:1fr}@media (min-width:768px){.admin-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-form-grid .form-field-full{grid-column:1/-1}}.form-field{min-width:0}.media-preview{background:#000;border:1px solid #333;border-radius:8px;display:none;margin-top:8px;max-width:340px;overflow:hidden;width:100%}.media-preview.show{display:block}.media-preview img{max-height:200px;object-fit:contain}.media-preview audio,.media-preview img,.media-preview video{display:block;width:100%}.media-preview audio{border-radius:8px}.upload-zone{background:#0d0d0d;border:2px dashed #3d3d3d;border-radius:14px;cursor:pointer;overflow:hidden;padding:24px 16px 18px;position:relative;text-align:center;transition:border-color .15s ease,background .15s ease,transform .1s ease}.upload-zone:hover{background:#121212;border-color:var(--red)}.upload-zone.drag{background:rgba(229,9,20,.08);border-color:var(--red);transform:scale(1.01)}.uz-content{pointer-events:none}.uz-content i{color:var(--muted);display:block;font-size:26px;margin-bottom:8px;transition:color .15s ease}.upload-zone.drag .uz-content i,.upload-zone:hover .uz-content i{color:var(--red)}.uz-title{color:#e5e5e5;font-size:13.5px;font-weight:700}.uz-sub{color:#7a7a7a;font-size:11.5px;margin-top:3px}.uz-name{color:var(--ok);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;margin-top:8px;word-break:break-all}.uz-preview{margin-top:12px;pointer-events:auto}.uz-preview img,.uz-preview video{background:#000;border:1px solid #232323;border-radius:8px;display:block;max-height:220px;object-fit:contain;width:100%}.uz-progress{background:#232323;border-radius:999px;height:8px;margin-top:10px;overflow:hidden;position:relative}.uz-progress-bar{background:linear-gradient(90deg,var(--red),#ff6b6b);border-radius:999px;height:100%;transition:width .1s linear;width:0}.uz-progress-text{align-items:center;color:#fff;display:flex;font-size:9.5px;font-weight:700;inset:0;justify-content:center;position:absolute;text-shadow:0 1px 2px rgba(0,0,0,.8)}.uz-status{color:#8a8a8a;font-size:11.5px;margin-top:9px;min-height:15px;word-break:break-word}.uz-status.ok{color:var(--ok)}.uz-status.err{color:#ff8080}.uz-folder{color:#8a8a8a;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;margin-top:7px;word-break:break-all}.uz-folder i{color:var(--red);font-size:11px;margin-right:5px}.upload-zone.has-file{background:#0e1410;border-color:rgba(29,185,84,.4);border-style:solid}.upload-zone.has-file:hover{background:rgba(229,9,20,.06);border-color:var(--red)}.uz-actions{display:flex;gap:8px;justify-content:center;margin-top:10px;pointer-events:auto}.uz-actions[hidden]{display:none}.uz-replace{background:transparent;border:1px solid #3a3a3a;border-radius:8px;color:#ccc;cursor:pointer;font-size:12px;font-weight:700;padding:7px 13px;transition:background .15s ease,color .15s ease}.uz-replace:hover{background:#2f2f2f;color:#fff}.uz-clear{background:transparent;border:1px solid #6b2b2b;border-radius:8px;color:#ff9a9a;cursor:pointer;font-size:12px;font-weight:700;padding:7px 13px;transition:background .15s ease,color .15s ease}.uz-clear:hover{background:#6b2b2b;color:#fff}.uz-preview[hidden],.uz-progress[hidden]{display:none}#toastBox{bottom:16px;display:flex;flex-direction:column;gap:8px;max-width:min(92vw,400px);position:fixed;right:16px;z-index:999}.toast{animation:toastIn .25s ease;background:#1d1d1d;border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-size:13px;padding:10px 14px;word-break:break-word}.toast.ok{border-left-color:var(--ok)}.toast.err{border-left-color:#ff6b6b}.toast.out{opacity:0;transform:translateY(6px);transition:opacity .3s ease,transform .3s ease}@keyframes toastIn{0%{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.admin-card{position:relative}.admin-card:before{background:linear-gradient(90deg,transparent,rgba(229,9,20,.55),transparent);content:"";height:1px;left:20px;position:absolute;right:20px;top:0}.brand-title{background:linear-gradient(90deg,#fff 30%,#ff6b6b);-webkit-background-clip:text;background-clip:text;color:transparent}.admin-thumb-fallback{align-items:center;background:#1d1d1d;color:#666;display:flex!important;font-size:15px;justify-content:center}.tab-bar{-webkit-overflow-scrolling:touch;scrollbar-width:none}.tab-bar::-webkit-scrollbar{display:none}.admin-header-bar{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);background:hsla(0,0%,4%,.85);border-bottom:1px solid hsla(0,0%,100%,.05);position:sticky;top:0;z-index:40}.tab-count{background:hsla(0,0%,100%,.12);border-radius:999px;color:#fff;display:inline-block;font-size:10.5px;font-weight:700;margin-left:6px;min-width:20px;padding:1px 7px;text-align:center;vertical-align:middle}.tab-btn.active .tab-count{background:hsla(0,0%,100%,.25)}.empty-state{color:#7a7a7a;font-size:13.5px;padding:30px 0;text-align:center}.empty-state i{color:#3a3a3a;display:block;font-size:26px;margin-bottom:8px}.admin-input:focus-visible,.btn-danger:focus-visible,.btn-ghost:focus-visible,.btn:focus-visible,.uz-clear:focus-visible,.uz-replace:focus-visible{outline:2px solid rgba(229,9,20,.6);outline-offset:2px}#logBox::-webkit-scrollbar{width:8px}#logBox::-webkit-scrollbar-thumb{background:#333;border-radius:999px}#logBox::-webkit-scrollbar-track{background:transparent}#blockedSection{align-items:center;display:flex;justify-content:center;min-height:100vh;padding:20px}.block-card{background:linear-gradient(180deg,#1a0a0c,#101010);border:1px solid rgba(229,9,20,.5);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6);max-width:460px;padding:36px 28px;text-align:center;width:100%}.block-card .block-icon{color:#e50914;font-size:46px;margin-bottom:14px}.block-card h1{font-size:1.5rem;font-weight:800;margin:0 0 10px}.block-card p{color:#c4c4c4;font-size:.92rem;line-height:1.6;margin:0 0 22px}.block-card .btn{justify-content:center;text-decoration:none;width:100%}.block-card .block-meta{color:#6a6a6a;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;margin-top:16px;word-break:break-all}#libModal{align-items:center;background:rgba(0,0,0,.82);display:none;inset:0;justify-content:center;padding:20px;position:fixed;z-index:10050}#libModal.show,.lib-box{display:flex}.lib-box{background:#141414;border:1px solid #2f2f2f;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.7);flex-direction:column;max-height:82vh;max-width:640px;overflow:hidden;width:100%}.lib-head{align-items:center;border-bottom:1px solid #232323;display:flex;gap:10px;justify-content:space-between;padding:14px 18px}.lib-head h3{font-size:1rem;margin:0}.lib-head code{color:var(--red);font-size:.8rem;word-break:break-all}.lib-close{background:transparent;border:1px solid #333;border-radius:8px;color:#ccc;cursor:pointer;font-size:15px;height:30px;width:30px}.lib-close:hover{background:#2f2f2f;color:#fff}.lib-list{flex:1;overflow-y:auto;padding:10px}.lib-item{align-items:center;background:#0d0d0d;border:1px solid #232323;border-radius:9px;display:flex;gap:10px;margin-bottom:7px;padding:8px 12px}.lib-item:hover{border-color:#3a3a3a}.lib-item .lib-name{color:#d1d5db;flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;min-width:0;word-break:break-all}.lib-item .lib-size{color:#7a7a7a;flex-shrink:0;font-size:.72rem}.lib-use{background:var(--red);border:none;border-radius:7px;color:#fff;cursor:pointer;flex-shrink:0;font-size:11.5px;font-weight:700;padding:6px 11px}.lib-use:hover{background:var(--red-hover)}.lib-empty{color:#7a7a7a}.lib-empty,.lib-loading{font-size:13px;padding:30px 0;text-align:center}.lib-loading{color:#9fe8a5}.block-row{align-items:center;background:#0d0d0d;border:1px solid #232323;border-radius:10px;display:flex;gap:10px;justify-content:space-between;margin-bottom:8px;padding:10px 14px}.block-type{background:rgba(229,9,20,.15);border:1px solid rgba(229,9,20,.4);border-radius:999px;color:#ff8a90;display:inline-block;flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.05em;padding:2px 9px;text-transform:uppercase}.block-value{color:#e5e5e5;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;word-break:break-all}.block-reason{color:#8a8a8a;font-size:.75rem;margin-top:3px}.block-actions{display:flex;flex-shrink:0;gap:6px}</style>
 </head>
 <body class="min-h-screen">
 
-    <!-- ==================== LAPIS 1: PIN GATEKEEPER ==================== -->
-    <div id="pinSection">
-        <div class="admin-card pin-card">
-            <img alt="Netflix Logo" class="h-8 mx-auto mb-4" src="src/images/icon/netflix_logo.png">
-            <h1 class="text-xl font-bold mb-1">Admin Panel</h1>
-            <p class="text-sm text-gray-400 mb-5">Masukkan PIN untuk membuka dashboard.</p>
-            <form id="pinForm" class="flex gap-2">
-                <input id="pinInput" type="password" inputmode="numeric" autocomplete="off"
-                       placeholder="PIN" class="admin-input text-center tracking-[0.4em] text-lg">
-                <button type="submit" class="btn btn-red flex-shrink-0">Buka</button>
-            </form>
-            <p id="pinError" class="text-red-400 text-sm mt-3 hidden">PIN salah. Coba lagi.</p>
-        </div>
-    </div>
-
-    <!-- ==================== DASHBOARD (setelah PIN benar) ==================== -->
-    <div id="adminSection" class="hidden px-4 md:px-8 py-6">
-        <div class="max-w-5xl mx-auto">
-
-            <!-- Header (sticky) -->
-            <div class="admin-header-bar -mx-4 md:-mx-8 px-4 md:px-8 py-3 mb-5 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-3 min-w-0">
-                    <h1 class="brand-title text-xl md:text-2xl font-bold">Admin Panel</h1>
-                    <span id="connStatus" class="text-xs text-gray-400"></span>
-                </div>
-                <button type="button" class="btn btn-gray" onclick="lockAdmin()"><i class="fas fa-lock" aria-hidden="true"></i> Kunci</button>
-            </div>
-
-            <!-- ===== Koneksi GitHub ===== -->
-            <div class="admin-card">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold">🔗 Koneksi GitHub</h2>
-                    <span id="dirtySummary"></span>
-                </div>
-                <div class="grid-cols-2-gap">
-                    <div>
-                        <label class="admin-label" for="ghOwner">Owner (username)</label>
-                        <input id="ghOwner" type="text" class="admin-input" placeholder="mis. Vaetherion">
-                    </div>
-                    <div>
-                        <label class="admin-label" for="ghRepo">Repository</label>
-                        <input id="ghRepo" type="text" class="admin-input" placeholder="mis. Netflix-MyQueen">
-                    </div>
-                    <div>
-                        <label class="admin-label" for="ghBranch">Branch</label>
-                        <input id="ghBranch" type="text" class="admin-input" value="main">
-                    </div>
-                    <div>
-                        <label class="admin-label" for="ghToken">Personal Access Token (PAT)</label>
-                        <input id="ghToken" type="password" class="admin-input" placeholder="ghp_xxx" autocomplete="off">
-                        <p class="admin-hint">Scope: repo. Hanya tersimpan di browser kamu (localStorage).</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                    <button type="button" class="btn btn-gray" onclick="testConnection()"><i class="fas fa-plug" aria-hidden="true"></i> Tes Koneksi</button>
-                    <button type="button" class="btn btn-green" onclick="loadAllData()"><i class="fas fa-download" aria-hidden="true"></i> Muat Data dari GitHub</button>
-                    <button type="button" class="btn btn-red" onclick="saveAllData()"><i class="fas fa-upload" aria-hidden="true"></i> Simpan Perubahan ke GitHub</button>
-                </div>
-                <p class="admin-hint mt-3">Media <b>di-upload langsung</b> dari panel ini — seret &amp; letakkan (drag &amp; drop) foto/video atau klik area upload. File otomatis masuk repo: <code class="text-red-400">src/images/photo/</code> (foto series &amp; thumbnail) · <code class="text-red-400">src/videos/moviespage/</code> (video movies). Path terisi otomatis.</p>
-            </div>
-
-            <!-- Log -->
-            <div class="admin-card">
-                <h2 class="font-bold mb-2">📋 Log</h2>
-                <div id="logBox">Menunggu perintah…</div>
-            </div>
-
-            <!-- Toast notifikasi upload -->
-            <div id="toastBox" aria-live="polite"></div>
-
-            <!-- ===== Tabs ===== -->
-            <div class="tab-bar flex flex-wrap gap-1 border-b border-gray-800 mb-5 pb-2 overflow-x-auto">
-                <button type="button" class="tab-btn active" data-tab="tabNews" onclick="switchTab('tabNews')">Berita<span class="tab-count" id="tabCount_news"></span></button>
-                <button type="button" class="tab-btn" data-tab="tabSeries" onclick="switchTab('tabSeries')">Foto Series<span class="tab-count" id="tabCount_series"></span></button>
-                <button type="button" class="tab-btn" data-tab="tabMovies" onclick="switchTab('tabMovies')">Video Movies<span class="tab-count" id="tabCount_movies"></span></button>
-                <button type="button" class="tab-btn" data-tab="tabMusic" onclick="switchTab('tabMusic')">Musik<span class="tab-count" id="tabCount_music"></span></button>
-                <button type="button" class="tab-btn" data-tab="tabSettings" onclick="switchTab('tabSettings')">Pengaturan</button>
-            </div>
-
-            <!-- ===== Editor: Berita ===== -->
-            <div class="tab-panel active" id="tabNews">
-                <div class="admin-card">
-                    <div class="flex items-center justify-between mb-3">
-                        <div>
-                            <h2 class="font-bold">Pesan Berita &amp; Popular</h2>
-                            <p class="text-xs text-gray-500">Tanggal (DD-MM-YYYY) · Judul Pesan · Isi Pesan · Video (Opsional, drag &amp; drop) — tampil di newsandpopular.html</p>
-                        </div>
-                        <button type="button" class="btn btn-red" onclick="editors.news.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
-                    </div>
-                    <div id="newsList"></div>
-                    <form id="newsForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
-                </div>
-            </div>
-
-            <!-- ===== Editor: Foto Series ===== -->
-            <div class="tab-panel" id="tabSeries">
-                <div class="admin-card">
-                    <div class="flex items-center justify-between mb-3">
-                        <div>
-                            <h2 class="font-bold">Foto Series</h2>
-                            <p class="text-xs text-gray-500">Upload foto (drag &amp; drop) + pilih rasio — tampil di series.html</p>
-                        </div>
-                        <button type="button" class="btn btn-red" onclick="editors.series.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
-                    </div>
-                    <div id="seriesList"></div>
-                    <form id="seriesForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
-                </div>
-            </div>
-
-            <!-- ===== Editor: Video Movies ===== -->
-            <div class="tab-panel" id="tabMovies">
-                <div class="admin-card">
-                    <div class="flex items-center justify-between mb-3">
-                        <div>
-                            <h2 class="font-bold">Video Movies</h2>
-                            <p class="text-xs text-gray-500">Upload video &amp; thumbnail (drag &amp; drop) — tampil di movies.html</p>
-                        </div>
-                        <button type="button" class="btn btn-red" onclick="editors.movies.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
-                    </div>
-                    <div id="moviesList"></div>
-                    <form id="moviesForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
-                </div>
-            </div>
-
-            <!-- ===== Editor: Musik ===== -->
-            <div class="tab-panel" id="tabMusic">
-                <div class="admin-card">
-                    <div class="flex items-center justify-between mb-3">
-                        <div>
-                            <h2 class="font-bold">Musik Dynamic Island</h2>
-                            <p class="text-xs text-gray-500">Path/URL file music + judul lagu — playlist semua halaman</p>
-                        </div>
-                        <button type="button" class="btn btn-red" onclick="editors.music.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
-                    </div>
-                    <div id="musicList"></div>
-                    <form id="musicForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
-                </div>
-            </div>
-
-            <!-- ===== Pengaturan ===== -->
-            <div class="tab-panel" id="tabSettings">
-                <div class="admin-card">
-                    <h2 class="font-bold mb-3">🔐 Ganti PIN</h2>
-                    <p class="text-sm text-gray-400 mb-3">PIN disimpan di localStorage browser ini (berlaku untuk perangkat ini saja). Default bawaan di kode: <code class="text-red-400">1602</code>.</p>
-                    <div class="flex flex-wrap gap-2 items-end">
-                        <div>
-                            <label class="admin-label" for="newPin">PIN baru</label>
-                            <input id="newPin" type="password" class="admin-input max-w-xs" autocomplete="off">
-                        </div>
-                        <button type="button" class="btn btn-gray" onclick="changePin()">Simpan PIN</button>
-                        <button type="button" class="btn btn-gray" onclick="resetPin()">Kembalikan ke bawaan</button>
-                    </div>
-                    <p id="pinMsg" class="text-sm mt-3"></p>
-                </div>
-                <div class="admin-card">
-                    <h2 class="font-bold mb-3">🧹 Keamanan &amp; Privasi</h2>
-                    <p class="text-sm text-gray-400 mb-3">Hapus token GitHub, konfigurasi repo, dan PIN yang tersimpan di browser ini (localStorage). Setelah dibersihkan, panel kembali ke layar PIN.</p>
-                    <button type="button" class="btn btn-danger" onclick="clearStoredConfig()"><i class="fas fa-eraser" aria-hidden="true"></i> Bersihkan Token &amp; Konfigurasi</button>
-                </div>
-                <div class="admin-card">
-                    <h2 class="font-bold mb-3">ℹ️ Cara Pakai</h2>
-                    <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-                        <li>Isi Owner / Repository / Branch / Token GitHub, lalu <b>Tes Koneksi</b>.</li>
-                        <li>Klik <b>Muat Data dari GitHub</b> — semua konten situs diambil dari repo.</li>
-                        <li>Edit konten: <b>Berita</b> (tanggal, judul, isi, video opsional) · <b>Foto Series</b> (upload foto + rasio) · <b>Video Movies</b> (upload video + thumbnail) · <b>Musik</b> (path/URL lagu + judul).</li>
-                        <li>Media foto/video <b>di-upload langsung</b> lewat drag &amp; drop / pilih file — path otomatis terisi: Foto Series &amp; thumbnail → <b>src/images/photo</b>, Video Movies → <b>src/videos/moviespage</b>, Video Berita → <b>src/videos/newsandpopularpage</b>. Musik tetap path/URL (file sudah ada di repo/hosting).</li>
-                        <li>Klik <b>Simpan Perubahan ke GitHub</b> — commit dibuat otomatis (Vercel auto re-deploy ±1 menit).</li>
-                    </ol>
-                    <p class="text-xs text-gray-500 mt-3">⚠️ Token hanya disimpan di browser kamu. Jangan pernah menaruh token di dalam file repo.</p>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <script>
-    /* ==========================================================================
-       LOGIKA ADMIN v3.0 — vanilla JS, tanpa dependensi eksternal.
-       ========================================================================== */
-
-    // ===== KONFIGURASI =====
-    // PIN default (LAPIS 1). Ganti angka di sini kalau mau — atau pakai tab
-    // "Pengaturan" untuk menyimpan PIN khusus di browser ini.
-    var ADMIN_PIN = "1602";
-
-    var LS = {
-        get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
-        set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
-        del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
-    };
-
-    /* Escape HTML untuk mencegah XSS saat data (judul/path dari repo) ditampilkan
-       di daftar item admin. Data dikelola lewat GitHub, jadi aman untuk asumsi
-       tepercaya — tapi jangan pernah mengandalkannya: judul/path bisa berisi
-       karakter HTML (<, >, ") dari input pengguna atau repo publik. */
-    function esc(s) {
-        return String(s === undefined || s === null ? '' : s)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    var DATA_FILES = [
-        { key: 'news',   varName: 'NEWS_ITEMS',     path: 'src/data/news-data.js',      label: 'Pesan Berita' },
-        { key: 'series', varName: 'SERIES_ITEMS',   path: 'src/data/series-data.js',    label: 'Foto Series' },
-        { key: 'movies', varName: 'MOVIES_ITEMS',   path: 'src/data/movies-data.js',    label: 'Video Movies' },
-        { key: 'music',  varName: 'MUSIC_PLAYLIST', path: 'src/data/music-data.js',     label: 'Musik' }
-    ];
-
-    var state = {};   // key -> { data: <parsed>, sha: <string|null>, dirty: bool }
-    var editors = {};
-
-    /* ===== Log konsol ===== */
-    function log(msg, cls) {
-        var box = document.getElementById('logBox');
-        var d = new Date().toLocaleTimeString('id-ID', { hour12: false });
-        var line = document.createElement('div');
-        line.className = cls || 'info';
-        line.textContent = '[' + d + '] ' + msg;
-        box.appendChild(line);
-        box.scrollTop = box.scrollHeight;
-    }
-
-    /* ===== PIN GATEKEEPER ===== */
-    function currentPin() {
-        var saved = LS.get('mqAdminPin', '');
-        return saved ? saved : ADMIN_PIN;
-    }
-
-    /* ---- Proteksi brute-force PIN ----
-       Setelah 5 percobaan salah, form PIN terkunci 60 detik (anti tebak
-       PIN berulang). Batas & durasi disimpan di memori (per tab). */
-    var PIN_MAX_FAILURES = 5;
-    var PIN_LOCK_MS = 60000;
-    var pinFailures = 0;
-    var pinLockUntil = 0;
-
-    function showPinError(msg) {
-        var err = document.getElementById('pinError');
-        err.classList.remove('hidden');
-        err.textContent = msg;
-    }
-
-    document.getElementById('pinForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        var now = Date.now();
-        if (now < pinLockUntil) {
-            showPinError('Terlalu banyak percobaan. Coba lagi dalam ' + Math.ceil((pinLockUntil - now) / 1000) + ' detik.');
-            return;
-        }
-        var val = document.getElementById('pinInput').value.trim();
-        if (val === currentPin()) {
-            pinFailures = 0;
-            pinLockUntil = 0;
-            try { sessionStorage.setItem('mqAdminUnlocked', '1'); } catch (err) {}
-            openDashboard();
-        } else {
-            pinFailures++;
-            if (pinFailures >= PIN_MAX_FAILURES) {
-                pinLockUntil = now + PIN_LOCK_MS;
-                pinFailures = 0;
-                showPinError('Terlalu banyak percobaan PIN. Terkunci 60 detik.');
-            } else {
-                showPinError('PIN salah. Sisa percobaan: ' + (PIN_MAX_FAILURES - pinFailures));
-            }
-            document.getElementById('pinInput').value = '';
-            document.getElementById('pinInput').focus();
-        }
-    });
-
-    function openDashboard() {
-        document.getElementById('pinSection').style.display = 'none';
-        document.getElementById('adminSection').classList.remove('hidden');
-        restoreGhConfig();
-    }
-
-    function lockAdmin() {
-        try { sessionStorage.removeItem('mqAdminUnlocked'); } catch (err) {}
-        document.getElementById('adminSection').classList.add('hidden');
-        document.getElementById('pinSection').style.display = 'block';
-        document.getElementById('pinInput').value = '';
-        document.getElementById('pinError').classList.add('hidden');
-    }
-
-    // Sesi PIN: refresh tidak perlu PIN lagi (masih di tab yang sama).
-    (function () {
-        try {
-            if (sessionStorage.getItem('mqAdminUnlocked') === '1') openDashboard();
-        } catch (e) {}
-    })();
-
-    /* ===== Tab switching ===== */
-    function switchTab(id) {
-        var btns = document.querySelectorAll('.tab-btn');
-        for (var i = 0; i < btns.length; i++) {
-            btns[i].classList.toggle('active', btns[i].getAttribute('data-tab') === id);
-        }
-        var panels = document.querySelectorAll('.tab-panel');
-        for (var j = 0; j < panels.length; j++) {
-            panels[j].classList.toggle('active', panels[j].id === id);
-        }
-    }
-
-    /* ===== GitHub API ===== */
-    function ghConfig() {
-        return {
-            owner: document.getElementById('ghOwner').value.trim(),
-            repo: document.getElementById('ghRepo').value.trim(),
-            branch: document.getElementById('ghBranch').value.trim() || 'main',
-            token: document.getElementById('ghToken').value.trim()
-        };
-    }
-
-    function restoreGhConfig() {
-        document.getElementById('ghOwner').value = LS.get('mqGhOwner', '');
-        document.getElementById('ghRepo').value = LS.get('mqGhRepo', '');
-        document.getElementById('ghBranch').value = LS.get('mqGhBranch', 'main');
-        document.getElementById('ghToken').value = LS.get('mqGhToken', '');
-    }
-
-    function saveGhConfig(cfg) {
-        LS.set('mqGhOwner', cfg.owner);
-        LS.set('mqGhRepo', cfg.repo);
-        LS.set('mqGhBranch', cfg.branch);
-        LS.set('mqGhToken', cfg.token);
-    }
-
-    async function ghApi(path, method, body) {
-        var cfg = ghConfig();
-        var headers = { 'Accept': 'application/vnd.github+json' };
-        if (cfg.token) headers['Authorization'] = 'Bearer ' + cfg.token;
-        var opts = { method: method || 'GET', headers: headers };
-        if (body !== undefined) opts.body = JSON.stringify(body);
-        // Timeout 30 dtk agar request yang menggantung tidak membuat UI terkunci.
-        var controller = null, timer = null;
-        if (typeof AbortController !== 'undefined') {
-            controller = new AbortController();
-            timer = setTimeout(function () { controller.abort(); }, 30000);
-            opts.signal = controller.signal;
-        }
-        var res;
-        try {
-            res = await fetch('https://api.github.com' + path, opts);
-        } catch (e) {
-            if (controller) clearTimeout(timer);
-            throw new Error(e && e.name === 'AbortError'
-                ? 'Waktu tunggu habis (30 detik) — periksa koneksi internet.'
-                : 'Gagal menghubungi GitHub: ' + (e && e.message ? e.message : e));
-        }
-        if (controller) clearTimeout(timer);
-        var data = null;
-        try { data = await res.json(); } catch (e) {}
-        if (!res.ok) {
-            var msg = (data && (data.message || data.error)) || ('HTTP ' + res.status);
-            throw new Error(msg);
-        }
-        return data;
-    }
-
-    function decodeB64(b64) {
-        var bin = atob(b64);
-        var bytes = new Uint8Array(bin.length);
-        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        return new TextDecoder('utf-8').decode(bytes);
-    }
-
-    function encodeB64(str) {
-        var bytes = new TextEncoder().encode(str);
-        var bin = '';
-        for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-        return btoa(bin);
-    }
-
-    async function ghGetFile(path) {
-        var cfg = ghConfig();
-        var data = await ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path + '?ref=' + encodeURIComponent(cfg.branch));
-        return { sha: data.sha, content: decodeB64(data.content) };
-    }
-
-    async function ghPutFile(path, content, message, sha) {
-        var cfg = ghConfig();
-        var body = { message: message, content: encodeB64(content), branch: cfg.branch };
-        if (sha) body.sha = sha;
-        var data = await ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path, 'PUT', body);
-        return data;
-    }
-
-    /* Hapus file dari repo (Contents API DELETE). SHA diambil dulu dari file
-       saat ini agar DELETE diterima GitHub (API mewajibkan sha blob terbaru). */
-    async function ghDeleteFile(path, message) {
-        var cfg = ghConfig();
-        var info = await ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path + '?ref=' + encodeURIComponent(cfg.branch));
-        var body = { message: message || ('Hapus ' + path + ' via admin.html'), branch: cfg.branch, sha: info.sha };
-        return ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path, 'DELETE', body);
-    }
-
-    /* Apakah path media milik repo ini (bukan URL eksternal / blob: / data:)?
-       File eksternal (hosting sendiri) TIDAK dihapus dari sini. */
-    function isRepoPath(p) {
-        p = String(p || '');
-        if (/^(https?:|blob:|data:)/i.test(p)) return false;
-        return /^(src\/|\.\/|\/)/.test(p);
-    }
-
-    async function testConnection() {
-        var cfg = ghConfig();
-        if (!cfg.owner || !cfg.repo || !cfg.token) {
-            log('Lengkapi Owner, Repository, Branch, dan Token dulu.', 'err');
-            return;
-        }
-        saveGhConfig(cfg);
-        log('Mengetes koneksi ke GitHub…');
-        try {
-            var user = await ghApi('/user');
-            await ghApi('/repos/' + cfg.owner + '/' + cfg.repo);
-            document.getElementById('connStatus').innerHTML =
-                '<span class="status-dot" style="background:#1db954"></span>Terhubung sebagai <b>' + (user.login || cfg.owner) + '</b>';
-            log('Koneksi OK — login: ' + user.login + ' @ ' + cfg.owner + '/' + cfg.repo + ':' + cfg.branch, 'ok');
-        } catch (e) {
-            document.getElementById('connStatus').innerHTML =
-                '<span class="status-dot" style="background:#e50914"></span>Gagal';
-            log('Tes koneksi GAGAL: ' + e.message, 'err');
-        }
-    }
-
-    /* ===== Parsing & serialisasi file data JS ===== */
-    function parseDataFile(src, varName) {
-        var re = new RegExp('window\\.' + varName + '\\s*=\\s*([\\[\\{])');
-        var m = src.match(re);
-        if (!m) throw new Error('Format tidak dikenali: window.' + varName + ' = …');
-        var start = m.index + m[0].length - 1;
-        var open = src[start];
-        var close = open === '[' ? ']' : '}';
-        var depth = 0, inStr = false, esc = false, i;
-        for (i = start; i < src.length; i++) {
-            var c = src[i];
-            if (inStr) {
-                if (esc) esc = false;
-                else if (c === '\\') esc = true;
-                else if (c === '"') inStr = false;
-                continue;
-            }
-            if (c === '"') inStr = true;
-            else if (c === open) depth++;
-            else if (c === close) { depth--; if (depth === 0) break; }
-        }
-        var body = src.slice(start, i + 1);
-        // Pertahanan berlapis: pastikan body HANYA literal data (string, angka,
-        // boolean, null, array, object). Menolak kode JS seperti [x=alert(1)]
-        // atau pemanggilan fungsi sebelum dievaluasi.
-        if (!isDataLiteral(body)) throw new Error('Isi ' + varName + ' tidak aman / bukan literal data.');
-        // eslint-disable-next-line no-new-func
-        return (new Function('return ' + body + ';'))();
-    }
-
-    /* Validasi: setelah string (dalam tanda kutip) dibuang, yang tersisa hanya
-       karakter token literal. Menolak operator (= ; < ` %), kurung panggilan
-       fungsi, dan kata kunci — tanpa mengubah data teks di dalam string. */
-    function isDataLiteral(body) {
-        var noStrings = body.replace(/"(?:\\.|[^"\\])*"/g, '""');
-        if (/[^\s\[\]{}\]:,+.\-0-9a-zA-Z"]/.test(noStrings)) return false;
-        if (/[A-Za-z_$][A-Za-z0-9_$]*\s*\(/.test(noStrings)) return false;
-        return true;
-    }
-
-    function fileHeader(path) {
-        return '/* ==========================================================================\n' +
-               '   ' + path + ' — DIKELOLA OTOMATIS oleh admin.html\n' +
-               '   Jangan edit manual jika tidak perlu — perubahan bisa tertimpa\n' +
-               '   saat admin.html menyimpan. ========================================================================== */\n';
-    }
-
-    function serializeFile(path, varName, data) {
-        return fileHeader(path) + '\nwindow.' + varName + ' = ' + JSON.stringify(data, null, 4) + ';\n';
-    }
-
-    /* ===== Muat semua data ===== */
-    async function loadAllData() {
-        var cfg = ghConfig();
-        if (!cfg.owner || !cfg.repo || !cfg.token) {
-            log('Isi koneksi GitHub dulu (Owner/Repo/Token), lalu coba lagi.', 'err');
-            return;
-        }
-        saveGhConfig(cfg);
-        log('Memuat data dari GitHub…');
-        var loaded = 0;
-        for (var i = 0; i < DATA_FILES.length; i++) {
-            var df = DATA_FILES[i];
-            try {
-                var f = await ghGetFile(df.path);
-                state[df.key] = { data: parseDataFile(f.content, df.varName), sha: f.sha, dirty: false };
-                log('✓ ' + df.label + ' dimuat dari GitHub (' + df.path + ')', 'ok');
-                loaded++;
-            } catch (e) {
-                // GitHub mengembalikan pesan "Not Found" (tanpa teks "404")
-                // untuk file yang tidak ada → cek kedua-duanya.
-                var eMsg = String(e && e.message ? e.message : e);
-                if (eMsg.indexOf('404') >= 0 || /not found/i.test(eMsg)) {
-                    log('⚠ ' + df.path + ' belum ada di GitHub — coba ambil dari situs ini…', 'info');
-                    var local = await tryLoadLocal(df);
-                    if (local) {
-                        state[df.key] = { data: local, sha: null, dirty: true };
-                        log('✓ ' + df.label + ' diambil dari situs (belum di GitHub, akan dibuat saat disimpan)', 'ok');
-                    } else {
-                        log('✗ ' + df.label + ' tidak ditemukan di GitHub maupun situs.', 'err');
-                    }
-                } else {
-                    log('✗ ' + df.label + ' gagal dimuat: ' + e.message, 'err');
-                }
-            }
-        }
-        if (loaded === 0 && Object.keys(state).length === 0) {
-            log('Tidak ada data yang bisa dimuat. Periksa token/owner/repo, atau pastikan repo sudah punya file data.', 'err');
-        }
-        renderAll();
-        updateDirtySummary();
-    }
-
-    async function tryLoadLocal(df) {
-        try {
-            var res = await fetch(df.path, { cache: 'no-store' });
-            if (!res.ok) return null;
-            var text = await res.text();
-            return parseDataFile(text, df.varName);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    function renderAll() {
-        if (state.news) editors.news.render();
-        if (state.series) editors.series.render();
-        if (state.movies) editors.movies.render();
-        if (state.music) editors.music.render();
-    }
-
-    /* ===== Simpan semua (hanya file yang berubah) ===== */
-    async function saveAllData() {
-        var dirtyKeys = [];
-        for (var k in state) {
-            if (state[k] && state[k].dirty) dirtyKeys.push(k);
-        }
-        if (!dirtyKeys.length) {
-            log('Tidak ada perubahan untuk disimpan. Ubah konten dulu, atau muat data lagi.', 'info');
-            return;
-        }
-        var cfg = ghConfig();
-        if (!cfg.token) { log('Token GitHub belum diisi.', 'err'); return; }
-        log('Menyimpan ' + dirtyKeys.length + ' file ke GitHub…');
-        var ok = 0;
-        for (var i = 0; i < dirtyKeys.length; i++) {
-            var key = dirtyKeys[i];
-            var df = null;
-            for (var j = 0; j < DATA_FILES.length; j++) {
-                if (DATA_FILES[j].key === key) { df = DATA_FILES[j]; break; }
-            }
-            if (!df) continue;
-            var s = state[key];
-            var content = serializeFile(df.path, df.varName, s.data);
-            var message = 'update ' + df.path + ' via admin.html';
-            try {
-                var res = await ghPutFile(df.path, content, message, s.sha);
-                // Simpan sha BARU dari respons agar simpan berikutnya tetap valid
-                // (tanpa sha, PUT ke file yang sudah ada ditolak GitHub).
-                state[key].sha = (res && res.content && res.content.sha) ? res.content.sha : null;
-                state[key].dirty = false;
-                log('✓ ' + df.label + ' tersimpan → ' + message, 'ok');
-                ok++;
-            } catch (e) {
-                log('✗ ' + df.label + ' GAGAL disimpan: ' + e.message, 'err');
-            }
-        }
-        updateDirtySummary();
-        if (ok === dirtyKeys.length) {
-            log('Selesai! Vercel akan auto re-deploy dalam ±1 menit. 🚀', 'ok');
-        }
-    }
-
-    function updateDirtySummary() {
-        var n = 0;
-        for (var k in state) {
-            if (state[k] && state[k].dirty) n++;
-        }
-        var el = document.getElementById('dirtySummary');
-        if (n > 0) {
-            el.innerHTML = '<span class="dirty-badge">' + n + ' file belum disimpan</span>';
-        } else {
-            el.textContent = '';
-        }
-    }
-
-    /* ===== Preview media dari path/URL (khusus field path manual) =====
-       Dipakai untuk Musik (path/URL lagu) — foto/video/thumbnail di
-       tab Berita/Series/Movies kini UPLOAD drag & drop (tanpa path manual),
-       jadi preview-nya diurus upload-zone. Fungsi ini tetap dipakai untuk
-       field teks path (mis. Musik) agar preview muncul saat mengetik. */
-    function refreshMediaPreview(input) {
-        var prev = input.nextElementSibling;
-        if (!prev || !prev.classList || !prev.classList.contains('media-preview')) return;
-        var val = input.value.trim();
-        if (!val) {
-            prev.classList.remove('show');
-            prev.removeAttribute('src');
-            return;
-        }
-        if (prev.tagName === 'IMG') {
-            prev.onload = function () { prev.classList.add('show'); };
-            prev.onerror = function () { prev.classList.remove('show'); };
-            prev.src = val;
-        } else {
-            prev.src = val;
-            prev.classList.add('show');
-        }
-    }
-
-    /* ===== Upload media ke GitHub (drag & drop / pilih file) =====
-       Foto Series  → src/images/photo/
-       Video Movies → src/videos/moviespage/  (video & thumbnail)
-       File dikirim lewat GitHub Contents API (base64). Path hasil upload
-       otomatis ditulis ke field tersembunyi & preview muncul. */
-    function sanitizeFileName(name) {
-        return String(name).replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'file';
-    }
-
-    function readFileAsBase64(file, onProgress) {
-        return new Promise(function (resolve, reject) {
-            var reader = new FileReader();
-            reader.onprogress = function (e) {
-                if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
-            };
-            reader.onload = function () {
-                var s = String(reader.result);
-                var i = s.indexOf('base64,');
-                resolve(i >= 0 ? s.slice(i + 7) : s);
-            };
-            reader.onerror = function () { reject(new Error('Gagal membaca file.')); };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    async function ghPutBinary(path, b64, message) {
-        var cfg = ghConfig();
-        var body = { message: message, content: b64, branch: cfg.branch };
-        return ghApi('/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + path, 'PUT', body);
-    }
-
-    async function uploadMediaToGitHub(file, folder, onProgress) {
-        var cfg = ghConfig();
-        if (!cfg.owner || !cfg.repo) throw new Error('Isi Owner & Repository dulu di koneksi GitHub.');
-        if (!cfg.token) throw new Error('Isi Token GitHub dulu di koneksi GitHub.');
-        var ext = (String(file.name).match(/\.[^.]+$/) || [''])[0].toLowerCase();
-        var base = sanitizeFileName(String(file.name).replace(/\.[^.]+$/, ''));
-        var path = folder + base + '_' + Date.now() + ext;
-        var b64 = await readFileAsBase64(file, onProgress);
-        await ghPutBinary(path, b64, 'Upload media ' + path + ' via admin.html');
-        return path;
-    }
-
-    function setUploadZoneValue(zone, path) {
-        var valueInput = zone.querySelector('input[type="hidden"]');
-        var nameEl = zone.querySelector('.uz-name');
-        var previewEl = zone.querySelector('.uz-preview');
-        var actionsEl = zone.querySelector('.uz-actions');
-        path = path || '';
-        if (valueInput) valueInput.value = path;
-        if (nameEl) nameEl.textContent = path;
-        zone.classList.toggle('has-file', !!path);
-        if (actionsEl) actionsEl.hidden = !path;
-        if (!previewEl) return;
-        previewEl.innerHTML = '';
-        if (path) {
-            var kind = zone.getAttribute('data-kind');
-            if (kind === 'video') {
-                var v = document.createElement('video');
-                v.controls = true;
-                v.preload = 'metadata';
-                v.src = path;
-                previewEl.appendChild(v);
-            } else {
-                var img = document.createElement('img');
-                img.alt = 'Pratinjau';
-                img.src = path;
-                img.onerror = function () { previewEl.hidden = true; };
-                previewEl.appendChild(img);
-            }
-            previewEl.hidden = false;
-        } else {
-            previewEl.hidden = true;
-        }
-    }
-
-    function initUploadZone(zone, opts) {
-        var fileInput = zone.querySelector('input[type="file"]');
-        var progressEl = zone.querySelector('.uz-progress');
-        var progressBar = zone.querySelector('.uz-progress-bar');
-        var progressText = zone.querySelector('.uz-progress-text');
-        var statusEl = zone.querySelector('.uz-status');
-        var clearBtn = zone.querySelector('.uz-clear');
-        var replaceBtn = zone.querySelector('.uz-replace');
-        var kind = zone.getAttribute('data-kind');
-        var maxSize = opts.maxSize || ((kind === 'video' ? 70 : 20) * 1024 * 1024);
-
-        function setStatus(msg, cls) {
-            if (!statusEl) return;
-            statusEl.className = 'uz-status' + (cls ? ' ' + cls : '');
-            statusEl.textContent = msg;
-        }
-        function setProgress(p) {
-            if (!progressEl) return;
-            progressEl.hidden = false;
-            progressBar.style.width = Math.round(p * 100) + '%';
-            progressText.textContent = Math.round(p * 100) + '%';
-        }
-        function clearProgress() {
-            if (!progressEl) return;
-            progressEl.hidden = true;
-            progressBar.style.width = '0%';
-        }
-
-        function doUpload(file) {
-            // MIME bisa kosong / generik (application/octet-stream) di sebagian
-            // browser & OS (mis. HP Android untuk .mp4) → validasi juga ekstensi.
-            var okType = kind === 'video' ? /^video\// : /^image\//;
-            var name = String(file.name || '').toLowerCase();
-            var okExt = kind === 'video'
-                ? /\.(mp4|webm|ogg|ogv|mov|m4v)$/.test(name)
-                : /\.(png|jpe?g|webp|gif|avif)$/.test(name);
-            var mimeOk = okType.test(String(file.type || '').toLowerCase());
-            if (!(mimeOk || okExt)) {
-                setStatus('Tipe file tidak didukung.', 'err');
-                return;
-            }
-            if (file.size > maxSize) {
-                setStatus('File terlalu besar — maks ' + Math.round(maxSize / 1048576) + ' MB.', 'err');
-                return;
-            }
-            setStatus('Mengupload ke repo…');
-            uploadMediaToGitHub(file, zone.getAttribute('data-folder'), setProgress)
-                .then(function (path) {
-                    clearProgress();
-                    setUploadZoneValue(zone, path);
-                    setStatus('✓ Ter-upload: ' + path, 'ok');
-                    toast('Media ter-upload: ' + path, 'ok');
-                })
-                .catch(function (err) {
-                    clearProgress();
-                    setStatus('✗ Gagal: ' + err.message, 'err');
-                    toast('Upload gagal: ' + err.message, 'err');
-                });
-        }
-
-        zone.addEventListener('click', function (e) {
-            if (e.target.closest('.uz-preview video')) return;
-            if (e.target.closest('.uz-actions')) return;
-            fileInput.click();
-        });
-        fileInput.addEventListener('change', function () {
-            if (fileInput.files && fileInput.files[0]) doUpload(fileInput.files[0]);
-            fileInput.value = '';
-        });
-        zone.addEventListener('dragover', function (e) { e.preventDefault(); e.stopPropagation(); zone.classList.add('drag'); });
-        zone.addEventListener('dragleave', function () { zone.classList.remove('drag'); });
-        zone.addEventListener('drop', function (e) {
-            e.preventDefault(); e.stopPropagation();
-            zone.classList.remove('drag');
-            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) doUpload(e.dataTransfer.files[0]);
-        });
-
-        // Kontrol penuh tanpa mengetik path: ganti file, atau kosongkan.
-        if (replaceBtn) {
-            replaceBtn.addEventListener('click', function (e) {
-                e.preventDefault(); e.stopPropagation();
-                fileInput.click();
-            });
-        }
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function (e) {
-                e.preventDefault(); e.stopPropagation();
-                setUploadZoneValue(zone, '');
-                setStatus('File dikosongkan dari item — file di repo tidak ikut dihapus. Untuk menghapus file juga, hapus item-nya.');
-            });
-        }
-    }
-
-    function toast(msg, type) {
-        var box = document.getElementById('toastBox');
-        if (!box) return;
-        var t = document.createElement('div');
-        t.className = 'toast ' + (type || 'info');
-        t.textContent = msg;
-        box.appendChild(t);
-        setTimeout(function () {
-            t.classList.add('out');
-            setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 400);
-        }, 3800);
-    }
-
-    /* ===== Normalisasi tanggal: terima DD-MM-YYYY / YYYY-MM-DD ===== */
-    function normalizeDate(v) {
-        v = String(v || '').trim();
-        if (!v) return v;
-        var m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-        if (m) return m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
-        m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-        if (m) return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0');
-        var d = new Date(v);
-        if (!isNaN(d.getTime())) {
-            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-        }
-        return v;
-    }
-
-    /* ===== Generic list editor (field teks/nomor/select + media path/URL) ===== */
-    function makeListEditor(cfg) {
-        var ed = {
-            key: cfg.key,
-            fields: cfg.fields,
-            renderItem: cfg.renderItem,
-            editingIndex: -1,
-
-            get listEl() { return document.getElementById(cfg.key + 'List'); },
-            get formEl() { return document.getElementById(cfg.key + 'Form'); },
-            items: function () {
-                // Inisialisasi otomatis bila data belum dimuat: pengeditan/tambah
-                // tetap tersimpan (dirty) walau user lupa klik "Muat Data" dulu.
-                if (!state[cfg.key]) state[cfg.key] = { data: [], sha: null, dirty: true };
-                return state[cfg.key].data;
-            },
-            fieldId: function (name) { return 'fld_' + cfg.key + '_' + name; },
-
-            markDirty: function () {
-                if (state[cfg.key]) state[cfg.key].dirty = true;
-                updateDirtySummary();
-            },
-
-            formHtml: function () {
-                var self = this;
-                return '<div class="admin-form-header flex items-center justify-between mb-3">' +
-                    '<h3 class="font-bold text-sm">' + (this.editingIndex >= 0 ? '✏️ Edit item #' + (this.editingIndex + 1) : '➕ Tambah item baru') + '</h3>' +
-                '</div>' +
-                '<div class="admin-form-grid">' +
-                this.fields.map(function (f) {
-                    var id = self.fieldId(f.name);
-                    var label = '<label class="admin-label" for="' + id + '">' + f.label + '</label>';
-                    var input, preview = '';
-                    if (f.type === 'textarea') {
-                        input = '<textarea id="' + id + '" class="admin-input" rows="' + (f.rows || 4) + '" placeholder="' + (f.placeholder || '') + '"></textarea>';
-                    } else if (f.type === 'select') {
-                        input = '<select id="' + id + '" class="admin-input">' +
-                            (f.options || []).map(function (o) { return '<option value="' + o + '">' + o + '</option>'; }).join('') +
-                            '</select>';
-                    } else if (f.upload) {
-                        // Drag & drop / pilih file — upload langsung ke repo.
-                        // Path/URL TIDAK bisa diketik manual: file harus di-upload
-                        // (drag & drop / klik). Folder tujuan sudah ditentukan.
-                        var folder = f.upload.folder || '';
-                        var accept = f.upload.accept || '*/*';
-                        input = '<div class="upload-zone" data-kind="' + (f.upload.kind || 'image') + '" data-folder="' + folder + '">' +
-                            '<input id="' + id + '" type="hidden">' +
-                            '<input type="file" accept="' + accept + '" hidden>' +
-                            '<div class="uz-content">' +
-                                '<i class="fas ' + (f.upload.icon || 'fa-cloud-upload-alt') + '"></i>' +
-                                '<p class="uz-title">' + (f.upload.title || 'Seret & letakkan file di sini') + '</p>' +
-                                '<p class="uz-sub">atau klik untuk memilih file</p>' +
-                                '<p class="uz-folder"><i class="fas fa-folder" aria-hidden="true"></i>' + folder + '</p>' +
-                                '<p class="uz-name"></p>' +
-                            '</div>' +
-                            '<div class="uz-actions" hidden>' +
-                                '<button type="button" class="uz-replace"><i class="fas fa-sync-alt" aria-hidden="true"></i> Ganti</button>' +
-                                '<button type="button" class="uz-clear"><i class="fas fa-times" aria-hidden="true"></i> Hapus</button>' +
-                            '</div>' +
-                            '<div class="uz-preview" hidden></div>' +
-                            '<div class="uz-progress" hidden><div class="uz-progress-bar"></div><span class="uz-progress-text"></span></div>' +
-                            '<div class="uz-status"></div>' +
-                        '</div>';
-                    } else if (f.kind) {
-                        input = '<input id="' + id + '" type="text" class="admin-input" placeholder="' + (f.placeholder || '') + '" autocomplete="off" spellcheck="false">';
-                        if (f.kind === 'image') preview = '<img class="media-preview" alt="Pratinjau foto" hidden>';
-                        else if (f.kind === 'video') preview = '<video class="media-preview" controls preload="metadata" hidden></video>';
-                        else if (f.kind === 'audio') preview = '<audio class="media-preview" controls preload="none" hidden></audio>';
-                    } else {
-                        input = '<input id="' + id + '" type="' + (f.type || 'text') + '" class="admin-input" placeholder="' + (f.placeholder || '') + '">';
-                    }
-                    return '<div class="form-field' + (f.full ? ' form-field-full' : '') + '">' +
-                        label + input + preview +
-                        (f.hint ? '<p class="admin-hint">' + f.hint + '</p>' : '') +
-                    '</div>';
-                }).join('') +
-                '</div>' +
-                '<div class="flex flex-wrap gap-2 mt-4">' +
-                    '<button type="submit" class="btn btn-red"><i class="fas fa-save" aria-hidden="true"></i> Simpan</button>' +
-                    '<button type="button" class="btn btn-gray" onclick="editors.' + this.key + '.cancel()">Batal</button>' +
-                '</div>';
-            },
-
-            render: function () {
-                var self = this;
-                var items = this.items();
-                if (!items || !Array.isArray(items)) return;
-                var html = items.map(function (it, i) {
-                    return '<div class="admin-row">' +
-                        '<div class="admin-row-main">' + self.renderItem(it) + '</div>' +
-                        '<div class="admin-row-actions">' +
-                            '<button type="button" class="btn-ghost" title="Naik" onclick="editors.' + self.key + '.move(' + i + ',-1)"><i class="fas fa-chevron-up" aria-hidden="true"></i></button>' +
-                            '<button type="button" class="btn-ghost" title="Turun" onclick="editors.' + self.key + '.move(' + i + ',1)"><i class="fas fa-chevron-down" aria-hidden="true"></i></button>' +
-                            '<button type="button" class="btn-ghost" title="Salin" onclick="editors.' + self.key + '.duplicate(' + i + ')"><i class="fas fa-copy" aria-hidden="true"></i></button>' +
-                            '<button type="button" class="btn-ghost" title="Edit" onclick="editors.' + self.key + '.edit(' + i + ')"><i class="fas fa-pen" aria-hidden="true"></i></button>' +
-                            '<button type="button" class="btn-danger" title="Hapus" onclick="editors.' + self.key + '.remove(' + i + ')"><i class="fas fa-trash" aria-hidden="true"></i></button>' +
-                        '</div>' +
-                    '</div>';
-                }).join('');
-                this.listEl.innerHTML = html || '<div class="empty-state"><i class="fas fa-inbox" aria-hidden="true"></i><p>Belum ada item — klik "Tambah".</p></div>';
-                var badge = document.getElementById('tabCount_' + this.key);
-                if (badge) badge.textContent = items.length > 0 ? String(items.length) : '';
-            },
-
-            openForm: function (startVals) {
-                var self = this;
-                this.formEl.innerHTML = this.formHtml();
-                this.formEl.classList.remove('hidden');
-                this.formEl.onsubmit = function (e) {
-                    e.preventDefault();
-                    self.saveForm();
-                };
-                // Isi nilai field + bind preview media & drag-and-drop upload
-                this.fields.forEach(function (f) {
-                    var el = document.getElementById(self.fieldId(f.name));
-                    if (!el) return;
-                    if (f.upload) {
-                        var zone = el.closest('.upload-zone');
-                        if (zone) {
-                            initUploadZone(zone, { kind: f.upload.kind, folder: f.upload.folder, maxSize: f.upload.maxSize });
-                            if (startVals) {
-                                var u = startVals[f.name];
-                                if (u) setUploadZoneValue(zone, u);
-                            }
-                        }
-                        return;
-                    }
-                    if (f.kind) {
-                        el.addEventListener('input', function () { refreshMediaPreview(el); });
-                    }
-                    if (startVals) {
-                        var v = startVals[f.name];
-                        if (f.type === 'textarea' && Array.isArray(v)) v = v.join('\n');
-                        el.value = (v === undefined || v === null) ? '' : v;
-                    }
-                    if (f.kind) refreshMediaPreview(el);
-                });
-            },
-
-            startAdd: function () {
-                this.editingIndex = -1;
-                this.openForm(null);
-                var first = this.formEl.querySelector('input:not([type="file"]):not([type="hidden"]), textarea, select');
-                if (first) first.focus();
-            },
-
-            edit: function (i) {
-                var items = this.items();
-                this.editingIndex = i;
-                this.openForm(items[i]);
-            },
-
-            saveForm: function () {
-                var self = this;
-                var btn = this.formEl.querySelector('button[type="submit"]');
-                var orig = btn ? btn.innerHTML : '';
-                if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Menyimpan…'; }
-                try {
-                    var items = this.items();
-                    var isNew = this.editingIndex < 0;
-                    var existing = isNew ? null : items[this.editingIndex];
-                    // Mulai dari item lama — field di luar form (mis. id movies)
-                    // TIDAK hilang saat edit.
-                    var obj = existing ? JSON.parse(JSON.stringify(existing)) : {};
-
-                    // Baca semua field (text/number/select/media path/URL)
-                    this.fields.forEach(function (f) {
-                        var el = document.getElementById(self.fieldId(f.name));
-                        if (!el) return;
-                        var val = el.value;
-                        if (f.type === 'number') val = val === '' ? undefined : Number(val);
-                        if (f.type === 'textarea' && f.asArray) val = val.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
-                        obj[f.name] = val;
-                    });
-
-                    if (cfg.normalize) obj = cfg.normalize(obj);
-                    if (cfg.validate) {
-                        var errMsg = cfg.validate(obj);
-                        if (errMsg) { log(errMsg, 'err'); return; }
-                    }
-
-                    if (isNew) {
-                        items.push(obj);
-                        log('➕ ' + cfg.label + ': item baru ditambahkan.', 'info');
-                    } else {
-                        items[this.editingIndex] = obj;
-                        log('✏️ ' + cfg.label + ' item #' + (this.editingIndex + 1) + ' diperbarui.', 'info');
-                    }
-                    this.formEl.classList.add('hidden');
-                    this.editingIndex = -1;
-                    this.markDirty();
-                    this.render();
-                    if (cfg.onSaved) cfg.onSaved(ed, obj, isNew);
-                } catch (e) {
-                    log('✗ Gagal menyimpan: ' + e.message, 'err');
-                } finally {
-                    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
-                }
-            },
-
-            cancel: function () {
-                this.formEl.classList.add('hidden');
-                this.editingIndex = -1;
-            },
-
-            remove: function (i) {
-                var self = this;
-                var items = this.items();
-                var item = items[i];
-                // File media yang direferensikan item ini (kalau ada).
-                var mediaPaths = cfg.mediaPaths ? cfg.mediaPaths(item) : [];
-                var mediaStr = mediaPaths.length
-                    ? '\n\nFile media di repo yang akan dihapus:\n' + mediaPaths.map(function (p) { return '  • ' + p; }).join('\n')
-                    : '';
-                if (!confirm('Hapus item ini dari data?' + mediaStr +
-                    '\n\nFile yang masih dipakai item lain TIDAK akan dihapus.')) return;
-
-                // Tentukan file yang aman dihapus: path repo & tidak dipakai item lain.
-                var toDelete = [];
-                var token = ghConfig().token;
-                if (token) {
-                    mediaPaths.forEach(function (p) {
-                        if (!isRepoPath(p)) return;
-                        var usedElsewhere = false;
-                        items.forEach(function (other, j) {
-                            if (j === i) return;
-                            var paths = (cfg.mediaPaths ? cfg.mediaPaths(other) : []);
-                            if (paths.indexOf(p) >= 0) usedElsewhere = true;
-                        });
-                        if (!usedElsewhere) toDelete.push(p);
-                    });
-                }
-
-                items.splice(i, 1);
-                log('🗑 ' + cfg.label + ' item #' + (i + 1) + ' dihapus dari data.', 'info');
-                this.markDirty();
-                this.render();
-
-                if (toDelete.length) {
-                    log('Menghapus ' + toDelete.length + ' file media dari repo…', 'info');
-                    (async function () {
-                        var ok = 0;
-                        for (var k = 0; k < toDelete.length; k++) {
-                            try {
-                                await ghDeleteFile(toDelete[k]);
-                                log('✓ file dihapus dari repo: ' + toDelete[k], 'ok');
-                                ok++;
-                            } catch (e) {
-                                log('✗ Gagal hapus ' + toDelete[k] + ': ' + e.message, 'err');
-                            }
-                        }
-                        if (ok === toDelete.length) log('Semua file media berhasil dihapus dari repo. 🧹', 'ok');
-                        else log('Beberapa file media GAGAL dihapus — cek log di atas.', 'err');
-                    })();
-                } else if (token) {
-                    log('Tidak ada file media yang perlu dihapus (bukan path repo / masih dipakai item lain).', 'info');
-                } else {
-                    log('Token belum diisi — item dihapus dari data, file media di repo TIDAK ikut terhapus.', 'info');
-                }
-            },
-
-            duplicate: function (i) {
-                var items = this.items();
-                var copy = JSON.parse(JSON.stringify(items[i]));
-                items.splice(i + 1, 0, copy);
-                log('📄 ' + cfg.label + ' item #' + (i + 1) + ' disalin.', 'info');
-                this.markDirty();
-                this.render();
-                // id unik tetap diurus oleh onSaved (mis. Video Movies).
-                if (cfg.onSaved) cfg.onSaved(this, copy, true);
-            },
-
-            move: function (i, dir) {
-                var items = this.items();
-                var j = i + dir;
-                if (j < 0 || j >= items.length) return;
-                var tmp = items[i];
-                items[i] = items[j];
-                items[j] = tmp;
-                this.markDirty();
-                this.render();
-            }
-        };
-        editors[cfg.key] = ed;
-        return ed;
-    }
-
-    /* ===== Editor: Berita — Tanggal, Judul, Isi Pesan, Video (Opsional) =====
-       Contoh: Tanggal 13-08-2026 · Judul "Teruslah Bersinar Untukku" ·
-       Isi: paragraf 1, paragraf 2, dst. (satu paragraf per baris). Video
-       OPSIONAL: upload drag & drop ke src/videos/newsandpopularpage/. */
-    makeListEditor({
-        key: 'news',
-        label: 'Berita',
-        fields: [
-            { name: 'date', label: 'Tanggal', placeholder: '13-08-2026', hint: 'Contoh: 13-08-2026 (DD-MM-YYYY) atau 2026-08-13. Pesan tampil otomatis saat tanggalnya tiba.' },
-            { name: 'title', label: 'Judul Pesan', placeholder: 'Teruslah Bersinar Untukku' },
-            { name: 'paragraphs', label: 'Isi Pesan (satu paragraf per baris)', type: 'textarea', rows: 7, asArray: true, full: true, placeholder: 'Paragraf 1\nParagraf 2\ndan seterusnya…' },
-            { name: 'video', label: 'Video (Opsional)', upload: { kind: 'video', folder: 'src/videos/newsandpopularpage/', accept: 'video/*', icon: 'fa-video', title: 'Seret & letakkan video di sini', maxSize: 70 * 1024 * 1024 }, hint: 'Opsional — kosongkan untuk pesan teks saja. Upload langsung ke <code>src/videos/newsandpopularpage/</code> (drag &amp; drop / klik).' },
-            { name: 'countdown', label: 'Countdown episode berikutnya (detik)', type: 'number', placeholder: '5', hint: '(Opsional) Hanya dipakai jika ada video — default 5 detik.' }
-        ],
-        normalize: function (obj) {
-            obj.date = normalizeDate(obj.date);
-            return obj;
-        },
-        validate: function (obj) {
-            if (!obj.date) return 'Tanggal wajib diisi (contoh: 13-08-2026).';
-            if (!obj.title) return 'Judul pesan wajib diisi.';
-            if (!(obj.paragraphs && obj.paragraphs.length)) return 'Isi pesan minimal satu paragraf.';
-            return null;
-        },
-        renderItem: function (it) {
-            return '<div class="font-semibold">' + esc(it.title || '(tanpa judul)') + '</div>' +
-                '<div class="text-xs text-gray-400">📅 ' + esc(it.date || '?') + (it.video ? ' • 🎬 video' : '') + ' • ' + ((it.paragraphs || []).length || 0) + ' paragraf</div>';
-        },
-        mediaPaths: function (it) { return it.video ? [it.video] : []; }
-    });
-
-    /* ===== Editor: Foto Series — upload foto (drag & drop) + RASIO =====
-       Foto di-upload langsung ke src/images/photo/ lewat GitHub API.
-       HANYA folder src/images/photo/ yang dipakai — path otomatis terisi,
-       tidak ada input path manual. */
-    makeListEditor({
-        key: 'series',
-        label: 'Foto Series',
-        fields: [
-            { name: 'src', label: 'Foto Series', upload: { kind: 'image', folder: 'src/images/photo/', accept: 'image/*', icon: 'fa-image', title: 'Seret & letakkan foto di sini', maxSize: 20 * 1024 * 1024 }, hint: 'Upload langsung ke <code>src/images/photo/</code> di repo (drag &amp; drop / klik) — path otomatis terisi. Saat item dihapus, file media ikut dihapus dari repo (jika tidak dipakai item lain).' },
-            { name: 'ratio', label: 'Rasio', type: 'select', options: ['9:16', '16:9', '3:4', '4:3', '1:1'], hint: 'Contoh: 9:16 untuk foto potret HP.' },
-            { name: 'label', label: 'Label (Opsional)', placeholder: 'Video 1', hint: 'Opsional — nama yang tampil di modal. Kosongkan untuk memakai nama file.' }
-        ],
-        normalize: function (obj) {
-            if (!obj.label && obj.src) {
-                obj.label = String(obj.src).split('/').pop().replace(/\.[^.]+$/, '');
-            }
-            return obj;
-        },
-        validate: function (obj) {
-            if (!obj.src) return 'Isi path/URL foto dulu.';
-            return null;
-        },
-        renderItem: function (it) {
-            return '<div class="flex items-center gap-3">' +
-                '<img class="admin-thumb" src="' + esc(it.src) + '" alt="" onerror="this.style.display=\'none\'">' +
-                '<div><div class="font-semibold">' + esc(it.label || it.src) + '</div>' +
-                '<div class="text-xs text-gray-400">' + esc(it.ratio || '?') + (it.width ? ' • ' + esc(String(it.width)) + '×' + esc(String(it.height)) : '') + '</div></div></div>';
-        },
-        mediaPaths: function (it) { return it.src ? [it.src] : []; }
-    });
-
-    /* ===== Editor: Video Movies — upload video & thumbnail (drag & drop) ===== */
-    makeListEditor({
-        key: 'movies',
-        label: 'Video Movies',
-        fields: [
-            { name: 'title', label: 'Judul Video', placeholder: 'Video 60' },
-            { name: 'video', label: 'File Video', upload: { kind: 'video', folder: 'src/videos/moviespage/', accept: 'video/*', icon: 'fa-video', title: 'Seret & letakkan video di sini', maxSize: 70 * 1024 * 1024 }, hint: 'Upload langsung ke <code>src/videos/moviespage/</code> di repo (drag &amp; drop / klik). Maks ±70 MB (batas GitHub Contents API).' },
-            { name: 'thumbnail', label: 'Thumbnail (Foto)', upload: { kind: 'image', folder: 'src/images/photo/', accept: 'image/*', icon: 'fa-image', title: 'Seret & letakkan thumbnail di sini', maxSize: 20 * 1024 * 1024 }, hint: 'Opsional — upload ke <code>src/images/photo/</code>. Kosongkan untuk thumbnail bawaan.' },
-            { name: 'countdown', label: 'Countdown episode berikutnya (detik)', type: 'number', placeholder: '5' }
-        ],
-        validate: function (obj) {
-            if (!obj.video) return 'Isi path/URL video dulu.';
-            return null;
-        },
-        renderItem: function (it) {
-            var thumb = it.thumbnail
-                ? '<img class="admin-thumb-square" src="' + esc(it.thumbnail) + '" alt="" onerror="this.style.display=\'none\'">'
-                : '<div class="admin-thumb-square admin-thumb-fallback"><i class="fas fa-film" aria-hidden="true"></i></div>';
-            return '<div class="flex items-center gap-3">' + thumb +
-                '<div><div class="font-semibold">' + esc(it.title || ('Video ' + it.id)) + '</div>' +
-                '<div class="text-xs text-gray-400">#' + esc(String(it.id || '?')) + ' • ' + esc(it.video || '?') + '</div></div></div>';
-        },
-        mediaPaths: function (it) {
-            var a = [];
-            if (it.video) a.push(it.video);
-            if (it.thumbnail) a.push(it.thumbnail);
-            return a;
-        },
-        // id OTOMATIS & dipertahankan saat edit (dipakai movies.html untuk modal).
-        onSaved: function (ed, obj, isNew) {
-            if (isNew) {
-                var nextId = 1;
-                ed.items().forEach(function (it) {
-                    if (typeof it.id === 'number' && it.id >= nextId) nextId = it.id + 1;
-                });
-                obj.id = nextId;
-                ed.markDirty();
-                ed.render();
-            }
-        }
-    });
-
-    /* ===== Editor: Musik — path/URL file music + judul =====
-       Contoh judul: "Selamat Tinggal - Virgoun Ft. Audy". File TIDAK
-       di-upload di sini: isi path yang sudah ada di src/audio atau URL. */
-    makeListEditor({
-        key: 'music',
-        label: 'Musik',
-        fields: [
-            { name: 'title', label: 'Judul Lagu', placeholder: 'Selamat Tinggal - Virgoun Ft. Audy', hint: 'Contoh: Selamat Tinggal - Virgoun Ft. Audy' },
-            { name: 'src', label: 'Path / URL File Musik', kind: 'audio', placeholder: 'src/audio/NAMA_FILE.mp3', hint: 'Isi path file di repo (mis. src/audio/…) atau URL eksternal. File TIDAK di-upload dari panel ini.' }
-        ],
-        validate: function (obj) {
-            if (!obj.title) return 'Judul lagu wajib diisi.';
-            if (!obj.src) return 'Isi path/URL file music dulu.';
-            return null;
-        },
-        renderItem: function (it) {
-            return '<div class="font-semibold"><i class="fas fa-music text-red-500 mr-2" aria-hidden="true"></i>' + esc(it.title || it.src) + '</div>' +
-                '<div class="text-xs text-gray-400">' + esc(it.src || '?') + '</div>';
-        },
-        mediaPaths: function (it) { return it.src ? [it.src] : []; }
-    });
-
-    /* ===== Pengaturan PIN ===== */
-    function changePin() {
-        var v = document.getElementById('newPin').value.trim();
-        if (!v) { document.getElementById('pinMsg').textContent = 'Isi PIN baru dulu.'; return; }
-        LS.set('mqAdminPin', v);
-        document.getElementById('pinMsg').textContent = 'PIN baru disimpan untuk browser ini.';
-        document.getElementById('newPin').value = '';
-    }
-
-    function resetPin() {
-        LS.del('mqAdminPin');
-        document.getElementById('pinMsg').textContent = 'PIN dikembalikan ke bawaan (' + ADMIN_PIN + ').';
-    }
-
-    /* Bersihkan semua data tersimpan (token GitHub, konfigurasi repo, PIN)
-       dari browser ini, lalu kunci panel. */
-    function clearStoredConfig() {
-        if (!confirm('Hapus token GitHub, konfigurasi repo, dan PIN tersimpan dari browser ini?')) return;
-        LS.del('mqGhOwner');
-        LS.del('mqGhRepo');
-        LS.del('mqGhBranch');
-        LS.del('mqGhToken');
-        LS.del('mqAdminPin');
-        log('Token & konfigurasi dihapus dari browser ini.', 'ok');
-        lockAdmin();
-    }
-    </script>
+<div id="pinSection">
+<div class="admin-card pin-card">
+<img alt="Netflix Logo" class="h-8 mx-auto mb-4" src="src/images/icon/netflix_logo.png">
+<h1 class="text-xl font-bold mb-1">Admin Panel</h1>
+<p class="text-sm text-gray-400 mb-5">Masukkan PIN untuk membuka dashboard.</p>
+<form id="pinForm" class="flex gap-2">
+<input id="pinInput" type="password" inputmode="numeric" autocomplete="off"
+placeholder="PIN" class="admin-input text-center tracking-[0.4em] text-lg">
+<button type="submit" class="btn btn-red flex-shrink-0">Buka</button>
+</form>
+<p id="pinError" class="text-red-400 text-sm mt-3 hidden">PIN salah. Coba lagi.</p>
+</div>
+</div>
+
+<div id="blockedSection" class="hidden">
+<div class="block-card">
+<i class="fas fa-ban block-icon" aria-hidden="true"></i>
+<h1>Akses Diblokir</h1>
+<p id="blockedReasonText">Website ini telah memblokir perangkat Anda secara permanen karena terdeteksi mencoba masuk berulang kali tanpa izin.</p>
+<p>Jika Anda pemilik situs dan merasa ini keliru, hubungi kami melalui Telegram:</p>
+<a class="btn btn-red" href="https://t.me/axetherion" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i> Hubungi @axetherion</a>
+<div class="block-meta" id="blockedMeta"></div>
+</div>
+</div>
+
+<div id="libModal" role="dialog" aria-modal="true" aria-label="Pustaka media GitHub">
+<div class="lib-box">
+<div class="lib-head">
+<div>
+<h3>📁 Pustaka Media GitHub</h3>
+<code id="libFolder"></code>
+</div>
+<button type="button" class="lib-close" aria-label="Tutup" onclick="closeLibrary()">&times;</button>
+</div>
+<div class="lib-list" id="libList"><div class="lib-loading">Memuat daftar file…</div></div>
+</div>
+</div>
+
+<div id="adminSection" class="hidden px-4 md:px-8 py-6">
+<div class="max-w-5xl mx-auto">
+
+<div class="admin-header-bar -mx-4 md:-mx-8 px-4 md:px-8 py-3 mb-5 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-3 min-w-0">
+<h1 class="brand-title text-xl md:text-2xl font-bold">Admin Panel</h1>
+<span id="connStatus" class="text-xs text-gray-400"></span>
+</div>
+<button type="button" class="btn btn-gray" onclick="lockAdmin()"><i class="fas fa-lock" aria-hidden="true"></i> Kunci</button>
+</div>
+
+<div class="admin-card">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-bold">🔗 Koneksi GitHub</h2>
+<span id="dirtySummary"></span>
+</div>
+<div class="grid-cols-2-gap">
+<div>
+<label class="admin-label" for="ghOwner">Owner (username)</label>
+<input id="ghOwner" type="text" class="admin-input" placeholder="mis. Vaetherion">
+</div>
+<div>
+<label class="admin-label" for="ghRepo">Repository</label>
+<input id="ghRepo" type="text" class="admin-input" placeholder="mis. Netflix-MyQueen">
+</div>
+<div>
+<label class="admin-label" for="ghBranch">Branch</label>
+<input id="ghBranch" type="text" class="admin-input" value="main">
+</div>
+<div>
+<label class="admin-label" for="ghToken">Personal Access Token (PAT)</label>
+<input id="ghToken" type="password" class="admin-input" placeholder="ghp_xxx" autocomplete="off">
+<p class="admin-hint">Scope: repo. Hanya tersimpan di browser kamu (localStorage).</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-4">
+<button type="button" class="btn btn-gray" onclick="testConnection()"><i class="fas fa-plug" aria-hidden="true"></i> Tes Koneksi</button>
+<button type="button" class="btn btn-green" onclick="loadAllData()"><i class="fas fa-download" aria-hidden="true"></i> Muat Data dari GitHub</button>
+<button type="button" class="btn btn-red" onclick="saveAllData()"><i class="fas fa-upload" aria-hidden="true"></i> Simpan Perubahan ke GitHub</button>
+</div>
+<p class="admin-hint mt-3">Media <b>di-upload langsung</b> dari panel ini — seret &amp; letakkan (drag &amp; drop) foto/video atau klik area upload. File otomatis masuk repo: <code class="text-red-400">src/images/photo/</code> (foto series &amp; thumbnail) · <code class="text-red-400">src/videos/moviespage/</code> (video movies). Path terisi otomatis.</p>
+</div>
+
+<div class="admin-card">
+<h2 class="font-bold mb-2">📋 Log</h2>
+<div id="logBox">Menunggu perintah…</div>
+</div>
+
+<div id="toastBox" aria-live="polite"></div>
+
+<div class="tab-bar flex flex-wrap gap-1 border-b border-gray-800 mb-5 pb-2 overflow-x-auto">
+<button type="button" class="tab-btn active" data-tab="tabNews" onclick="switchTab('tabNews')">Berita<span class="tab-count" id="tabCount_news"></span></button>
+<button type="button" class="tab-btn" data-tab="tabSeries" onclick="switchTab('tabSeries')">Foto Series<span class="tab-count" id="tabCount_series"></span></button>
+<button type="button" class="tab-btn" data-tab="tabMovies" onclick="switchTab('tabMovies')">Video Movies<span class="tab-count" id="tabCount_movies"></span></button>
+<button type="button" class="tab-btn" data-tab="tabMusic" onclick="switchTab('tabMusic')">Musik<span class="tab-count" id="tabCount_music"></span></button>
+<button type="button" class="tab-btn" data-tab="tabText" onclick="switchTab('tabText')">Teks<span class="tab-count" id="tabCount_text"></span></button>
+<button type="button" class="tab-btn" data-tab="tabBlock" onclick="switchTab('tabBlock')">Blokir<span class="tab-count" id="tabCount_block"></span></button>
+<button type="button" class="tab-btn" data-tab="tabSettings" onclick="switchTab('tabSettings')">Pengaturan</button>
+</div>
+
+<div class="tab-panel active" id="tabNews">
+<div class="admin-card">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h2 class="font-bold">Pesan Berita &amp; Popular</h2>
+<p class="text-xs text-gray-500">Tanggal (DD-MM-YYYY) · Judul Pesan · Isi Pesan · Video (Opsional, drag &amp; drop) — tampil di newsandpopular.html</p>
+</div>
+<button type="button" class="btn btn-red" onclick="editors.news.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
+</div>
+<div id="newsList"></div>
+<form id="newsForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
+</div>
+</div>
+
+<div class="tab-panel" id="tabSeries">
+<div class="admin-card">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h2 class="font-bold">Foto Series</h2>
+<p class="text-xs text-gray-500">Upload foto (drag &amp; drop) + pilih rasio — tampil di series.html. File otomatis dinamai <code class="text-red-400">placeholder{RASIO}_N.ext</code> (N = nomor berikutnya di <code class="text-red-400">src/images/photo/</code>).</p>
+</div>
+<div class="flex items-center gap-2">
+<button type="button" class="btn btn-gray" onclick="openLibrary('src/images/photo/','series')"><i class="fas fa-folder-open" aria-hidden="true"></i> Pilih dari GitHub</button>
+<button type="button" class="btn btn-red" onclick="editors.series.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
+</div>
+</div>
+<div id="seriesList"></div>
+<form id="seriesForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
+</div>
+</div>
+
+<div class="tab-panel" id="tabMovies">
+<div class="admin-card">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h2 class="font-bold">Video Movies</h2>
+<p class="text-xs text-gray-500">Upload video &amp; thumbnail (drag &amp; drop) — tampil di movies.html. Video otomatis dinamai <code class="text-red-400">videoN.mp4</code> (N = nomor berikutnya di <code class="text-red-400">src/videos/moviespage/</code>).</p>
+</div>
+<div class="flex items-center gap-2 flex-wrap">
+<button type="button" class="btn btn-gray" onclick="openLibrary('src/videos/moviespage/','movies')"><i class="fas fa-folder-open" aria-hidden="true"></i> Pilih Video dari GitHub</button>
+<button type="button" class="btn btn-gray" onclick="openLibrary('src/images/photo/','movies-thumb')"><i class="fas fa-image" aria-hidden="true"></i> Pilih Thumbnail</button>
+<button type="button" class="btn btn-red" onclick="editors.movies.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
+</div>
+</div>
+<div id="moviesList"></div>
+<form id="moviesForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
+</div>
+</div>
+
+<div class="tab-panel" id="tabMusic">
+<div class="admin-card">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h2 class="font-bold">Musik Dynamic Island</h2>
+<p class="text-xs text-gray-500">Upload file musik (drag &amp; drop) ke <code class="text-red-400">src/audio/</code> + judul lagu — playlist semua halaman</p>
+</div>
+<div class="flex items-center gap-2">
+<button type="button" class="btn btn-gray" onclick="openLibrary('src/audio/','music')"><i class="fas fa-folder-open" aria-hidden="true"></i> Pilih dari GitHub</button>
+<button type="button" class="btn btn-red" onclick="editors.music.startAdd()"><i class="fas fa-plus" aria-hidden="true"></i> Tambah</button>
+</div>
+</div>
+<div id="musicList"></div>
+<form id="musicForm" class="hidden admin-form border-t border-gray-800 mt-4 pt-4"><button type="submit" hidden>Simpan</button></form>
+</div>
+</div>
+
+<div class="tab-panel" id="tabText">
+<div class="admin-card">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h2 class="font-bold">✍️ Teks Situs</h2>
+<p class="text-xs text-gray-500">Ubah semua kata-kata di <code class="text-red-400">index.html</code> (hero + More Info + judul Play), <code class="text-red-400">play.html</code>, <code class="text-red-400">newsandpopular.html</code>, dan <code class="text-red-400">mylist.html</code> — termasuk notifikasi navbar. Disimpan ke <code class="text-red-400">src/data/site-text-data.js</code> lewat GitHub.</p>
+</div>
+<button type="button" class="btn btn-red" onclick="openTextForm()"><i class="fas fa-pen" aria-hidden="true"></i> Edit Teks</button>
+</div>
+<div id="textStatus" class="text-xs text-gray-500 mb-2"></div>
+<form id="textForm" class="hidden admin-form border-t border-gray-800 mt-2 pt-4"><button type="submit" hidden>Simpan</button></form>
+<p class="admin-hint mt-2">Setelah selesai klik <b>Simpan Perubahan ke GitHub</b> di kartu Koneksi GitHub. Halaman memakai nilai dari file ini; field kosong memakai teks bawaan di HTML-nya.</p>
+</div>
+</div>
+
+<div class="tab-panel" id="tabBlock">
+<div class="admin-card">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h2 class="font-bold">🚫 Daftar Blokir Perangkat</h2>
+<p class="text-xs text-gray-500">Kelola daftar IP / IMEI / MAC Address / Fingerprint yang diblokir. Disimpan ke <code class="text-red-400">src/data/blocked-devices.json</code>. Perangkat yang cocok otomatis melihat layar blokir saat membuka admin.</p>
+</div>
+<div class="flex items-center gap-2 flex-wrap">
+<button type="button" class="btn btn-gray" onclick="detectMyDevice()"><i class="fas fa-microchip" aria-hidden="true"></i> Deteksi Perangkat Ini</button>
+<button type="button" class="btn btn-gray" onclick="downloadBlockedList()"><i class="fas fa-download" aria-hidden="true"></i> Unduh Daftar</button>
+<button type="button" class="btn btn-green" onclick="loadBlocked()"><i class="fas fa-download" aria-hidden="true"></i> Muat dari GitHub</button>
+<button type="button" class="btn btn-red" onclick="saveBlocked()"><i class="fas fa-upload" aria-hidden="true"></i> Simpan ke GitHub</button>
+</div>
+</div>
+<div id="myDeviceInfo" class="admin-hint"></div>
+<form id="blockForm" class="admin-form grid grid-cols-2 gap-2 mb-3 mt-2">
+<div>
+<label class="admin-label" for="blockType">Tipe</label>
+<select id="blockType" class="admin-input">
+<option value="IP">IP Address</option>
+<option value="IMEI">IMEI</option>
+<option value="MAC">MAC Address</option>
+<option value="Fingerprint">Fingerprint Perangkat</option>
+</select>
+</div>
+<div>
+<label class="admin-label" for="blockValue">Nilai (IP / IMEI / MAC / Fingerprint)</label>
+<input id="blockValue" type="text" class="admin-input" placeholder="mis. 192.168.1.10" autocomplete="off">
+</div>
+<div class="form-field-full" style="grid-column:1/-1">
+<label class="admin-label" for="blockReason">Alasan (opsional)</label>
+<input id="blockReason" type="text" class="admin-input" placeholder="mis. 3x salah PIN" autocomplete="off">
+</div>
+<div class="form-field-full" style="grid-column:1/-1">
+<button type="submit" class="btn btn-red"><i class="fas fa-plus" aria-hidden="true"></i> Tambah ke Daftar Blokir</button>
+<button type="button" class="btn btn-gray hidden" id="blockEditCancel" onclick="cancelBlockEdit()">Batal Edit</button>
+</div>
+</form>
+<div id="blockList"></div>
+<p class="admin-hint mt-3">⚠️ Browser TIDAK mengungkap IMEI/MAC asli perangkat ke situs web mana pun (kebijakan privasi browser). Sebagai gantinya, panel ini memakai <b>fingerprint perangkat</b> (canvas + WebGL + info browser) dan <b>IP publik</b> — keduanya cukup untuk memblokir pengguna yang mencoba PIN berulang kali.</p>
+</div>
+</div>
+
+<div class="tab-panel" id="tabSettings">
+<div class="admin-card">
+<h2 class="font-bold mb-3">🎛️ Pengaturan Tampilan Situs</h2>
+<p class="text-sm text-gray-400 mb-3">Jarak paragraf pesan berita &amp; video halaman Play — disimpan ke <code class="text-red-400">src/data/site-settings-data.js</code> dan <code class="text-red-400">src/data/play-video-data.js</code> (upload lewat GitHub API).</p>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="admin-label" for="newsSpacing">Jarak antar paragraf pesan berita (px)</label>
+<input id="newsSpacing" type="number" min="0" max="80" class="admin-input" value="16">
+<p class="admin-hint">Dipakai di newsandpopular.html (default 16px).</p>
+</div>
+<div>
+<label class="admin-label" for="playVideoZone">Video halaman Play (play.html)</label>
+<div id="playVideoZone" class="upload-zone" data-kind="video" data-folder="src/videos/playpage/">
+<input id="fld_playVideo_src" type="hidden">
+<input type="file" accept="video/*" hidden>
+<div class="uz-content">
+<i class="fas fa-video"></i>
+<p class="uz-title">Seret &amp; letakkan video di sini</p>
+<p class="uz-sub">atau klik untuk memilih file</p>
+<p class="uz-folder"><i class="fas fa-folder" aria-hidden="true"></i>src/videos/playpage/</p>
+<p class="uz-name"></p>
+</div>
+<div class="uz-actions" hidden>
+<button type="button" class="uz-replace"><i class="fas fa-sync-alt" aria-hidden="true"></i> Ganti</button>
+<button type="button" class="uz-clear"><i class="fas fa-times" aria-hidden="true"></i> Hapus</button>
+</div>
+<div class="uz-preview" hidden></div>
+<div class="uz-progress" hidden><div class="uz-progress-bar"></div><span class="uz-progress-text"></span></div>
+<div class="uz-status"></div>
+</div>
+<p class="admin-hint">File otomatis dinamai <code class="text-red-400">video.mp4</code> (mengganti video Play lama).</p>
+<button type="button" class="btn btn-gray mt-2" onclick="openLibrary('src/videos/playpage/','play')"><i class="fas fa-folder-open" aria-hidden="true"></i> Pilih dari GitHub</button>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<button type="button" class="btn btn-green" onclick="loadSettings()"><i class="fas fa-download" aria-hidden="true"></i> Muat Pengaturan dari GitHub</button>
+<button type="button" class="btn btn-red" onclick="saveSettings()"><i class="fas fa-upload" aria-hidden="true"></i> Simpan Pengaturan ke GitHub</button>
+</div>
+<p id="settingsMsg" class="text-sm mt-3"></p>
+</div>
+<div class="admin-card">
+<h2 class="font-bold mb-3">🔐 Ganti PIN</h2>
+<p class="text-sm text-gray-400 mb-3">PIN disimpan di localStorage browser ini (berlaku untuk perangkat ini saja). Default bawaan di kode: <code class="text-red-400" style="word-break:break-all">9999999990000000000222222222244444444446666666666111111111133333333335555555555A</code>. Setelah <b>3x salah</b>, perangkat ini diblokir permanen.</p>
+<div class="flex flex-wrap gap-2 items-end">
+<div>
+<label class="admin-label" for="newPin">PIN baru</label>
+<input id="newPin" type="password" class="admin-input max-w-xs" autocomplete="off">
+</div>
+<button type="button" class="btn btn-gray" onclick="changePin()">Simpan PIN</button>
+<button type="button" class="btn btn-gray" onclick="resetPin()">Kembalikan ke bawaan</button>
+</div>
+<p id="pinMsg" class="text-sm mt-3"></p>
+</div>
+<div class="admin-card">
+<h2 class="font-bold mb-3">🧹 Keamanan &amp; Privasi</h2>
+<p class="text-sm text-gray-400 mb-3">Hapus token GitHub, konfigurasi repo, dan PIN yang tersimpan di browser ini (localStorage). Setelah dibersihkan, panel kembali ke layar PIN.</p>
+<button type="button" class="btn btn-danger" onclick="clearStoredConfig()"><i class="fas fa-eraser" aria-hidden="true"></i> Bersihkan Token &amp; Konfigurasi</button>
+</div>
+<div class="admin-card">
+<h2 class="font-bold mb-3">ℹ️ Cara Pakai</h2>
+<ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
+<li>Isi Owner / Repository / Branch / Token GitHub, lalu <b>Tes Koneksi</b>.</li>
+<li>Klik <b>Muat Data dari GitHub</b> — semua konten situs diambil dari repo.</li>
+<li>Edit konten: <b>Berita</b> (tanggal, judul, isi, video opsional) · <b>Foto Series</b> (upload foto + rasio) · <b>Video Movies</b> (upload video + thumbnail) · <b>Musik</b> (path/URL lagu + judul).</li>
+<li>Media foto/video <b>di-upload langsung</b> lewat drag &amp; drop / pilih file — path otomatis terisi: Foto Series &amp; thumbnail → <b>src/images/photo</b>, Video Movies → <b>src/videos/moviespage</b>, Video Berita → <b>src/videos/newsandpopularpage</b>. Musik tetap path/URL (file sudah ada di repo/hosting).</li>
+<li>Klik <b>Simpan Perubahan ke GitHub</b> — commit dibuat otomatis (Vercel auto re-deploy ±1 menit).</li>
+</ol>
+<p class="text-xs text-gray-500 mt-3">⚠️ Token hanya disimpan di browser kamu. Jangan pernah menaruh token di dalam file repo.</p>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>var ADMIN_PIN="9999999990000000000222222222244444444446666666666111111111133333333335555555555A",LS={get:function(e,t){try{var a=localStorage.getItem(e);return null===a?t:a}catch(e){return t}},set:function(e,t){try{localStorage.setItem(e,t)}catch(e){}},del:function(e){try{localStorage.removeItem(e)}catch(e){}}};function esc(e){return String(null==e?"":e).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}var DATA_FILES=[{key:"news",varName:"NEWS_ITEMS",path:"src/data/news-data.js",label:"Pesan Berita"},{key:"series",varName:"SERIES_ITEMS",path:"src/data/series-data.js",label:"Foto Series"},{key:"movies",varName:"MOVIES_ITEMS",path:"src/data/movies-data.js",label:"Video Movies"},{key:"music",varName:"MUSIC_PLAYLIST",path:"src/data/music-data.js",label:"Musik"},{key:"siteText",varName:"SITE_TEXT",path:"src/data/site-text-data.js",label:"Teks Situs"},{key:"settings",varName:"SITE_SETTINGS",path:"src/data/site-settings-data.js",label:"Pengaturan Situs"},{key:"playVideo",varName:"PLAY_VIDEO",path:"src/data/play-video-data.js",label:"Video Play"}],BLOCKED_FILE={key:"blocked",path:"src/data/blocked-devices.json",label:"Daftar Blokir"},state={},editors={};function log(e,t){var a=document.getElementById("logBox"),i=(new Date).toLocaleTimeString("id-ID",{hour12:!1}),n=document.createElement("div");n.className=t||"info",n.textContent="["+i+"] "+e,a.appendChild(n),a.scrollTop=a.scrollHeight}function currentPin(){var e=LS.get("mqAdminPin","");return e||ADMIN_PIN}var PIN_MAX_FAILURES=3,PIN_MIN_INTERVAL_MS=700,lastPinAttempt=0,pinBlocked=!1;function showPinError(e){var t=document.getElementById("pinError");t.classList.remove("hidden"),t.textContent=e}function pinFailCount(){return parseInt(LS.get("mqPinFails","0"),10)||0}function setPinFailCount(e){LS.set("mqPinFails",String(e))}function blockDevice(e){pinBlocked=!0,LS.set("mqBlocked","1");try{sessionStorage.setItem("mqBlocked","1")}catch(e){}var t=document.getElementById("pinSection"),a=document.getElementById("adminSection");t&&(t.style.display="none"),a&&a.classList.add("hidden"),document.getElementById("blockedSection").classList.remove("hidden");var i=document.getElementById("blockedReasonText");i&&e&&(i.textContent=e);var n=document.getElementById("blockedMeta");n&&(n.textContent="FP: "+getDeviceFingerprint()+" · IP: "+(sessionStorage.getItem("mqMyIP")||"belum terdeteksi")),log("🚫 PERANGKAT DIBLOKIR: "+(e||"tanpa alasan"),"err")}function getDeviceFingerprint(){try{var e=sessionStorage.getItem("mqDeviceFP");if(e)return e}catch(e){}var t=[];try{var a=document.createElement("canvas"),i=a.getContext("2d");i&&(i.textBaseline="top",i.font="14px Arial",i.fillStyle="#e50914",i.fillRect(0,0,80,50),i.fillStyle="#0a0a0a",i.fillText("Netflix-MyQueen-FP",2,4),t.push(a.toDataURL()))}catch(e){}try{var n=document.createElement("canvas").getContext("webgl");if(n){var r=n.getExtension("WEBGL_debug_renderer_info");t.push(r?String(n.getParameter(r.UNMASKED_RENDERER_WEBGL)):"gl"),t.push(String(n.getParameter(n.MAX_TEXTURE_SIZE)))}}catch(e){}var o=[navigator.userAgent,navigator.language,navigator.platform,navigator.hardwareConcurrency,navigator.deviceMemory,(new Date).getTimezoneOffset(),screen.width+"x"+screen.height,screen.colorDepth,navigator.maxTouchPoints];t.push(o.join("|"));for(var l=0,s=t.join("~~"),d=0;d<s.length;d++)l=(l<<5)-l+s.charCodeAt(d)|0;var u="FP-"+(l>>>0).toString(16).toUpperCase();try{sessionStorage.setItem("mqDeviceFP",u)}catch(e){}return u}async function getPublicIP(){try{var e=sessionStorage.getItem("mqMyIP");if(e)return e}catch(e){}try{var t=new AbortController,a=setTimeout(function(){t.abort()},6e3),i=await fetch("https://api.ipify.org?format=json",{signal:t.signal});if(clearTimeout(a),!i.ok)return"";var n=await i.json(),r=String(n.ip||"").trim();if(r){try{sessionStorage.setItem("mqMyIP",r)}catch(e){}return r}}catch(e){}return""}async function checkBlockedOnLoad(){try{var e=getDeviceFingerprint(),t="";try{t=await getPublicIP()}catch(e){}var a=await fetch("src/data/blocked-devices.json",{cache:"no-store"});if(!a.ok)return;var i=await a.json();if(!Array.isArray(i))return;for(var n=e.toLowerCase(),r=String(t||"").toLowerCase(),o=0;o<i.length;o++){var l=i[o]||{},s=String(l.value||"").toLowerCase(),d=String(l.type||"").toLowerCase();if(s&&("fingerprint"===d&&s===n||"ip"===d&&r&&s===r))return void blockDevice("Perangkat Anda terdaftar di daftar blokir situs ini.")}}catch(e){}}function openDashboard(){document.getElementById("pinSection").style.display="none",document.getElementById("adminSection").classList.remove("hidden"),restoreGhConfig(),initSettingsZone(),fillSettingsForm()}function lockAdmin(){try{sessionStorage.removeItem("mqAdminUnlocked")}catch(e){}document.getElementById("adminSection").classList.add("hidden"),document.getElementById("pinSection").style.display="block",document.getElementById("pinInput").value="",document.getElementById("pinError").classList.add("hidden")}function switchTab(e){for(var t=document.querySelectorAll(".tab-btn"),a=0;a<t.length;a++)t[a].classList.toggle("active",t[a].getAttribute("data-tab")===e);for(var i=document.querySelectorAll(".tab-panel"),n=0;n<i.length;n++)i[n].classList.toggle("active",i[n].id===e)}function ghConfig(){return{owner:document.getElementById("ghOwner").value.trim(),repo:document.getElementById("ghRepo").value.trim(),branch:document.getElementById("ghBranch").value.trim()||"main",token:document.getElementById("ghToken").value.trim()}}function restoreGhConfig(){document.getElementById("ghOwner").value=LS.get("mqGhOwner",""),document.getElementById("ghRepo").value=LS.get("mqGhRepo",""),document.getElementById("ghBranch").value=LS.get("mqGhBranch","main"),document.getElementById("ghToken").value=LS.get("mqGhToken","")}function saveGhConfig(e){LS.set("mqGhOwner",e.owner),LS.set("mqGhRepo",e.repo),LS.set("mqGhBranch",e.branch),LS.set("mqGhToken",e.token)}async function ghApi(e,t,a){var i=ghConfig(),n={Accept:"application/vnd.github+json"};i.token&&(n.Authorization="Bearer "+i.token);var r={method:t||"GET",headers:n};void 0!==a&&(r.body=JSON.stringify(a));var o,l=null,s=null;"undefined"!=typeof AbortController&&(l=new AbortController,s=setTimeout(function(){l.abort()},3e4),r.signal=l.signal);try{o=await fetch("https://api.github.com"+e,r)}catch(e){throw l&&clearTimeout(s),new Error(e&&"AbortError"===e.name?"Waktu tunggu habis (30 detik) — periksa koneksi internet.":"Gagal menghubungi GitHub: "+(e&&e.message?e.message:e))}l&&clearTimeout(s);var d=null;try{d=await o.json()}catch(e){}if(!o.ok){var u=d&&(d.message||d.error)||"HTTP "+o.status;throw new Error(u)}return d}function decodeB64(e){for(var t=atob(e),a=new Uint8Array(t.length),i=0;i<t.length;i++)a[i]=t.charCodeAt(i);return new TextDecoder("utf-8").decode(a)}function encodeB64(e){for(var t=(new TextEncoder).encode(e),a="",i=0;i<t.length;i++)a+=String.fromCharCode(t[i]);return btoa(a)}async function ghGetFile(e){var t=ghConfig(),a=await ghApi("/repos/"+t.owner+"/"+t.repo+"/contents/"+e+"?ref="+encodeURIComponent(t.branch));return{sha:a.sha,content:decodeB64(a.content)}}async function ghPutFile(e,t,a,i){var n=ghConfig(),r={message:a,content:encodeB64(t),branch:n.branch};return i&&(r.sha=i),await ghApi("/repos/"+n.owner+"/"+n.repo+"/contents/"+e,"PUT",r)}async function ghDeleteFile(e,t){var a=ghConfig(),i=await ghApi("/repos/"+a.owner+"/"+a.repo+"/contents/"+e+"?ref="+encodeURIComponent(a.branch)),n={message:t||"Hapus "+e+" via admin.html",branch:a.branch,sha:i.sha};return ghApi("/repos/"+a.owner+"/"+a.repo+"/contents/"+e,"DELETE",n)}function isRepoPath(e){return e=String(e||""),!/^(https?:|blob:|data:)/i.test(e)&&/^(src\/|\.\/|\/)/.test(e)}async function testConnection(){var e=ghConfig();if(e.owner&&e.repo&&e.token){saveGhConfig(e),log("Mengetes koneksi ke GitHub…");try{var t=await ghApi("/user");await ghApi("/repos/"+e.owner+"/"+e.repo),document.getElementById("connStatus").innerHTML='<span class="status-dot" style="background:#1db954"></span>Terhubung sebagai <b>'+(t.login||e.owner)+"</b>",log("Koneksi OK — login: "+t.login+" @ "+e.owner+"/"+e.repo+":"+e.branch,"ok")}catch(e){document.getElementById("connStatus").innerHTML='<span class="status-dot" style="background:#e50914"></span>Gagal',log("Tes koneksi GAGAL: "+e.message,"err")}}else log("Lengkapi Owner, Repository, Branch, dan Token dulu.","err")}function parseDataFile(e,t){var a=new RegExp("window\\."+t+"\\s*=\\s*([\\[\\{])"),i=e.match(a);if(!i)throw new Error("Format tidak dikenali: window."+t+" = …");var n,r=i.index+i[0].length-1,o=e[r],l="["===o?"]":"}",s=0,d=!1,u=!1;for(n=r;n<e.length;n++){var c=e[n];if(d)u?u=!1:"\\"===c?u=!0:'"'===c&&(d=!1);else if('"'===c)d=!0;else if(c===o)s++;else if(c===l&&0===--s)break}var m=e.slice(r,n+1);if(!isDataLiteral(m))throw new Error("Isi "+t+" tidak aman / bukan literal data.");return new Function("return "+m+";")()}function isDataLiteral(e){var t=e.replace(/"(?:\\.|[^"\\])*"/g,'""');return!/[^\s\[\]{}\]:,+.\-0-9a-zA-Z"]/.test(t)&&!/[A-Za-z_$][A-Za-z0-9_$]*\s*\(/.test(t)}function fileHeader(e){return"/* ==========================================================================\n   "+e+" — DIKELOLA OTOMATIS oleh admin.html\n   Jangan edit manual jika tidak perlu — perubahan bisa tertimpa\n   saat admin.html menyimpan. ========================================================================== */\n"}function serializeFile(e,t,a){return fileHeader(e)+"\nwindow."+t+" = "+JSON.stringify(a,null,4)+";\n"}async function loadAllData(){var e=ghConfig();if(e.owner&&e.repo&&e.token){saveGhConfig(e),log("Memuat data dari GitHub…");for(var t=0,a=0;a<DATA_FILES.length;a++){var i=DATA_FILES[a];try{var n=await ghGetFile(i.path);state[i.key]={data:parseDataFile(n.content,i.varName),sha:n.sha,dirty:!1},log("✓ "+i.label+" dimuat dari GitHub ("+i.path+")","ok"),t++}catch(e){var r=String(e&&e.message?e.message:e);if(r.indexOf("404")>=0||/not found/i.test(r)){log("⚠ "+i.path+" belum ada di GitHub — coba ambil dari situs ini…","info");var o=await tryLoadLocal(i);o?(state[i.key]={data:o,sha:null,dirty:!0},log("✓ "+i.label+" diambil dari situs (belum di GitHub, akan dibuat saat disimpan)","ok")):log("✗ "+i.label+" tidak ditemukan di GitHub maupun situs.","err")}else log("✗ "+i.label+" gagal dimuat: "+e.message,"err")}}0===t&&0===Object.keys(state).length&&log("Tidak ada data yang bisa dimuat. Periksa token/owner/repo, atau pastikan repo sudah punya file data.","err"),renderAll(),updateDirtySummary()}else log("Isi koneksi GitHub dulu (Owner/Repo/Token), lalu coba lagi.","err")}async function tryLoadLocal(e){try{var t=await fetch(e.path,{cache:"no-store"});return t.ok?parseDataFile(await t.text(),e.varName):null}catch(e){return null}}function renderAll(){state.news&&editors.news.render(),state.series&&editors.series.render(),state.movies&&editors.movies.render(),state.music&&editors.music.render(),renderTextStatus(),renderSettingsStatus(),renderBlockBadge(),fillSettingsForm()}async function saveAllData(){var e=[];for(var t in state)state[t]&&state[t].dirty&&e.push(t);if(e.length)if(ghConfig().token){log("Menyimpan "+e.length+" file ke GitHub…");for(var a=0,i=0;i<e.length;i++){for(var n=e[i],r=null,o=0;o<DATA_FILES.length;o++)if(DATA_FILES[o].key===n){r=DATA_FILES[o];break}if(r){var l=state[n],s=serializeFile(r.path,r.varName,l.data),d="update "+r.path+" via admin.html";try{var u=await ghPutFile(r.path,s,d,l.sha);state[n].sha=u&&u.content&&u.content.sha?u.content.sha:null,state[n].dirty=!1,log("✓ "+r.label+" tersimpan → "+d,"ok"),a++}catch(e){log("✗ "+r.label+" GAGAL disimpan: "+e.message,"err")}}}updateDirtySummary(),a===e.length&&log("Selesai! Vercel akan auto re-deploy dalam ±1 menit. 🚀","ok")}else log("Token GitHub belum diisi.","err");else log("Tidak ada perubahan untuk disimpan. Ubah konten dulu, atau muat data lagi.","info")}function updateDirtySummary(){var e=0;for(var t in state)state[t]&&state[t].dirty&&e++;var a=document.getElementById("dirtySummary");e>0?a.innerHTML='<span class="dirty-badge">'+e+" file belum disimpan</span>":a.textContent=""}function refreshMediaPreview(e){var t=e.nextElementSibling;if(t&&t.classList&&t.classList.contains("media-preview")){var a=e.value.trim();if(!a)return t.classList.remove("show"),void t.removeAttribute("src");"IMG"===t.tagName?(t.onload=function(){t.classList.add("show")},t.onerror=function(){t.classList.remove("show")},t.src=a):(t.src=a,t.classList.add("show"))}}function sanitizeFileName(e){return String(e).replace(/[^a-zA-Z0-9._-]+/g,"_").replace(/_+/g,"_").replace(/^_+|_+$/g,"").slice(0,40)||"file"}function readFileAsBase64(e,t){return new Promise(function(a,i){var n=new FileReader;n.onprogress=function(e){e.lengthComputable&&t&&t(e.loaded/e.total)},n.onload=function(){var e=String(n.result),t=e.indexOf("base64,");a(t>=0?e.slice(t+7):e)},n.onerror=function(){i(new Error("Gagal membaca file."))},n.readAsDataURL(e)})}async function ghPutBinary(e,t,a){var i=ghConfig(),n={message:a,content:t,branch:i.branch};return ghApi("/repos/"+i.owner+"/"+i.repo+"/contents/"+e,"PUT",n)}async function ghListDir(e){var t=ghConfig(),a=await ghApi("/repos/"+t.owner+"/"+t.repo+"/contents/"+e+"?ref="+encodeURIComponent(t.branch));return Array.isArray(a)?a:[]}async function uploadMediaToGitHub(e,t,a,i){i=i||{};var n=ghConfig();if(!n.owner||!n.repo)throw new Error("Isi Owner & Repository dulu di koneksi GitHub.");if(!n.token)throw new Error("Isi Token GitHub dulu di koneksi GitHub.");var r,o=(String(e.name).match(/\.[^.]+$/)||[""])[0].toLowerCase();if(i.fixed)r=t+i.fixed;else if(i.prefix){var l=1;try{var s=await ghListDir(t),d=new RegExp("^"+i.prefix.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(\\d+)\\.");s.forEach(function(e){if(e&&"file"===e.type){var t=e.name.match(d);if(t){var a=parseInt(t[1],10);!isNaN(a)&&a>=l&&(l=a+1)}}})}catch(e){}r=t+i.prefix+l+o}else{r=t+sanitizeFileName(String(e.name).replace(/\.[^.]+$/,""))+"_"+Date.now()+o}var u=await readFileAsBase64(e,a),c=null;if(i.fixed)try{var m=await ghApi("/repos/"+n.owner+"/"+n.repo+"/contents/"+r+"?ref="+encodeURIComponent(n.branch));m&&m.sha&&(c=m.sha)}catch(e){}var p={message:"Upload media "+r+" via admin.html",content:u,branch:n.branch};return c&&(p.sha=c),await ghApi("/repos/"+n.owner+"/"+n.repo+"/contents/"+r,"PUT",p),r}function setUploadZoneValue(e,t){var a=e.querySelector('input[type="hidden"]'),i=e.querySelector(".uz-name"),n=e.querySelector(".uz-preview"),r=e.querySelector(".uz-actions");if(t=t||"",a&&(a.value=t),i&&(i.textContent=t),e.classList.toggle("has-file",!!t),r&&(r.hidden=!t),n)if(n.innerHTML="",t){var o=e.getAttribute("data-kind");if("video"===o){var l=document.createElement("video");l.controls=!0,l.preload="metadata",l.src=t,n.appendChild(l)}else if("audio"===o){var s=document.createElement("audio");s.controls=!0,s.preload="metadata",s.src=t,n.appendChild(s)}else{var d=document.createElement("img");d.alt="Pratinjau",d.src=t,d.onerror=function(){n.hidden=!0},n.appendChild(d)}n.hidden=!1}else n.hidden=!0}function initUploadZone(e,t){var a=e.querySelector('input[type="file"]'),i=e.querySelector(".uz-progress"),n=e.querySelector(".uz-progress-bar"),r=e.querySelector(".uz-progress-text"),o=e.querySelector(".uz-status"),l=e.querySelector(".uz-clear"),s=e.querySelector(".uz-replace"),d=e.getAttribute("data-kind"),u=t.maxSize||1024*("video"===d?70:20)*1024;function c(e,t){o&&(o.className="uz-status"+(t?" "+t:""),o.textContent=e)}function m(e){i&&(i.hidden=!1,n.style.width=Math.round(100*e)+"%",r.textContent=Math.round(100*e)+"%")}function p(){i&&(i.hidden=!0,n.style.width="0%")}function g(a){var i="video"===d?/^video\//:"audio"===d?/^audio\//:/^image\//,n=String(a.name||"").toLowerCase(),r="video"===d?/\.(mp4|webm|ogg|ogv|mov|m4v)$/.test(n):"audio"===d?/\.(mp3|ogg|oga|m4a|wav|aac|flac|opus)$/.test(n):/\.(png|jpe?g|webp|gif|avif)$/.test(n);if(i.test(String(a.type||"").toLowerCase())||r)if(a.size>u)c("File terlalu besar — maks "+Math.round(u/1048576)+" MB.","err");else{c("Mengupload ke repo…");var o={};t.fixedName?o.fixed=t.fixedName:t.renamePrefix&&(o.prefix="function"==typeof t.renamePrefix?t.renamePrefix():t.renamePrefix),uploadMediaToGitHub(a,e.getAttribute("data-folder"),m,o).then(function(t){p(),setUploadZoneValue(e,t),c("✓ Ter-upload: "+t,"ok"),toast("Media ter-upload: "+t,"ok")}).catch(function(e){p(),c("✗ Gagal: "+e.message,"err"),toast("Upload gagal: "+e.message,"err")})}else c("Tipe file tidak didukung.","err")}e.addEventListener("click",function(e){e.target.closest(".uz-preview video")||e.target.closest(".uz-actions")||a.click()}),a.addEventListener("change",function(){a.files&&a.files[0]&&g(a.files[0]),a.value=""}),e.addEventListener("dragover",function(t){t.preventDefault(),t.stopPropagation(),e.classList.add("drag")}),e.addEventListener("dragleave",function(){e.classList.remove("drag")}),e.addEventListener("drop",function(t){t.preventDefault(),t.stopPropagation(),e.classList.remove("drag"),t.dataTransfer&&t.dataTransfer.files&&t.dataTransfer.files[0]&&g(t.dataTransfer.files[0])}),s&&s.addEventListener("click",function(e){e.preventDefault(),e.stopPropagation(),a.click()}),l&&l.addEventListener("click",function(t){t.preventDefault(),t.stopPropagation(),setUploadZoneValue(e,""),c("File dikosongkan dari item — file di repo tidak ikut dihapus. Untuk menghapus file juga, hapus item-nya.")})}function toast(e,t){var a=document.getElementById("toastBox");if(a){var i=document.createElement("div");i.className="toast "+(t||"info"),i.textContent=e,a.appendChild(i),setTimeout(function(){i.classList.add("out"),setTimeout(function(){i.parentNode&&i.parentNode.removeChild(i)},400)},3800)}}function normalizeDate(e){if(!(e=String(e||"").trim()))return e;var t=e.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);if(t)return t[3]+"-"+String(t[2]).padStart(2,"0")+"-"+String(t[1]).padStart(2,"0");if(t=e.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))return t[1]+"-"+String(t[2]).padStart(2,"0")+"-"+String(t[3]).padStart(2,"0");var a=new Date(e);return isNaN(a.getTime())?e:a.getFullYear()+"-"+String(a.getMonth()+1).padStart(2,"0")+"-"+String(a.getDate()).padStart(2,"0")}function makeListEditor(e){var t={key:e.key,fields:e.fields,renderItem:e.renderItem,editingIndex:-1,get listEl(){return document.getElementById(e.key+"List")},get formEl(){return document.getElementById(e.key+"Form")},items:function(){return state[e.key]||(state[e.key]={data:[],sha:null,dirty:!0}),state[e.key].data},fieldId:function(t){return"fld_"+e.key+"_"+t},markDirty:function(){state[e.key]&&(state[e.key].dirty=!0),updateDirtySummary()},formHtml:function(){var e=this;return'<div class="admin-form-header flex items-center justify-between mb-3"><h3 class="font-bold text-sm">'+(this.editingIndex>=0?"✏️ Edit item #"+(this.editingIndex+1):"➕ Tambah item baru")+'</h3></div><div class="admin-form-grid">'+this.fields.map(function(t){var a,i=e.fieldId(t.name),n='<label class="admin-label" for="'+i+'">'+t.label+"</label>",r="";if("textarea"===t.type)a='<textarea id="'+i+'" class="admin-input" rows="'+(t.rows||4)+'" placeholder="'+(t.placeholder||"")+'"></textarea>';else if("select"===t.type)a='<select id="'+i+'" class="admin-input">'+(t.options||[]).map(function(e){return'<option value="'+e+'">'+e+"</option>"}).join("")+"</select>";else if(t.upload){var o=t.upload.folder||"",l=t.upload.accept||"*/*";a='<div class="upload-zone" data-kind="'+(t.upload.kind||"image")+'" data-folder="'+o+'"><input id="'+i+'" type="hidden"><input type="file" accept="'+l+'" hidden><div class="uz-content"><i class="fas '+(t.upload.icon||"fa-cloud-upload-alt")+'"></i><p class="uz-title">'+(t.upload.title||"Seret & letakkan file di sini")+'</p><p class="uz-sub">atau klik untuk memilih file</p><p class="uz-folder"><i class="fas fa-folder" aria-hidden="true"></i>'+o+'</p><p class="uz-name"></p></div><div class="uz-actions" hidden><button type="button" class="uz-replace"><i class="fas fa-sync-alt" aria-hidden="true"></i> Ganti</button><button type="button" class="uz-clear"><i class="fas fa-times" aria-hidden="true"></i> Hapus</button></div><div class="uz-preview" hidden></div><div class="uz-progress" hidden><div class="uz-progress-bar"></div><span class="uz-progress-text"></span></div><div class="uz-status"></div></div>'}else t.kind?(a='<input id="'+i+'" type="text" class="admin-input" placeholder="'+(t.placeholder||"")+'" autocomplete="off" spellcheck="false">',"image"===t.kind?r='<img class="media-preview" alt="Pratinjau foto" hidden>':"video"===t.kind?r='<video class="media-preview" controls preload="metadata" hidden></video>':"audio"===t.kind&&(r='<audio class="media-preview" controls preload="none" hidden></audio>')):a='<input id="'+i+'" type="'+(t.type||"text")+'" class="admin-input" placeholder="'+(t.placeholder||"")+'">';return'<div class="form-field'+(t.full?" form-field-full":"")+'">'+n+a+r+(t.hint?'<p class="admin-hint">'+t.hint+"</p>":"")+"</div>"}).join("")+'</div><div class="flex flex-wrap gap-2 mt-4"><button type="submit" class="btn btn-red"><i class="fas fa-save" aria-hidden="true"></i> Simpan</button><button type="button" class="btn btn-gray" onclick="editors.'+this.key+'.cancel()">Batal</button></div>'},render:function(){var e=this,t=this.items();if(t&&Array.isArray(t)){var a=t.map(function(t,a){return'<div class="admin-row"><div class="admin-row-main">'+e.renderItem(t)+'</div><div class="admin-row-actions"><button type="button" class="btn-ghost" title="Naik" onclick="editors.'+e.key+".move("+a+',-1)"><i class="fas fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="btn-ghost" title="Turun" onclick="editors.'+e.key+".move("+a+',1)"><i class="fas fa-chevron-down" aria-hidden="true"></i></button><button type="button" class="btn-ghost" title="Salin" onclick="editors.'+e.key+".duplicate("+a+')"><i class="fas fa-copy" aria-hidden="true"></i></button><button type="button" class="btn-ghost" title="Edit" onclick="editors.'+e.key+".edit("+a+')"><i class="fas fa-pen" aria-hidden="true"></i></button><button type="button" class="btn-danger" title="Hapus" onclick="editors.'+e.key+".remove("+a+')"><i class="fas fa-trash" aria-hidden="true"></i></button></div></div>'}).join("");this.listEl.innerHTML=a||'<div class="empty-state"><i class="fas fa-inbox" aria-hidden="true"></i><p>Belum ada item — klik "Tambah".</p></div>';var i=document.getElementById("tabCount_"+this.key);i&&(i.textContent=t.length>0?String(t.length):"")}},openForm:function(e){var t=this;this.formEl.innerHTML=this.formHtml(),this.formEl.classList.remove("hidden"),this.formEl.onsubmit=function(e){e.preventDefault(),t.saveForm()},this.fields.forEach(function(a){var i=document.getElementById(t.fieldId(a.name));if(i)if(a.upload){var n=i.closest(".upload-zone");if(n){var r={kind:a.upload.kind,folder:a.upload.folder,maxSize:a.upload.maxSize};if(a.upload.fixedName&&(r.fixedName=a.upload.fixedName),a.upload.renamePrefix?r.renamePrefix=a.upload.renamePrefix:a.upload.renamePrefixField&&(r.renamePrefix=(l=a.upload.renamePrefixField,function(){var e=document.getElementById(t.fieldId(l));return"placeholder"+(e&&e.value?e.value:"9:16").replace(":","_")+"_"})),initUploadZone(n,r),e){var o=e[a.name];o&&setUploadZoneValue(n,o)}}}else{var l;if(a.kind&&i.addEventListener("input",function(){refreshMediaPreview(i)}),e){var s=e[a.name];"textarea"===a.type&&Array.isArray(s)&&(s=s.join("\n")),i.value=null==s?"":s}a.kind&&refreshMediaPreview(i)}})},startAdd:function(){this.editingIndex=-1,this.openForm(null);var e=this.formEl.querySelector('input:not([type="file"]):not([type="hidden"]), textarea, select');e&&e.focus()},edit:function(e){var t=this.items();this.editingIndex=e,this.openForm(t[e])},saveForm:function(){var a=this,i=this.formEl.querySelector('button[type="submit"]'),n=i?i.innerHTML:"";i&&(i.disabled=!0,i.innerHTML='<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Menyimpan…');try{var r=this.items(),o=this.editingIndex<0,l=o?null:r[this.editingIndex],s=l?JSON.parse(JSON.stringify(l)):{};if(this.fields.forEach(function(e){var t=document.getElementById(a.fieldId(e.name));if(t){var i=t.value;"number"===e.type&&(i=""===i?void 0:Number(i)),"textarea"===e.type&&e.asArray&&(i=i.split("\n").map(function(e){return e.trim()}).filter(Boolean)),s[e.name]=i}}),e.normalize&&(s=e.normalize(s)),e.validate){var d=e.validate(s);if(d)return void log(d,"err")}o?(r.push(s),log("➕ "+e.label+": item baru ditambahkan.","info")):(r[this.editingIndex]=s,log("✏️ "+e.label+" item #"+(this.editingIndex+1)+" diperbarui.","info")),this.formEl.classList.add("hidden"),this.editingIndex=-1,this.markDirty(),this.render(),e.onSaved&&e.onSaved(t,s,o)}catch(e){log("✗ Gagal menyimpan: "+e.message,"err")}finally{i&&(i.disabled=!1,i.innerHTML=n)}},cancel:function(){this.formEl.classList.add("hidden"),this.editingIndex=-1},remove:function(t){var a=this.items(),i=a[t],n=e.mediaPaths?e.mediaPaths(i):[],r=n.length?"\n\nFile media di repo yang akan dihapus:\n"+n.map(function(e){return"  • "+e}).join("\n"):"";if(confirm("Hapus item ini dari data?"+r+"\n\nFile yang masih dipakai item lain TIDAK akan dihapus.")){var o=[],l=ghConfig().token;l&&n.forEach(function(i){if(isRepoPath(i)){var n=!1;a.forEach(function(a,r){r!==t&&((e.mediaPaths?e.mediaPaths(a):[]).indexOf(i)>=0&&(n=!0))}),n||o.push(i)}}),a.splice(t,1),log("🗑 "+e.label+" item #"+(t+1)+" dihapus dari data.","info"),this.markDirty(),this.render(),o.length?(log("Menghapus "+o.length+" file media dari repo…","info"),async function(){for(var e=0,t=0;t<o.length;t++)try{await ghDeleteFile(o[t]),log("✓ file dihapus dari repo: "+o[t],"ok"),e++}catch(e){log("✗ Gagal hapus "+o[t]+": "+e.message,"err")}e===o.length?log("Semua file media berhasil dihapus dari repo. 🧹","ok"):log("Beberapa file media GAGAL dihapus — cek log di atas.","err")}()):log(l?"Tidak ada file media yang perlu dihapus (bukan path repo / masih dipakai item lain).":"Token belum diisi — item dihapus dari data, file media di repo TIDAK ikut terhapus.","info")}},duplicate:function(t){var a=this.items(),i=JSON.parse(JSON.stringify(a[t]));a.splice(t+1,0,i),log("📄 "+e.label+" item #"+(t+1)+" disalin.","info"),this.markDirty(),this.render(),e.onSaved&&e.onSaved(this,i,!0)},move:function(e,t){var a=this.items(),i=e+t;if(!(i<0||i>=a.length)){var n=a[e];a[e]=a[i],a[i]=n,this.markDirty(),this.render()}}};return editors[e.key]=t,t}document.getElementById("pinForm").addEventListener("submit",function(e){if(e.preventDefault(),pinBlocked)blockDevice("Percobaan PIN salah 3x.");else{if(Date.now()-lastPinAttempt<PIN_MIN_INTERVAL_MS)showPinError("Terlalu cepat. Tunggu sebentar.");else{lastPinAttempt=Date.now();if(document.getElementById("pinInput").value.trim()===currentPin()){setPinFailCount(0);try{sessionStorage.setItem("mqAdminUnlocked","1")}catch(e){}openDashboard()}else{var t=pinFailCount()+1;if(t>=PIN_MAX_FAILURES)return setPinFailCount(0),void blockDevice("Percobaan PIN salah 3x.");setPinFailCount(t),showPinError("PIN salah. Sisa percobaan: "+(PIN_MAX_FAILURES-t)),document.getElementById("pinInput").value="",document.getElementById("pinInput").focus()}}}}),function(){try{if("1"===LS.get("mqBlocked","")||"1"===sessionStorage.getItem("mqBlocked"))return void blockDevice("Perangkat ini diblokir.");checkBlockedOnLoad(),"1"===sessionStorage.getItem("mqAdminUnlocked")&&openDashboard()}catch(e){}}(),makeListEditor({key:"news",label:"Berita",fields:[{name:"date",label:"Tanggal",placeholder:"13-08-2026",hint:"Contoh: 13-08-2026 (DD-MM-YYYY) atau 2026-08-13. Pesan tampil otomatis saat tanggalnya tiba."},{name:"title",label:"Judul Pesan",placeholder:"Teruslah Bersinar Untukku"},{name:"paragraphs",label:"Isi Pesan (satu paragraf per baris)",type:"textarea",rows:7,asArray:!0,full:!0,placeholder:"Paragraf 1\nParagraf 2\ndan seterusnya…"},{name:"video",label:"Video (Opsional)",upload:{kind:"video",folder:"src/videos/newsandpopularpage/",accept:"video/*",icon:"fa-video",title:"Seret & letakkan video di sini",maxSize:73400320},hint:"Opsional — kosongkan untuk pesan teks saja. Upload langsung ke <code>src/videos/newsandpopularpage/</code> (drag &amp; drop / klik)."},{name:"countdown",label:"Countdown episode berikutnya (detik)",type:"number",placeholder:"5",hint:"(Opsional) Hanya dipakai jika ada video — default 5 detik."}],normalize:function(e){return e.date=normalizeDate(e.date),e},validate:function(e){return e.date?e.title?e.paragraphs&&e.paragraphs.length?null:"Isi pesan minimal satu paragraf.":"Judul pesan wajib diisi.":"Tanggal wajib diisi (contoh: 13-08-2026)."},renderItem:function(e){return'<div class="font-semibold">'+esc(e.title||"(tanpa judul)")+'</div><div class="text-xs text-gray-400">📅 '+esc(e.date||"?")+(e.video?" • 🎬 video":"")+" • "+((e.paragraphs||[]).length||0)+" paragraf</div>"},mediaPaths:function(e){return e.video?[e.video]:[]}}),makeListEditor({key:"series",label:"Foto Series",fields:[{name:"src",label:"Foto Series",upload:{kind:"image",folder:"src/images/photo/",accept:"image/*",icon:"fa-image",title:"Seret & letakkan foto di sini",maxSize:20971520,renamePrefixField:"ratio"},hint:"Upload langsung ke <code>src/images/photo/</code> (drag &amp; drop / klik). File otomatis dinamai ulang sesuai rasio &amp; nomor berikutnya di folder: <code>placeholder9_16_N.png</code> / <code>placeholder16_9_N.png</code> / <code>placeholder1_1_N.png</code> / <code>placeholder3_4_N.png</code> / <code>placeholder4_3_N.png</code>. Saat item dihapus, file media ikut dihapus dari repo (jika tidak dipakai item lain)."},{name:"ratio",label:"Rasio",type:"select",options:["9:16","16:9","3:4","4:3","1:1"],hint:"Contoh: 9:16 untuk foto potret HP. Menentukan awalan nama file saat upload."},{name:"label",label:"Label (Opsional)",placeholder:"Video 1",hint:"Opsional — nama yang tampil di modal. Kosongkan untuk memakai nama file."}],normalize:function(e){return!e.label&&e.src&&(e.label=String(e.src).split("/").pop().replace(/\.[^.]+$/,"")),e},validate:function(e){return e.src?null:"Isi path/URL foto dulu."},renderItem:function(e){return'<div class="flex items-center gap-3"><img class="admin-thumb" src="'+esc(e.src)+'" alt="" onerror="this.style.display=\'none\'"><div><div class="font-semibold">'+esc(e.label||e.src)+'</div><div class="text-xs text-gray-400">'+esc(e.ratio||"?")+(e.width?" • "+esc(String(e.width))+"×"+esc(String(e.height)):"")+"</div></div></div>"},mediaPaths:function(e){return e.src?[e.src]:[]}}),makeListEditor({key:"movies",label:"Video Movies",fields:[{name:"title",label:"Judul Video",placeholder:"Video 60"},{name:"video",label:"File Video",upload:{kind:"video",folder:"src/videos/moviespage/",accept:"video/*",icon:"fa-video",title:"Seret & letakkan video di sini",maxSize:73400320,renamePrefix:"video"},hint:"Upload langsung ke <code>src/videos/moviespage/</code> (drag &amp; drop / klik). File otomatis dinamai ulang <code>videoN.mp4</code> (N = nomor berikutnya di folder). Maks ±70 MB (batas GitHub Contents API)."},{name:"thumbnail",label:"Thumbnail (Foto)",upload:{kind:"image",folder:"src/images/photo/",accept:"image/*",icon:"fa-image",title:"Seret & letakkan thumbnail di sini",maxSize:20971520,renamePrefix:"thumb_"},hint:"Opsional — upload ke <code>src/images/photo/</code> dengan nama <code>thumb_N.ext</code>. Kosongkan untuk thumbnail bawaan."},{name:"countdown",label:"Countdown episode berikutnya (detik)",type:"number",placeholder:"5"}],validate:function(e){return e.video?null:"Isi path/URL video dulu."},renderItem:function(e){return'<div class="flex items-center gap-3">'+(e.thumbnail?'<img class="admin-thumb-square" src="'+esc(e.thumbnail)+'" alt="" onerror="this.style.display=\'none\'">':'<div class="admin-thumb-square admin-thumb-fallback"><i class="fas fa-film" aria-hidden="true"></i></div>')+'<div><div class="font-semibold">'+esc(e.title||"Video "+e.id)+'</div><div class="text-xs text-gray-400">#'+esc(String(e.id||"?"))+" • "+esc(e.video||"?")+"</div></div></div>"},mediaPaths:function(e){var t=[];return e.video&&t.push(e.video),e.thumbnail&&t.push(e.thumbnail),t},onSaved:function(e,t,a){if(a){var i=1;e.items().forEach(function(e){"number"==typeof e.id&&e.id>=i&&(i=e.id+1)}),t.id=i,e.markDirty(),e.render()}}}),makeListEditor({key:"music",label:"Musik",fields:[{name:"title",label:"Judul Lagu",placeholder:"Selamat Tinggal - Virgoun Ft. Audy",hint:"Contoh: Selamat Tinggal - Virgoun Ft. Audy"},{name:"src",label:"File Musik",upload:{kind:"audio",folder:"src/audio/",accept:"audio/*",icon:"fa-music",title:"Seret & letakkan lagu di sini",maxSize:31457280,renamePrefix:"musik"},hint:"Upload langsung ke <code>src/audio/</code> (drag &amp; drop / klik) — file otomatis dinamai <code>musikN.ext</code>. TIDAK ada input path/URL manual lagi."}],validate:function(e){return e.title?e.src?null:"Isi path/URL file music dulu.":"Judul lagu wajib diisi."},renderItem:function(e){return'<div class="font-semibold"><i class="fas fa-music text-red-500 mr-2" aria-hidden="true"></i>'+esc(e.title||e.src)+'</div><div class="text-xs text-gray-400">'+esc(e.src||"?")+"</div>"},mediaPaths:function(e){return e.src?[e.src]:[]}});var libOnPick=null;async function openLibrary(e,t){var a=null;if("music"===t?a=document.querySelector("#musicForm .upload-zone"):"play"===t?a=document.getElementById("playVideoZone"):"series"===t?a=document.querySelector("#seriesForm .upload-zone"):"movies"===t?a=document.querySelector('#moviesForm .upload-zone[data-kind="video"]'):"movies-thumb"===t&&(a=document.querySelector('#moviesForm .upload-zone[data-kind="image"]')),a)if(libOnPick=function(e){setUploadZoneValue(a,e),toast("Media dipilih: "+e,"ok"),closeLibrary()},document.getElementById("libFolder").textContent=e,document.getElementById("libList").innerHTML='<div class="lib-loading">Memuat daftar file…</div>',document.getElementById("libModal").classList.add("show"),ghConfig().token)try{var i=(await ghListDir(e)).filter(function(e){return e&&"file"===e.type});if(!i.length)return void(document.getElementById("libList").innerHTML='<div class="lib-empty">Folder kosong (atau belum ada). Upload file lewat drag &amp; drop dulu.</div>');var n=i.map(function(t){var a=t.size>1048576?(t.size/1048576).toFixed(1)+" MB":Math.round(t.size/1024)+" KB";return'<div class="lib-item"><span class="lib-name">'+esc(t.name)+'</span><span class="lib-size">'+a+'</span><button type="button" class="lib-use" onclick="pickLibraryItem(\''+esc(e)+"', '"+esc(t.name)+"')\">Gunakan</button></div>"}).join("");document.getElementById("libList").innerHTML=n}catch(e){document.getElementById("libList").innerHTML='<div class="lib-empty">Gagal memuat folder: '+esc(e.message)+"</div>"}else document.getElementById("libList").innerHTML='<div class="lib-empty">Isi Token GitHub dulu untuk melihat isi folder.</div>';else toast("Buka form Tambah/Edit dulu untuk memilih media dari GitHub.","err")}function pickLibraryItem(e,t){libOnPick&&libOnPick(e+t)}function closeLibrary(){document.getElementById("libModal").classList.remove("show"),libOnPick=null}function siteTextData(){return state.siteText||(state.siteText={data:{searchNotification:"",notifications:[],index:{heroTitle:"",heroDesc:"",moreInfoTitle:"",moreInfoParagraphs:[],playTitle:""},play:{title:"",paragraphs:[]},news:{heroTitle:"",heroDesc:""},mylist:{heroTitle:"",heroDesc:""}},sha:null,dirty:!1}),state.siteText.data}function renderTextStatus(){var e=document.getElementById("textStatus");e&&(e.textContent=state.siteText&&state.siteText.dirty?"⚠️ Perubahan teks belum disimpan ke GitHub.":"")}var TEXT_FIELDS=[{key:["searchNotification"],label:"Notifikasi pencarian (navbar)",type:"input"},{key:["notifications"],label:"Notifikasi bel — satu per baris",type:"textarea",array:!0},{key:["index","heroTitle"],label:"index.html — Judul hero",type:"input"},{key:["index","heroDesc"],label:"index.html — Deskripsi hero",type:"textarea"},{key:["index","moreInfoTitle"],label:'index.html — Judul "More Info"',type:"input"},{key:["index","moreInfoParagraphs"],label:'index.html — Isi "More Info" (satu paragraf per baris)',type:"textarea",array:!0},{key:["index","playTitle"],label:"index.html — Judul modal Play",type:"input"},{key:["play","title"],label:"play.html — Judul",type:"input"},{key:["play","paragraphs"],label:"play.html — Paragraf (satu per baris)",type:"textarea",array:!0},{key:["news","heroTitle"],label:"newsandpopular.html — Judul hero",type:"input"},{key:["news","heroDesc"],label:"newsandpopular.html — Deskripsi hero",type:"textarea"},{key:["mylist","heroTitle"],label:"mylist.html — Judul hero",type:"input"},{key:["mylist","heroDesc"],label:"mylist.html — Deskripsi hero",type:"textarea"}];function getTextVal(e,t){return t.reduce(function(e,t){return e&&void 0!==e[t]?e[t]:""},e)}function setTextVal(e,t,a){for(var i=e,n=0;n<t.length-1;n++)i[t[n]]&&"object"==typeof i[t[n]]||(i[t[n]]={}),i=i[t[n]];i[t[t.length-1]]=a}function openTextForm(){var e=document.getElementById("textForm"),t=siteTextData(),a='<div class="admin-form-grid">';TEXT_FIELDS.forEach(function(e,i){var n,r=getTextVal(t,e.key),o=e.array&&Array.isArray(r);"textarea"===e.type?n='<textarea id="txt_'+i+'" class="admin-input" rows="'+(o?Math.min(8,Math.max(2,r.length)):4)+'" placeholder="…"></textarea>':n='<input id="txt_'+i+'" type="text" class="admin-input" placeholder="…">';a+='<div class="form-field'+("textarea"===e.type?" form-field-full":"")+'"><label class="admin-label" for="txt_'+i+'">'+e.label+"</label>"+n+"</div>"}),a+="</div>",a+='<div class="flex flex-wrap gap-2 mt-4"><button type="submit" class="btn btn-red"><i class="fas fa-save" aria-hidden="true"></i> Simpan Perubahan Teks</button><button type="button" class="btn btn-gray" onclick="document.getElementById(\'textForm\').classList.add(\'hidden\')">Batal</button></div>',e.innerHTML=a,e.classList.remove("hidden"),e.onsubmit=function(e){e.preventDefault(),saveTextForm()},TEXT_FIELDS.forEach(function(e,a){var i=getTextVal(t,e.key),n=document.getElementById("txt_"+a);n&&(Array.isArray(i)&&(i=i.join("\n")),n.value=null==i?"":i)})}function saveTextForm(){var e=siteTextData();TEXT_FIELDS.forEach(function(t,a){var i=document.getElementById("txt_"+a);if(i){var n=i.value;t.array&&(n=n.split("\n").map(function(e){return e.trim()}).filter(Boolean)),setTextVal(e,t.key,n)}}),state.siteText.dirty=!0,renderTextStatus(),updateDirtySummary(),document.getElementById("textForm").classList.add("hidden"),log('✍️ Teks situs ditandai berubah — klik "Simpan Perubahan ke GitHub" untuk menerbitkan.',"info"),toast("Teks diperbarui. Simpan ke GitHub untuk menerbitkan.","ok")}function settingsData(){return state.settings||(state.settings={data:{newsParagraphSpacing:16},sha:null,dirty:!1}),state.settings.data}function playVideoData(){return state.playVideo||(state.playVideo={data:{src:"src/videos/playpage/video.mp4"},sha:null,dirty:!1}),state.playVideo.data}function renderSettingsStatus(){var e=document.getElementById("settingsMsg");if(e){var t=0;state.settings&&state.settings.dirty&&t++,state.playVideo&&state.playVideo.dirty&&t++,e.textContent=t?"⚠️ "+t+" perubahan pengaturan belum disimpan.":""}}function initSettingsZone(){var e=document.getElementById("playVideoZone");e&&!e.dataset.inited&&(e.dataset.inited="1",initUploadZone(e,{kind:"video",folder:"src/videos/playpage/",maxSize:73400320,fixedName:"video.mp4"}))}async function loadSettings(){var e=ghConfig();if(e.token){saveGhConfig(e),log("Memuat pengaturan situs dari GitHub…");for(var t=0;t<DATA_FILES.length;t++){var a=DATA_FILES[t];if("settings"===a.key||"playVideo"===a.key)try{var i=await ghGetFile(a.path);state[a.key]={data:parseDataFile(i.content,a.varName),sha:i.sha,dirty:!1},log("✓ "+a.label+" dimuat dari GitHub.","ok")}catch(e){var n=String(e&&e.message?e.message:e);if(n.indexOf("404")>=0||/not found/i.test(n)){var r=await tryLoadLocal(a);r?(state[a.key]={data:r,sha:null,dirty:!0},log("✓ "+a.label+" diambil dari situs (belum di GitHub).","ok")):log("✗ "+a.label+" tidak ditemukan di GitHub maupun situs.","err")}else log("✗ "+a.label+" gagal dimuat: "+e.message,"err")}}fillSettingsForm(),updateDirtySummary()}else log("Isi Token GitHub dulu.","err")}function fillSettingsForm(){var e=document.getElementById("newsSpacing");e&&state.settings&&(e.value=state.settings.data.newsParagraphSpacing);var t=document.getElementById("playVideoZone");t&&state.playVideo&&setUploadZoneValue(t,state.playVideo.data.src||"")}function saveSettings(){var e=document.getElementById("newsSpacing"),t=parseInt(e.value,10);if(isNaN(t)||t<0)toast("Jarak paragraf harus angka ≥ 0.","err");else{settingsData().newsParagraphSpacing=t,state.settings.dirty=!0;var a=document.getElementById("playVideoZone"),i=a?a.querySelector('input[type="hidden"]'):null;playVideoData().src=i&&i.value?i.value:playVideoData().src||"",state.playVideo.dirty=!0,renderSettingsStatus(),updateDirtySummary(),log('🎛️ Pengaturan situs ditandai berubah — klik "Simpan Perubahan ke GitHub" untuk menerbitkan.',"info"),toast("Pengaturan diperbarui. Simpan ke GitHub untuk menerbitkan.","ok")}}var blockEditingIndex=-1;function blockedData(){return state.blocked||(state.blocked={data:[],sha:null,dirty:!1}),state.blocked.data}function renderBlockBadge(){var e=document.getElementById("tabCount_block");e&&(e.textContent=blockedData().length>0?String(blockedData().length):"")}function renderBlocked(){var e=document.getElementById("blockList");if(e){var t=blockedData();t.length?e.innerHTML=t.map(function(e,t){return'<div class="block-row"><div style="min-width:0"><span class="block-type">'+esc(e.type||"?")+'</span><div class="block-value">'+esc(e.value||"")+"</div>"+(e.reason?'<div class="block-reason">'+esc(e.reason)+(e.added?" · "+esc(e.added):"")+"</div>":"")+'</div><div class="block-actions"><button type="button" class="btn-ghost" title="Edit" onclick="editBlocked('+t+')"><i class="fas fa-pen" aria-hidden="true"></i></button><button type="button" class="btn-danger" title="Hapus" onclick="removeBlocked('+t+')"><i class="fas fa-trash" aria-hidden="true"></i></button></div></div>'}).join(""):e.innerHTML='<div class="empty-state"><i class="fas fa-shield-alt" aria-hidden="true"></i><p>Belum ada perangkat diblokir.</p></div>',renderBlockBadge()}}async function loadBlocked(){var e=ghConfig();if(e.token){saveGhConfig(e),log("Memuat daftar blokir dari GitHub…");try{var t=await ghGetFile(BLOCKED_FILE.path),a=JSON.parse(t.content);Array.isArray(a)||(a=[]),state.blocked={data:a,sha:t.sha,dirty:!1},log("✓ "+BLOCKED_FILE.label+" dimuat ("+a.length+" entri).","ok")}catch(e){var i=String(e&&e.message?e.message:e);i.indexOf("404")>=0||/not found/i.test(i)?(state.blocked={data:[],sha:null,dirty:!0},log("⚠ "+BLOCKED_FILE.path+" belum ada di GitHub — daftar kosong dibuat.","info")):log("✗ "+BLOCKED_FILE.label+" gagal dimuat: "+e.message,"err")}renderBlocked()}else log("Isi Token GitHub dulu.","err")}async function saveBlocked(){var e=ghConfig();if(e.token){saveGhConfig(e);var t=JSON.stringify(blockedData(),null,4)+"\n",a="update "+BLOCKED_FILE.path+" via admin.html";try{var i=await ghPutFile(BLOCKED_FILE.path,t,a,state.blocked?state.blocked.sha:null);state.blocked=state.blocked||{data:blockedData()},state.blocked.sha=i&&i.content&&i.content.sha?i.content.sha:null,state.blocked.dirty=!1,log("✓ "+BLOCKED_FILE.label+" tersimpan ke GitHub ("+blockedData().length+" entri).","ok")}catch(e){log("✗ "+BLOCKED_FILE.label+" GAGAL disimpan: "+e.message,"err")}}else log("Isi Token GitHub dulu.","err")}function addBlockedEntry(e){e.preventDefault();var t=document.getElementById("blockType").value,a=document.getElementById("blockValue").value.trim();if(a){var i={type:t,value:a,reason:document.getElementById("blockReason").value.trim(),added:(new Date).toISOString().slice(0,10)};blockEditingIndex>=0?(blockedData()[blockEditingIndex]=i,blockEditingIndex=-1,log("✏️ Entri blokir diperbarui.","info")):(blockedData().push(i),log("➕ Entri blokir ditambahkan: "+t+" "+a,"info")),document.getElementById("blockEditCancel").classList.add("hidden"),document.getElementById("blockType").value="IP",document.getElementById("blockValue").value="",document.getElementById("blockReason").value="",state.blocked.dirty=!0,renderBlocked(),updateDirtySummary(),toast("Entri blokir ditambahkan ke daftar.","ok")}else toast("Nilai blokir wajib diisi.","err")}function editBlocked(e){var t=blockedData()[e];t&&(blockEditingIndex=e,document.getElementById("blockType").value=t.type||"IP",document.getElementById("blockValue").value=t.value||"",document.getElementById("blockReason").value=t.reason||"",document.getElementById("blockEditCancel").classList.remove("hidden"))}function cancelBlockEdit(){blockEditingIndex=-1,document.getElementById("blockEditCancel").classList.add("hidden"),document.getElementById("blockType").value="IP",document.getElementById("blockValue").value="",document.getElementById("blockReason").value=""}function removeBlocked(e){confirm("Hapus entri blokir ini dari daftar?")&&(blockedData().splice(e,1),state.blocked.dirty=!0,renderBlocked(),updateDirtySummary(),log("🗑 Entri blokir dihapus dari daftar.","info"))}function downloadBlockedList(){var e=blockedData(),t=(new Date).toISOString().slice(0,10).replace(/-/g,""),a=JSON.stringify(e,null,4)+"\n",i="DAFTAR PERANGKAT DIBLOKIR — Netflix-MyQueen\nDibuat: "+(new Date).toLocaleString("id-ID")+"\nJumlah: "+e.length+" entri\n==================================================\n\n";e.forEach(function(e,t){i+=t+1+". ["+(e.type||"?")+"] "+(e.value||"")+(e.reason?" — "+e.reason:"")+(e.added?" (diblokir: "+e.added+")":"")+"\n"});var n=document.createElement("a");n.href=URL.createObjectURL(new Blob([a],{type:"application/json"})),n.download="blocked-devices-"+t+".json",document.body.appendChild(n),n.click(),n.remove(),setTimeout(function(){var e=document.createElement("a");e.href=URL.createObjectURL(new Blob([i],{type:"text/plain"})),e.download="blocked-devices-"+t+".txt",document.body.appendChild(e),e.click(),e.remove()},250),log("📄 Daftar blokir diunduh ("+e.length+" entri).","ok")}async function detectMyDevice(){var e=document.getElementById("myDeviceInfo");e.innerHTML="Mendeteksi perangkat ini…";var t=await getPublicIP(),a=getDeviceFingerprint();e.innerHTML="<b>Fingerprint perangkat ini:</b> <code>"+esc(a)+"</code><br><b>IP publik:</b> <code>"+esc(t||"tidak terdeteksi (offline / diblokir)")+'</code><br><span class="text-gray-500">IMEI &amp; MAC asli tidak bisa dibaca browser (kebijakan privasi) — gunakan nilai di atas untuk memblokir perangkat ini.</span>',toast("Info perangkat ditampilkan di atas.","ok")}function changePin(){var e=document.getElementById("newPin").value.trim();e?(LS.set("mqAdminPin",e),document.getElementById("pinMsg").textContent="PIN baru disimpan untuk browser ini.",document.getElementById("newPin").value=""):document.getElementById("pinMsg").textContent="Isi PIN baru dulu."}function resetPin(){LS.del("mqAdminPin"),document.getElementById("pinMsg").textContent="PIN dikembalikan ke bawaan ("+ADMIN_PIN+")."}function clearStoredConfig(){if(confirm("Hapus token GitHub, konfigurasi repo, dan PIN tersimpan dari browser ini?")){LS.del("mqGhOwner"),LS.del("mqGhRepo"),LS.del("mqGhBranch"),LS.del("mqGhToken"),LS.del("mqAdminPin"),LS.del("mqPinFails"),LS.del("mqBlocked");try{sessionStorage.removeItem("mqBlocked")}catch(e){}log("Token & konfigurasi dihapus dari browser ini.","ok"),lockAdmin()}}!function(){var e=document.getElementById("blockForm");e&&e.addEventListener("submit",addBlockedEntry)}();</script>
 </body>
 </html>

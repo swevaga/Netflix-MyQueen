@@ -2,465 +2,88 @@
 <html lang="en">
 <head>
 
-    <!-- ==== series.html — Halaman Series — grid foto data-driven dari src/data/series-data.js, dikelompokkan otomatis per rasio + modal video. ==== -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netflix - Series</title>
-    <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
-    <link rel="stylesheet" href="src/css/tailwind.css?v=4">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="src/css/common.css?v=15">
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 50;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.95);
-        }
-        .modal-content {
-            position: relative;
-            margin: 15% auto;
-            padding: 0;
-            width: 95%;
-            max-width: 900px;
-            background: #141414;
-            border: 1px solid #2f2f2f;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .series-modal-video {
-            display: block;
-            width: 100%;
-            border-radius: 0 0 8px 8px;
-        }
-        /* Foto dalam grup rasio tampil dengan ukuran seragam (crop via object-cover). */
-        #seriesRatioContainer .series-item {
-            position: relative;
-            display: block;
-            width: 100%;
-            padding: 0;
-            border: 0;
-            background: transparent;
-            cursor: pointer;
-            overflow: hidden;
-            border-radius: 6px;
-        }
-        #seriesRatioContainer .series-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 6px;
-        }
-        /* Rasio per kelompok: semua item dalam satu grup diberi aspect yang sama. */
-        #seriesRatioContainer [data-ratio="16:9"] { aspect-ratio: 16 / 9; }
-        #seriesRatioContainer [data-ratio="4:3"] { aspect-ratio: 4 / 3; }
-        #seriesRatioContainer [data-ratio="1:1"] { aspect-ratio: 1 / 1; }
-        #seriesRatioContainer [data-ratio="3:4"] { aspect-ratio: 3 / 4; }
-        #seriesRatioContainer [data-ratio="9:16"] { aspect-ratio: 9 / 16; }
-        #seriesRatioContainer [data-ratio="lainnya"] { aspect-ratio: 3 / 4; }
-        /* Header pop-up ala Netflix (sama dengan movies.html). */
-        .movies-modal-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 16px 20px;
-            background: linear-gradient(to bottom, #1f1f1f, #141414);
-        }
-        .movies-modal-header .close {
-            position: static;
-            flex-shrink: 0;
-            font-size: 32px;
-            line-height: 1;
-            margin-top: -2px;
-            color: #fff;
-        }
-        .movies-modal-badge {
-            display: inline-block;
-            background: #e50914;
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            padding: 3px 8px;
-            border-radius: 3px;
-            margin-bottom: 8px;
-        }
-        .movies-modal-title {
-            color: #fff;
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin: 0;
-        }
-        @media (min-width: 768px) {
-            .movies-modal-header {
-                padding: 20px 26px;
-            }
-            .movies-modal-title {
-                font-size: 1.4rem;
-            }
-        }
-        .close {
-            color: #fff;
-            position: absolute;
-            right: 10px;
-            top: -50px;
-            font-size: 35px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 100;
-            background: none;
-            border: none;
-            padding: 0;
-        }
-        .close:hover,
-        .close:focus {
-            color: #aaa;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        @media (min-width: 768px) {
-            .modal-content {
-                margin: 5% auto;
-                width: 90%;
-            }
-            .close {
-                right: -40px;
-                top: -40px;
-                font-size: 40px;
-            }
-        }
-    </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="src/js/debug-hud.js?v=1"></script>
-    <script src="src/js/navbar.js?v=5"></script>
-    <script src="src/js/scroll-reveal.js?v=5"></script>
-    <script src="src/data/site-text-data.js?v=1"></script>
-    <script src="src/data/series-data.js?v=1"></script>
-    <script src="src/data/music-data.js?v=5"></script>
-    <script src="src/js/music-player.js?v=13"></script>
-    <!-- Vercel Analytics + Speed Insights (paket resmi @vercel/analytics + @vercel/speed-insights) -->
-    <script type="module" src="src/js/vercel-init.mjs"></script>
-    <!-- Preload strategis: 3 foto pertama grup 16:9 (tampil paling atas). -->
-    <link rel="preload" as="image" href="src/images/photo/placeholder16_9_1.png">
-    <link rel="preload" as="image" href="src/images/photo/placeholder16_9_7.png">
-    <link rel="preload" as="image" href="src/images/photo/placeholder16_9_8.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix - Series</title>
+<link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
+<link rel="stylesheet" href="src/css/tailwind.css?v=5">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="src/css/common.css?v=16">
+<style>#seriesRatioContainer .series-item{background:transparent;border:0;border-radius:6px;cursor:default;display:block;overflow:hidden;padding:0;position:relative;width:100%}#seriesRatioContainer .series-item img{border-radius:6px;height:100%;object-fit:cover;transition:transform .3s ease;width:100%}#seriesRatioContainer .series-item:hover img{transform:scale(1.03)}#seriesRatioContainer [data-ratio="16:9"]{aspect-ratio:16/9}#seriesRatioContainer [data-ratio="4:3"]{aspect-ratio:4/3}#seriesRatioContainer [data-ratio="1:1"]{aspect-ratio:1/1}#seriesRatioContainer [data-ratio="3:4"]{aspect-ratio:3/4}#seriesRatioContainer [data-ratio="9:16"]{aspect-ratio:9/16}#seriesRatioContainer [data-ratio=lainnya]{aspect-ratio:3/4}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="src/js/debug-hud.js?v=2"></script>
+<script src="src/js/navbar.js?v=6"></script>
+<script src="src/js/scroll-reveal.js?v=6"></script>
+<script src="src/data/site-text-data.js?v=2"></script>
+<script src="src/data/series-data.js?v=2"></script>
+<script src="src/data/music-data.js?v=6"></script>
+<script src="src/js/music-player.js?v=14"></script>
+
+<script type="module" src="src/js/vercel-init.mjs"></script>
+
+<link rel="preload" as="image" href="src/images/photo/placeholder16_9_1.png">
+<link rel="preload" as="image" href="src/images/photo/placeholder16_9_7.png">
+<link rel="preload" as="image" href="src/images/photo/placeholder16_9_8.png">
 </head>
 <body class="bg-black text-white m-0 p-0 overflow-x-hidden">
-    <a class="skip-link" href="#main-content">Langsung ke konten</a>
-    <header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
-        <div class="flex items-center space-x-3 md:space-x-6">
-            <button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
-            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
-            <nav class="hidden md:flex space-x-5 text-sm">
-                <a class="text-gray-300 hover:text-white transition" href="index.html">Home</a>
-                <a class="text-white hover:text-gray-300 transition" href="series.html">Series</a>
-                <a class="text-gray-300 hover:text-white transition" href="movies.html">Movies</a>
-                <a class="text-gray-300 hover:text-white transition" href="newsandpopular.html">News &amp; Popular</a>
-                <a class="text-gray-300 hover:text-white transition" href="mylist.html">My List</a>
-            </nav>
-        </div>
-        <div class="flex items-center space-x-3 md:space-x-5">
-            <div class="relative">
-                <button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
-                <div class="notification" id="searchNotification">
-                    <p>Gada Siapa Siapa Kecuali Aku ~R</p>
-                </div>
-            </div>
-            <button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
-            <div class="notification" id="notificationMenu">
-                <p>Semakin Hari Semakin Cantik Sih Kamu</p>
-                <p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
-                <p>I Love You Hehe >3</p>
-            </div>
-            <div class="dropdown">
-                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
-                <div class="dropdown-content" id="dropdownMenu">
-                    <a href="https://www.instagram.com/vaxetherion/">Accounts</a>
-                    <a href="admin.html">Settings</a>
-                    <a href="#">Logout</a>
-                </div>
-            </div>
-        </div>
-    </header>
-    <div class="dropdown md:hidden fixed top-11 left-3 z-50">
-        <div class="dropdown-content mobile-menu-dropdown" id="mobileMenu">
-            <a href="index.html">Home</a>
-            <a href="series.html">Series</a>
-            <a href="movies.html">Movies</a>
-            <a href="newsandpopular.html">News &amp; Popular</a>
-            <a href="mylist.html">My List</a>
-        </div>
-    </div>
-    
-    <main id="main-content" tabindex="-1" class="pt-20 md:pt-24 pb-12">
-        <section id="seriesSection" class="bg-black py-6 scroll-animate">
-            <div class="container mx-auto px-4 md:px-12">
-                <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4">Divine Beauty</h2>
-                <!-- Grid dirender dari src/data/series-data.js (window.SERIES_ITEMS),
-                     dikelompokkan otomatis per rasio foto. -->
-                <div id="seriesRatioContainer"></div>
-            </div>
-        </section>
-    </main>
-    
-    <div class="modal" id="seriesModal" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content">
-            <div class="movies-modal-header series-modal-header">
-                <div><span class="movies-modal-badge">Now Playing</span><h3 class="movies-modal-title" id="seriesModalTitle">Video Series</h3></div>
-                <button type="button" class="close" onclick="closeSeriesModal()" aria-label="Tutup">&times;</button>
-            </div>
-            <video id="seriesVideo" class="series-modal-video" controls preload="none"></video>
-        </div>
-    </div>
-    
-    <script>
+<a class="skip-link" href="#main-content">Langsung ke konten</a>
+<header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
+<div class="flex items-center space-x-3 md:space-x-6">
+<button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
+<img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
+<nav class="hidden md:flex space-x-5 text-sm">
+<a class="text-gray-300 hover:text-white transition" href="index.html">Home</a>
+<a class="text-white hover:text-gray-300 transition" href="series.html">Series</a>
+<a class="text-gray-300 hover:text-white transition" href="movies.html">Movies</a>
+<a class="text-gray-300 hover:text-white transition" href="newsandpopular.html">News &amp; Popular</a>
+<a class="text-gray-300 hover:text-white transition" href="mylist.html">My List</a>
+</nav>
+</div>
+<div class="flex items-center space-x-3 md:space-x-5">
+<div class="relative">
+<button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
+<div class="notification" id="searchNotification">
+<p>Gada Siapa Siapa Kecuali Aku ~R</p>
+</div>
+</div>
+<button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
+<div class="notification" id="notificationMenu">
+<p>Semakin Hari Semakin Cantik Sih Kamu</p>
+<p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
+<p>I Love You Hehe >3</p>
+</div>
+<div class="dropdown">
+<button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
+<div class="dropdown-content" id="dropdownMenu">
+<a href="https://www.instagram.com/vaxetherion/">Accounts</a>
+<a href="admin.html">Settings</a>
+<a href="#">Logout</a>
+</div>
+</div>
+</div>
+</header>
+<div class="dropdown md:hidden fixed top-11 left-3 z-50">
+<div class="dropdown-content mobile-menu-dropdown" id="mobileMenu">
+<a href="index.html">Home</a>
+<a href="series.html">Series</a>
+<a href="movies.html">Movies</a>
+<a href="newsandpopular.html">News &amp; Popular</a>
+<a href="mylist.html">My List</a>
+</div>
+</div>
 
-        /* ===== Render foto per rasio dari src/data/series-data.js =====
-           Tambah/hapus/ubah foto cukup lewat file data (atau admin.html) —
-           tanpa menyentuh HTML sama sekali. Foto dikelompokkan otomatis. */
-        function bucketLabel(b) {
-            return { '16:9': 'Lanskap 16:9', '4:3': 'Lanskap 4:3', '1:1': 'Persegi 1:1', '3:4': 'Potret 3:4', '9:16': 'Potret 9:16' }[b] || 'Lainnya';
-        }
+<main id="main-content" tabindex="-1" class="pt-20 md:pt-24 pb-12">
+<section id="seriesSection" class="bg-black py-6 scroll-animate">
+<div class="container mx-auto px-4 md:px-12">
+<h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4">Divine Beauty</h2>
 
-        function renderSeries() {
-            var items = window.SERIES_ITEMS || [];
-            var container = document.getElementById('seriesRatioContainer');
-            if (!container) return;
-            var order = ['16:9', '4:3', '1:1', '3:4', '9:16', 'lainnya'];
-            var groups = {};
-            items.forEach(function (it) {
-                var b = order.indexOf(it.ratio) >= 0 ? it.ratio : 'lainnya';
-                (groups[b] = groups[b] || []).push(it);
-            });
-            var html = '';
-            order.forEach(function (b) {
-                if (!groups[b] || !groups[b].length) return;
-                html += '<div class="mb-8">';
-                html += '<h3 class="text-sm md:text-base font-semibold text-gray-300 mb-3">' + bucketLabel(b) + '</h3>';
-                html += '<div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">';
-                groups[b].forEach(function (it, idx) {
-                    html += '<div class="text-center">' +
-                        '<button type="button" data-ratio="' + b + '" class="series-item block w-full p-0 border-0 bg-transparent cursor-pointer" onclick="openSeriesVideo(this)" aria-label="Putar video ' + it.label + '">' +
-                            '<img alt="Image ' + it.label + '" class="w-full h-auto rounded hover:scale-105 transition-transform duration-300 cursor-pointer" loading="lazy" decoding="async" width="' + (it.width || 540) + '" height="' + (it.height || 960) + '" src="' + it.src + '"/>' +
-                        '</button>' +
-                    '</div>';
-                });
-                html += '</div></div>';
-            });
-            container.innerHTML = html;
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            renderSeries();
-        });
+<div id="seriesRatioContainer"></div>
+</div>
+</section>
+</main>
 
-        var seriesActiveModal = null;
-        var seriesLastFocused = null;
-
-        // Petakan thumbnail → video. Catatan jujur: tidak ada video khusus series
-        // di repo, jadi semua thumbnail diputar dari pool video yang tersedia.
-        // TODO: ganti dengan src/videos/seriespage/videoN.mp4 saat tersedia.
-        function getSeriesVideoSrc(imgSrc) {
-            // Nama baru: placeholder{RATIO}_{N}.{ext} → ambil angka terakhir (N).
-            var m = imgSrc.match(/placeholder(?:\d+_\d+_)?(\d+)\.(?:png|jpe?g)$/);
-            var n = m ? parseInt(m[1], 10) : 1;
-            // Jumlah video di src/videos/moviespage (video1.mp4 … video59.mp4).
-            var videoIndex = ((n - 1) % 59) + 1;
-            return "src/videos/moviespage/video" + videoIndex + ".mp4";
-        }
-
-        function openSeriesVideo(btn) {
-            var img = btn.querySelector("img");
-            var modal = document.getElementById("seriesModal");
-            var video = document.getElementById("seriesVideo");
-            seriesLastFocused = document.activeElement;
-            seriesActiveModal = modal;
-            video.setAttribute("poster", img.getAttribute("src"));
-            video.setAttribute("src", getSeriesVideoSrc(img.getAttribute("src")));
-            var title = document.getElementById("seriesModalTitle");
-            if (title) title.textContent = btn.getAttribute("aria-label") || "Video Series";
-            modal.style.display = "block";
-            // Inject overlay "Replay / Tutup" saat video selesai (sekali saja).
-            if (!modal.querySelector('.video-ended-overlay')) {
-                var wrap = document.createElement('div');
-                wrap.className = 'video-wrap';
-                video.parentNode.insertBefore(wrap, video);
-                wrap.appendChild(video);
-                var overlay = document.createElement('div');
-                overlay.className = 'video-ended-overlay';
-                overlay.innerHTML = '<button type="button" class="ended-btn ended-replay" aria-label="Putar ulang" title="Putar ulang" onclick="replaySeriesVideo()"><i class="fas fa-redo" aria-hidden="true"></i></button>' +
-                    '<button type="button" class="ended-btn ended-close" aria-label="Tutup" title="Tutup" onclick="closeSeriesModal()"><i class="fas fa-times" aria-hidden="true"></i></button>' +
-                    '<div class="series-countdown" id="seriesCountdown" role="status" hidden>' +
-                        '<div class="series-countdown-main">' +
-                            '<div class="series-countdown-ringwrap">' +
-                                '<svg class="series-countdown-ring" viewBox="0 0 36 36" aria-hidden="true">' +
-                                    '<circle class="ring-bg" cx="18" cy="18" r="15.9" fill="none" stroke-width="3"></circle>' +
-                                    '<circle class="ring-fg" id="seriesCountdownRing" cx="18" cy="18" r="15.9" fill="none" stroke-width="3" stroke-linecap="round"></circle>' +
-                                '</svg>' +
-                                '<span class="series-countdown-num" id="seriesCountdownNum">10</span>' +
-                            '</div>' +
-                            '<span class="series-countdown-label">Memutar episode berikutnya</span>' +
-                        '</div>' +
-                        '<div class="series-countdown-actions">' +
-                            '<button type="button" class="series-countdown-play" onclick="seriesPlayNow()">Putar sekarang</button>' +
-                            '<button type="button" class="series-countdown-cancel" onclick="seriesCancelCountdown()" aria-label="Batal">&times;</button>' +
-                        '</div>' +
-                    '</div>';
-                wrap.appendChild(overlay);
-            }
-            var overlay = modal.querySelector('.video-ended-overlay');
-            if (overlay) overlay.classList.remove('show');
-            modal.querySelector(".close").focus();
-            video.load();
-            video.play();
-            // Suara video aktif: pause + sembunyikan music island.
-            if (window.MusicPlayer) window.MusicPlayer.pauseForVideo();
-            // Video selesai → resume music island + tampilkan Replay/Tutup (sekali pasang).
-            if (!video.dataset.musicHooked) {
-                video.dataset.musicHooked = "1";
-                video.addEventListener('ended', function () {
-                    if (window.MusicPlayer) window.MusicPlayer.resumeFromVideo();
-                    showSeriesEnded();
-                });
-            }
-        }
-
-        function closeSeriesModal() {
-            stopSeriesCountdown();
-            var modal = document.getElementById("seriesModal");
-            var video = document.getElementById("seriesVideo");
-            modal.style.display = "none";
-            // Video selesai: kembalikan music island.
-            if (window.MusicPlayer) window.MusicPlayer.resumeFromVideo();
-            video.pause();
-            video.removeAttribute("src");
-            seriesActiveModal = null;
-            if (seriesLastFocused) seriesLastFocused.focus();
-        }
-
-        function showSeriesEnded() {
-            var overlay = document.querySelector('#seriesModal .video-ended-overlay');
-            if (overlay) overlay.classList.add('show');
-            startSeriesCountdown();
-        }
-
-        function replaySeriesVideo() {
-            stopSeriesCountdown();
-            var modal = document.getElementById("seriesModal");
-            var overlay = modal.querySelector('.video-ended-overlay');
-            if (overlay) overlay.classList.remove('show');
-            var video = document.getElementById("seriesVideo");
-            video.currentTime = 0;
-            var p = video.play();
-            if (p && p.catch) p.catch(function(){});
-            // Suara video aktif kembali: pause + sembunyikan music island.
-            if (window.MusicPlayer) window.MusicPlayer.pauseForVideo();
-        }
-
-        /* ===== Countdown "Memutar episode berikutnya" (ala Netflix) =====
-           Setelah video selesai: hitung mundur 10 detik dengan ring, lalu
-           video diputar ulang otomatis. Bisa dibatalkan (×) atau langsung
-           diputar ("Putar sekarang"). */
-        var seriesCountdownTimer = null;
-        var seriesCountdownLeft = 0;
-        var seriesCountdownTotal = 10;
-        var SERIES_COUNTDOWN_TOTAL = 10; // default jika tidak ada data-countdown
-
-        // Total hitung mundur konfigurabel (prioritas):
-        //   <video data-countdown="5"> → per video (mis. demo pendek)
-        //   <body data-countdown="5">  → default per halaman
-        //   (tanpa keduanya)            → SERIES_COUNTDOWN_TOTAL (10)
-        function seriesCountdownTotalFor() {
-            var video = document.getElementById('seriesVideo');
-            if (video && video.getAttribute('data-countdown')) {
-                var v = parseInt(video.getAttribute('data-countdown'), 10);
-                if (!isNaN(v) && v > 0) return v;
-            }
-            var body = document.body.getAttribute('data-countdown');
-            if (body) {
-                var n = parseInt(body, 10);
-                if (!isNaN(n) && n > 0) return n;
-            }
-            return SERIES_COUNTDOWN_TOTAL;
-        }
-
-        function startSeriesCountdown() {
-            stopSeriesCountdown();
-            var el = document.getElementById('seriesCountdown');
-            if (!el) return;
-            el.hidden = false;
-            seriesCountdownTotal = seriesCountdownTotalFor();
-            seriesCountdownLeft = seriesCountdownTotal;
-            updateSeriesCountdown();
-            seriesCountdownTimer = setInterval(function () {
-                seriesCountdownLeft--;
-                if (seriesCountdownLeft <= 0) {
-                    stopSeriesCountdown();
-                    replaySeriesVideo();
-                    return;
-                }
-                updateSeriesCountdown();
-            }, 1000);
-        }
-
-        function updateSeriesCountdown() {
-            var num = document.getElementById('seriesCountdownNum');
-            if (num) num.textContent = seriesCountdownLeft;
-            var ring = document.getElementById('seriesCountdownRing');
-            if (ring) {
-                var circ = 2 * Math.PI * 15.9;
-                ring.style.strokeDasharray = circ;
-                ring.style.strokeDashoffset = circ * (1 - seriesCountdownLeft / seriesCountdownTotal);
-            }
-        }
-
-        function stopSeriesCountdown() {
-            if (seriesCountdownTimer) {
-                clearInterval(seriesCountdownTimer);
-                seriesCountdownTimer = null;
-            }
-            var el = document.getElementById('seriesCountdown');
-            if (el) el.hidden = true;
-        }
-
-        function seriesPlayNow() {
-            stopSeriesCountdown();
-            replaySeriesVideo();
-        }
-
-        function seriesCancelCountdown() {
-            stopSeriesCountdown();
-        }
-
-        document.addEventListener("keydown", function(event) {
-            if (!seriesActiveModal) return;
-            if (event.key === "Escape") {
-                event.preventDefault();
-                closeSeriesModal();
-                return;
-            }
-            if (event.key === "Tab") {
-                var focusables = seriesActiveModal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"]), video, [role="button"]');
-                if (focusables.length === 0) return;
-                var first = focusables[0];
-                var last = focusables[focusables.length - 1];
-                if (event.shiftKey && document.activeElement === first) {
-                    event.preventDefault();
-                    last.focus();
-                } else if (!event.shiftKey && document.activeElement === last) {
-                    event.preventDefault();
-                    first.focus();
-                }
-            }
-        });
-    </script>
+<script>function bucketLabel(e){return{"16:9":"Lanskap 16:9","4:3":"Lanskap 4:3","1:1":"Persegi 1:1","3:4":"Potret 3:4","9:16":"Potret 9:16"}[e]||"Lainnya"}function renderSeries(){var e=window.SERIES_ITEMS||[],a=document.getElementById("seriesRatioContainer");if(a){var t=["16:9","4:3","1:1","3:4","9:16","lainnya"],n={};e.forEach(function(e){var a=t.indexOf(e.ratio)>=0?e.ratio:"lainnya";(n[a]=n[a]||[]).push(e)});var i="";t.forEach(function(e){n[e]&&n[e].length&&(i+='<div class="mb-8">',i+='<h3 class="text-sm md:text-base font-semibold text-gray-300 mb-3">'+bucketLabel(e)+"</h3>",i+='<div class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">',n[e].forEach(function(a,t){i+='<div class="text-center"><div data-ratio="'+e+'" class="series-item block w-full p-0 border-0 bg-transparent"><img alt="Image '+a.label+'" class="w-full h-auto rounded" loading="lazy" decoding="async" width="'+(a.width||540)+'" height="'+(a.height||960)+'" src="'+a.src+'"/></div></div>'}),i+="</div></div>")}),a.innerHTML=i}}document.addEventListener("DOMContentLoaded",function(){renderSeries()});</script>
 </body>
 </html>

@@ -14,9 +14,12 @@
 // ==========================================================================
 const { test, expect } = require('@playwright/test');
 
+// PIN bawaan baru (sesuai permintaan pemilik).
+const ADMIN_PIN = '9999999990000000000222222222244444444446666666666111111111133333333335555555555A';
+
 async function unlockAdmin(page) {
   await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
-  await page.fill('#pinInput', '1602');
+  await page.fill('#pinInput', ADMIN_PIN);
   await page.click('#pinForm button[type="submit"]');
   await expect(page.locator('#adminSection')).toBeVisible();
 }
@@ -182,20 +185,110 @@ test.describe('Admin Panel — edit & hapus Berita', () => {
 });
 
 test.describe('Admin Panel — PIN brute-force protection', () => {
-  test('5x PIN salah → terkunci (pesan lockout, dashboard tetap tersembunyi)', async ({ page }) => {
+  test('3x PIN salah → perangkat DIBLOKIR PERMANEN (layar blokir + kontak Telegram)', async ({ page }) => {
     await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
-    for (let i = 0; i < 5; i++) {
-      await page.fill('#pinInput', '0000');
-      await page.click('#pinForm button[type="submit"]');
-    }
-    await expect(page.locator('#pinError')).toBeVisible();
-    await expect(page.locator('#pinError')).toContainText('Terkunci 60 detik');
+    await expect(page.locator('#pinSection')).toBeVisible();
+
+    // 1x salah → sisa percobaan 2. (Ada jeda 700ms antar percobaan sebagai
+    // anti brute-force otomatis — beri waktu antar klik.)
+    await page.fill('#pinInput', '0000');
+    await page.click('#pinForm button[type="submit"]');
+    await expect(page.locator('#pinError')).toContainText('Sisa percobaan: 2');
+
+    // 2x salah → sisa percobaan 1.
+    await page.waitForTimeout(800);
+    await page.fill('#pinInput', '0000');
+    await page.click('#pinForm button[type="submit"]');
+    await expect(page.locator('#pinError')).toContainText('Sisa percobaan: 1');
+
+    // 3x salah → LAYAR BLOKIR permanen, bukan sekadar pesan error.
+    await page.waitForTimeout(800);
+    await page.fill('#pinInput', '0000');
+    await page.click('#pinForm button[type="submit"]');
+    await expect(page.locator('#blockedSection')).toBeVisible();
+    await expect(page.locator('#blockedSection')).toContainText('Akses Diblokir');
+    await expect(page.locator('#blockedSection')).toContainText('Percobaan PIN salah 3x');
+    // Tombol kontak Telegram @axetherion tersedia.
+    await expect(page.locator('#blockedSection a[href*="t.me/axetherion"]')).toBeVisible();
+    await expect(page.locator('#pinSection')).toBeHidden();
     await expect(page.locator('#adminSection')).toBeHidden();
 
-    // Percobaan ke-6 (masih dalam masa lock) → tetap ditolak.
-    await page.fill('#pinInput', '1602');
-    await page.click('#pinForm button[type="submit"]');
+    // Refresh halaman → tetap diblokir (penanda tersimpan lokal, permanen).
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(500);
+    await expect(page.locator('#blockedSection')).toBeVisible();
+    await expect(page.locator('#pinSection')).toBeHidden();
     await expect(page.locator('#adminSection')).toBeHidden();
-    await expect(page.locator('#pinError')).toContainText('Coba lagi dalam');
+  });
+});
+
+test.describe('Admin Panel — fitur baru', () => {
+  test('Teks situs: edit hero index → state.siteText ditandai berubah', async ({ page }) => {
+    await unlockAdmin(page);
+    await page.click('.tab-btn[data-tab="tabText"]');
+    await page.click('#tabText button:has-text("Edit Teks")');
+    await expect(page.locator('#textForm')).toBeVisible();
+    // Field #txt_2 = index.heroTitle (urutan TEXT_FIELDS).
+    await page.fill('#txt_2', 'Judul Hero Baru Dari Test');
+    await page.click('#textForm button[type="submit"]');
+    await page.waitForTimeout(200);
+    const st = await page.evaluate(() => window.state.siteText);
+    expect(st).toBeTruthy();
+    expect(st.dirty).toBe(true);
+    expect(st.data.index.heroTitle).toBe('Judul Hero Baru Dari Test');
+  });
+
+  test('Pengaturan: jarak paragraf berita → state.settings ditandai berubah', async ({ page }) => {
+    await unlockAdmin(page);
+    await page.click('.tab-btn[data-tab="tabSettings"]');
+    await page.fill('#newsSpacing', '28');
+    await page.click('button:has-text("Simpan Pengaturan ke GitHub")');
+    await page.waitForTimeout(200);
+    const st = await page.evaluate(() => window.state.settings);
+    expect(st).toBeTruthy();
+    expect(st.dirty).toBe(true);
+    expect(st.data.newsParagraphSpacing).toBe(28);
+  });
+
+  test('Daftar Blokir: tambah + hapus entri (tanpa token tetap tercatat dirty)', async ({ page }) => {
+    await unlockAdmin(page);
+    await page.click('.tab-btn[data-tab="tabBlock"]');
+    await page.fill('#blockValue', '203.0.113.99');
+    await page.fill('#blockReason', '3x salah PIN');
+    await page.click('#blockForm button[type="submit"]');
+    await page.waitForTimeout(200);
+    await expect(page.locator('#blockList')).toContainText('203.0.113.99');
+    let st = await page.evaluate(() => window.state.blocked);
+    expect(st).toBeTruthy();
+    expect(st.data.length).toBe(1);
+    expect(st.dirty).toBe(true);
+
+    // Hapus entri.
+    page.once('dialog', (d) => d.accept());
+    await page.click('#blockList .btn-danger');
+    await page.waitForTimeout(200);
+    st = await page.evaluate(() => window.state.blocked);
+    expect(st.data.length).toBe(0);
+    await expect(page.locator('#blockList')).toContainText('Belum ada perangkat diblokir');
+  });
+
+  test('Deteksi perangkat: fingerprint + IP tampil (tanpa error)', async ({ page }) => {
+    await unlockAdmin(page);
+    await page.click('.tab-btn[data-tab="tabBlock"]');
+    await page.click('button:has-text("Deteksi Perangkat Ini")');
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#myDeviceInfo')).toContainText('Fingerprint perangkat ini:');
+    const txt = await page.locator('#myDeviceInfo').textContent();
+    expect(txt).toMatch(/FP-[0-9A-F]+/);
+  });
+
+  test('Musik: field path/URL diganti upload drag & drop (zona audio ada)', async ({ page }) => {
+    await unlockAdmin(page);
+    await page.click('.tab-btn[data-tab="tabMusic"]');
+    await page.click('#tabMusic button:has-text("Tambah")');
+    await expect(page.locator('#musicForm .upload-zone[data-kind="audio"]')).toBeVisible();
+    await expect(page.locator('#musicForm input[type="file"]')).toHaveAttribute('accept', 'audio/*');
+    // Tidak ada lagi input path manual untuk musik.
+    await expect(page.locator('#musicForm input[type="text"]').first()).toBeVisible();
   });
 });

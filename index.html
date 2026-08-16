@@ -2,444 +2,128 @@
 <html lang="en">
 <head>
 
-    <!-- ==== index.html — Halaman Utama — hero billboard rotasi + galeri "Angel Face" (12 kartu acak) + music island. ==== -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netflix</title>
-    <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
-    <link rel="stylesheet" href="src/css/tailwind.css?v=4">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="src/css/common.css?v=15">
-    <link rel="stylesheet" href="src/css/index.css?v=5">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="src/js/debug-hud.js?v=1"></script>
-    <script src="src/js/navbar.js?v=5"></script>
-    <script src="src/js/scroll-reveal.js?v=5"></script>
-    <script src="src/js/hero-slider.js?v=5"></script>
-    <script src="src/data/site-text-data.js?v=1"></script>
-    <script src="src/data/music-data.js?v=5"></script>
-    <script src="src/js/music-player.js?v=13"></script>
-    <!-- Vercel Analytics + Speed Insights (paket resmi @vercel/analytics + @vercel/speed-insights) -->
-    <script type="module" src="src/js/vercel-init.mjs"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix</title>
+<link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
+<link rel="stylesheet" href="src/css/tailwind.css?v=5">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="src/css/common.css?v=16">
+<link rel="stylesheet" href="src/css/index.css?v=6">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="src/js/debug-hud.js?v=2"></script>
+<script src="src/js/navbar.js?v=6"></script>
+<script src="src/js/scroll-reveal.js?v=6"></script>
+<script src="src/js/hero-slider.js?v=6"></script>
+<script src="src/data/site-text-data.js?v=2"></script>
+<script src="src/data/music-data.js?v=6"></script>
+<script src="src/js/music-player.js?v=14"></script>
+
+<script type="module" src="src/js/vercel-init.mjs"></script>
 </head>
 <body class="bg-black text-white m-0 p-0 overflow-x-hidden">
-    <a class="skip-link" href="#main-content">Langsung ke konten</a>
-    <header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
-        <div class="flex items-center space-x-3 md:space-x-6">
-            <button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
-            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
-            <nav class="hidden md:flex space-x-5 text-sm">
-                <a class="text-white hover:text-gray-300 transition" href="index.html">Home</a>
-                <a class="text-gray-300 hover:text-white transition" href="series.html">Series</a>
-                <a class="text-gray-300 hover:text-white transition" href="movies.html">Movies</a>
-                <a class="text-gray-300 hover:text-white transition" href="newsandpopular.html">News &amp; Popular</a>
-                <a class="text-gray-300 hover:text-white transition" href="mylist.html">My List</a>
-            </nav>
-        </div>
-        <div class="flex items-center space-x-3 md:space-x-5">
-            <div class="relative">
-                <button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
-                <div class="notification" id="searchNotification">
-                    <p>Gada Siapa Siapa Kecuali Aku ~R</p>
-                </div>
-            </div>
-            <button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
-            <div class="notification" id="notificationMenu">
-                <p>Semakin Hari Semakin Cantik Sih Kamu</p>
-                <p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
-                <p>I Love You Hehe >3</p>
-            </div>
-            <div class="dropdown">
-                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
-                <div class="dropdown-content" id="dropdownMenu">
-                    <a href="https://www.instagram.com/vaxetherion/">Accounts</a>
-                    <a href="admin.html">Settings</a>
-                    <a href="#">Logout</a>
-                </div>
-            </div>
-        </div>
-    </header>
-    <div class="dropdown md:hidden fixed top-11 left-3 z-50">
-        <div class="dropdown-content mobile-menu-dropdown" id="mobileMenu">
-            <a href="index.html">Home</a>
-            <a href="series.html">Series</a>
-            <a href="movies.html">Movies</a>
-            <a href="newsandpopular.html">News &amp; Popular</a>
-            <a href="mylist.html">My List</a>
-        </div>
-    </div>
-    
-    <main id="main-content" tabindex="-1" class="relative h-screen overflow-hidden">
-        <div id="heroSlides" class="absolute inset-0">
-            <img id="heroImg" alt="Background Image" fetchpriority="high" decoding="async" class="w-full h-full object-cover object-center transition-opacity duration-700" src="src/images/photo/placeholder16_9_15.png">
-        </div>
-        <div class="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent"></div>
-        <div class="absolute inset-0 flex flex-col justify-center items-start px-4 md:px-12 pb-32 md:pb-40">
-            <div class="max-w-xl">
-                <h1 id="heroTitle" class="text-xl md:text-4xl font-bold mb-3 md:mb-4">Bagaimana Caranya Memilikimu Secara Sempurna? Aku Sudah Capek Menjadi Pengagummu.</h1>
-                <p id="heroDesc" class="text-xs md:text-base mb-6 md:mb-8 max-w-lg">Beginilah Cara Rouf, Seseorang Yang Mungkin Tak Pernah Kamu Sadari, Mengungkapkan Kekagumannya Dari kejauhan, Aku Telah Melihat Cahayamu Bersinar, Berharap Suatu Hari Nanti Kamu Akan Menyadarinya. Tapi untuk saat ini, Beginilah Cara Rouf Mengungkapkan Perasaan Yang Sebenarnya. I Love You &gt;3</p>
-                <div class="flex space-x-3">
-                    <button type="button" class="bg-white text-black px-6 py-2 rounded flex items-center font-semibold text-sm md:text-base hover:bg-white/80 transition cursor-pointer" onclick="openModal()">
-                        <i class="fas fa-play mr-2"></i> Play
-                    </button>
-                    <button type="button" class="bg-gray-500/70 text-white px-6 py-2 rounded flex items-center font-semibold text-sm md:text-base hover:bg-gray-500/50 transition cursor-pointer" onclick="openInfoModal()">
-                        <i class="fas fa-info-circle mr-2"></i> More Info
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="absolute bottom-0 left-0 w-full h-28 md:h-36 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none"></div>
-    </main>
-    
-    <section class="bg-black py-6 md:py-8 scroll-animate" id="imageSection">
-        <div class="container mx-auto px-4 md:px-12">
-            <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4">Angel Face</h2>
-            <div id="imageGrid" class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">
-            </div>
-        </div>
-    </section>
-    
-    <div class="modal" id="myModal" role="dialog" aria-modal="true" aria-label="Pemutar video">
-        <div class="modal-content play-modal-content">
-            <div class="play-modal-header">
-                <div>
-                    <span class="play-modal-badge">Now Playing</span>
-                    <h2 class="play-modal-title">I Love You &gt;3</h2>
-                </div>
-                <button type="button" class="close" aria-label="Tutup" onclick="closeModal()">&times;</button>
-            </div>
-            <iframe allow="autoplay; fullscreen" class="play-modal-iframe" title="Pemutar video"></iframe>
-        </div>
-    </div>
-    
-    <div class="modal" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
-        <div class="modal-content info-modal-content">
-            <button type="button" class="close" aria-label="Tutup" onclick="closeInfoModal()">&times;</button>
-            <h2 id="infoModalTitle">Tentang Dia</h2>
-            <p>Dia adalah sosok yang penuh keajaiban, seorang wanita yang mampu mengubah hari-hariku menjadi berwarna hanya dengan satu senyum. Setiap detail tentangnya adalah keindahan yang tak tergantikan.</p>
-            <p>Kecantikannya bukan hanya dari luar, tetapi juga dari dalam hatinya yang lembut dan penuh kasih. Dia memiliki aura yang membuat setiap orang di sekitarnya merasa nyaman dan istimewa.</p>
-            <p>Matanya memancarkan cahaya kebijaksanaan, senyumnya menenangkan jiwa, dan kehadirannya selalu menjadi alasan untukku bersyukur setiap hari. Dia adalah definisi sempurna dari sebuah keindahan yang sesungguhan.</p>
-            <p>I Love You More Than Words Can Say ❤️</p>
-        </div>
-    </div>
-    
-    <script>
-        const allImages = [
-            "placeholder9_16_1.png", "placeholder9_16_10.png", "placeholder9_16_21.png", "placeholder9_16_26.png", 
-            "placeholder9_16_27.png", "placeholder9_16_33.png", "placeholder9_16_44.png", "placeholder9_16_55.png", 
-            "placeholder9_16_57.png", "placeholder9_16_2.png", "placeholder3_4_1.png", "placeholder9_16_3.png", 
-            "placeholder9_16_4.png", "placeholder9_16_5.png", "placeholder9_16_6.png", "placeholder9_16_7.png", 
-            "placeholder9_16_8.png", "placeholder3_4_2.png", "placeholder9_16_9.png", 
-            "placeholder9_16_11.png", "placeholder9_16_12.png", "placeholder9_16_13.png", "placeholder9_16_14.png", 
-            "placeholder9_16_15.png", "placeholder9_16_16.png", "placeholder9_16_17.png", "placeholder9_16_18.png", 
-            "placeholder9_16_19.png", "placeholder9_16_20.png", "placeholder9_16_22.png", "placeholder9_16_23.png", 
-            "placeholder9_16_24.png", "placeholder9_16_25.png", "placeholder3_4_3.png", "placeholder3_4_4.png", 
-            "placeholder4_3_1.png", "placeholder4_3_2.png", "placeholder4_3_3.png", "placeholder3_4_5.png", 
-            "placeholder1_1_1.png", "placeholder1_1_2.png", "placeholder3_4_6.png", "placeholder4_3_4.png", 
-            "placeholder4_3_5.png", "placeholder4_3_6.png", "placeholder4_3_7.png", 
-            "placeholder3_4_9.png", "placeholder3_4_10.png", "placeholder3_4_11.png", 
-            "placeholder3_4_12.png", "placeholder4_3_8.png", "placeholder3_4_13.png", "placeholder9_16_28.png", 
-            "placeholder9_16_29.png", "placeholder9_16_30.png", "placeholder9_16_31.png", "placeholder9_16_32.png", 
-            "placeholder9_16_34.png", "placeholder9_16_35.png", "placeholder9_16_36.png", "placeholder9_16_37.png", 
-            "placeholder9_16_38.png", "placeholder9_16_39.png", "placeholder9_16_40.png", "placeholder9_16_41.png", 
-            "placeholder9_16_42.png", "placeholder9_16_43.png", "placeholder9_16_45.png", "placeholder9_16_46.png", 
-            "placeholder9_16_47.png", "placeholder9_16_48.png", "placeholder9_16_49.png", "placeholder9_16_50.png", 
-            "placeholder9_16_51.png", "placeholder9_16_52.png", "placeholder9_16_53.png", "placeholder9_16_54.png", 
-            "placeholder9_16_56.png", "placeholder9_16_102.png", "placeholder9_16_103.png", "placeholder9_16_104.png"
-        ];
+<a class="skip-link" href="#main-content">Langsung ke konten</a>
+<header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
+<div class="flex items-center space-x-3 md:space-x-6">
+<button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
+<img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
+<nav class="hidden md:flex space-x-5 text-sm">
+<a class="text-white hover:text-gray-300 transition" href="index.html">Home</a>
+<a class="text-gray-300 hover:text-white transition" href="series.html">Series</a>
+<a class="text-gray-300 hover:text-white transition" href="movies.html">Movies</a>
+<a class="text-gray-300 hover:text-white transition" href="newsandpopular.html">News &amp; Popular</a>
+<a class="text-gray-300 hover:text-white transition" href="mylist.html">My List</a>
+</nav>
+</div>
+<div class="flex items-center space-x-3 md:space-x-5">
+<div class="relative">
+<button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
+<div class="notification" id="searchNotification">
+<p>Gada Siapa Siapa Kecuali Aku ~R</p>
+</div>
+</div>
+<button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
+<div class="notification" id="notificationMenu">
+<p>Semakin Hari Semakin Cantik Sih Kamu</p>
+<p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
+<p>I Love You Hehe >3</p>
+</div>
+<div class="dropdown">
+<button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
+<div class="dropdown-content" id="dropdownMenu">
+<a href="https://www.instagram.com/vaxetherion/">Accounts</a>
+<a href="admin.html">Settings</a>
+<a href="#">Logout</a>
+</div>
+</div>
+</div>
+</header>
+<div class="dropdown md:hidden fixed top-11 left-3 z-50">
+<div class="dropdown-content mobile-menu-dropdown" id="mobileMenu">
+<a href="index.html">Home</a>
+<a href="series.html">Series</a>
+<a href="movies.html">Movies</a>
+<a href="newsandpopular.html">News &amp; Popular</a>
+<a href="mylist.html">My List</a>
+</div>
+</div>
 
-        /* ===== Hero billboard: rotasi background + teks (gaya Netflix) =====
-           img        = foto ratio 16:9  (ditampilkan di LAPTOP / DESKTOP)
-           imgMobile  = foto ratio 9:16  (ditampilkan di HP / MOBILE)
-           Aturan: bagian atas hanya memakai foto 16:9 di desktop dan 9:16 di
-           mobile, supaya foto tidak terpotong / buram saat full-screen. */
-        window.HERO_SLIDES = [
-            {
-                img: "src/images/photo/placeholder16_9_15.png",
-                imgMobile: "src/images/photo/placeholder9_16_1.png",
-                title: "Bagaimana Caranya Memilikimu Secara Sempurna? Aku Sudah Capek Menjadi Pengagummu.",
-                desc: "Beginilah Cara Rouf, Seseorang Yang Mungkin Tak Pernah Kamu Sadari, Mengungkapkan Kekagumannya Dari kejauhan, Aku Telah Melihat Cahayamu Bersinar, Berharap Suatu Hari Nanti Kamu Akan Menyadarinya. Tapi untuk saat ini, Beginilah Cara Rouf Mengungkapkan Perasaan Yang Sebenarnya. I Love You >3"
-            },
-            {
-                img: "src/images/photo/placeholder16_9_1.png",
-                imgMobile: "src/images/photo/placeholder9_16_10.png",
-                title: "Dari Jauh Aku Menjagamu",
-                desc: "Setiap senyummu adalah alasan. Aku hanya bisa memperhatikan dari kejauhan, berharap suatu hari nanti kamu menyadari bahwa kamu selalu istimewa."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_7.png",
-                imgMobile: "src/images/photo/placeholder9_16_21.png",
-                title: "Cahayamu, Lengkapkan Hariku",
-                desc: "Ada kehangatan yang tak bisa kujelaskan setiap kali kamu hadir. Hari-hariku terasa lebih ringan hanya dengan melihatmu bahagia."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_8.png",
-                imgMobile: "src/images/photo/placeholder9_16_26.png",
-                title: "Kisah yang Tak Terucap",
-                desc: "Banyak hal ingin kuucapkan, tapi takut mengganggu. Maka kubiarkan waktu yang berbicara, dan hatiku yang terus berharap."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_9.png",
-                imgMobile: "src/images/photo/placeholder9_16_27.png",
-                title: "Untukmu yang Selalu Kuagumi",
-                desc: "Kamu tidak pernah tahu, tapi setiap detil tentangmu kusimpan rapi. Senyum, tawa, dan caramu menjalani hari—semuanya berharga."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_10.png",
-                imgMobile: "src/images/photo/placeholder9_16_33.png",
-                title: "Sepucuk Rasa dari Jauh",
-                desc: "Bukan untuk diperhatikan, hanya ingin kamu tahu bahwa ada seseorang yang diam-diam menyimpan doa terbaik untukmu setiap malam."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_11.png",
-                imgMobile: "src/images/photo/placeholder9_16_44.png",
-                title: "Hari Ini, Aku Pilih Berani",
-                desc: "Cukup lama aku hanya menonton dari jauh. Kini saatnya aku melangkah, menyampaikan rasa yang selama ini kupendam."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_12.png",
-                imgMobile: "src/images/photo/placeholder9_16_55.png",
-                title: "Senja yang Menemaniku",
-                desc: "Setiap senja mengingatkanku pada caramu tersenyum. Perlahan, aku belajar bahwa cinta tidak harus selalu diucapkan."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_13.png",
-                imgMobile: "src/images/photo/placeholder9_16_29.png",
-                title: "Waktu Berbicara",
-                desc: "Ada hal-hal yang tidak bisa dipaksakan. Aku membiarkan waktu yang menjawab, dan hatiku yang terus berdoa untukmu."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_14.png",
-                imgMobile: "src/images/photo/placeholder9_16_30.png",
-                title: "Rindu dalam Diam",
-                desc: "Rindu tidak selalu tentang bertemu. Kadang cukup dengan tahu kamu baik-baik saja, dan hatiku tenang."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_2.png",
-                imgMobile: "src/images/photo/placeholder9_16_31.png",
-                title: "Sekadar Mengagumi",
-                desc: "Tidak semua perasaan harus berbalas. Ada yang cukup dirasakan, dirawat, dan disimpan baik-baik di dalam hati."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_3.png",
-                imgMobile: "src/images/photo/placeholder9_16_32.png",
-                title: "Doa yang Tak Putus",
-                desc: "Setiap malam kuselipkan namamu dalam doa. Semoga kamu selalu dilindungi, dimudahkan, dan dikelilingi orang-orang baik."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_4.png",
-                imgMobile: "src/images/photo/placeholder9_16_34.png",
-                title: "Bahagia yang Sederhana",
-                desc: "Melihatmu tersenyum sudah cukup membuat hariku berarti. Terima kasih telah hadir dengan caramu yang sederhana namun indah."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_5.png",
-                imgMobile: "src/images/photo/placeholder9_16_35.png",
-                title: "Untuk Nanti",
-                desc: "Jika suatu hari nanti kamu membaca ini, semoga kamu tahu: ada yang diam-diam menyayangimu lebih dari yang kamu kira."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_6.png",
-                imgMobile: "src/images/photo/placeholder9_16_36.png",
-                title: "I Love You",
-                desc: "Tiga kata yang akhirnya berani kutulis. Terima kasih sudah menjadi bagian terindah dari ceritaku."
-            }
-        ];
+<main id="main-content" tabindex="-1" class="relative h-screen overflow-hidden">
+<div id="heroSlides" class="absolute inset-0">
+<img id="heroImg" alt="Background Image" fetchpriority="high" decoding="async" class="w-full h-full object-cover object-center transition-opacity duration-700" src="src/images/photo/placeholder16_9_15.png">
+</div>
+<div class="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent"></div>
+<div class="absolute inset-0 flex flex-col justify-center items-start px-4 md:px-12 pb-32 md:pb-40">
+<div class="max-w-xl">
+<h1 id="heroTitle" class="text-xl md:text-4xl font-bold mb-3 md:mb-4">Bagaimana Caranya Memilikimu Secara Sempurna? Aku Sudah Capek Menjadi Pengagummu.</h1>
+<p id="heroDesc" class="text-xs md:text-base mb-6 md:mb-8 max-w-lg">Beginilah Cara Rouf, Seseorang Yang Mungkin Tak Pernah Kamu Sadari, Mengungkapkan Kekagumannya Dari kejauhan, Aku Telah Melihat Cahayamu Bersinar, Berharap Suatu Hari Nanti Kamu Akan Menyadarinya. Tapi untuk saat ini, Beginilah Cara Rouf Mengungkapkan Perasaan Yang Sebenarnya. I Love You &gt;3</p>
+<div class="flex space-x-3">
+<button type="button" class="bg-white text-black px-6 py-2 rounded flex items-center font-semibold text-sm md:text-base hover:bg-white/80 transition cursor-pointer" onclick="openModal()">
+<i class="fas fa-play mr-2"></i> Play
+</button>
+<button type="button" class="bg-gray-500/70 text-white px-6 py-2 rounded flex items-center font-semibold text-sm md:text-base hover:bg-gray-500/50 transition cursor-pointer" onclick="openInfoModal()">
+<i class="fas fa-info-circle mr-2"></i> More Info
+</button>
+</div>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-28 md:h-36 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none"></div>
+</main>
 
-        // Billboard rotasi kini digerakkan oleh src/js/hero-slider.js (mode
-        // customContent: markup + tombol Play/More Info + grid tetap milik halaman ini).
-        window.HERO_OPTIONS = { customContent: true };
+<section class="bg-black py-6 md:py-8 scroll-animate" id="imageSection">
+<div class="container mx-auto px-4 md:px-12">
+<h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4">Angel Face</h2>
+<div id="imageGrid" class="grid grid-cols-2 md:grid-cols-6 gap-2 md:gap-3">
+</div>
+</div>
+</section>
 
-        // Teks hero (judul + deskripsi slide pertama) diatur langsung di
-        // src/data/site-text-data.js (di kode, bukan dari admin.html).
-        if (window.SITE_TEXT && window.SITE_TEXT.index && window.HERO_SLIDES.length) {
-            if (window.SITE_TEXT.index.heroTitle) window.HERO_SLIDES[0].title = window.SITE_TEXT.index.heroTitle;
-            if (window.SITE_TEXT.index.heroDesc) window.HERO_SLIDES[0].desc = window.SITE_TEXT.index.heroDesc;
-        }
+<div class="modal" id="myModal" role="dialog" aria-modal="true" aria-label="Pemutar video">
+<div class="modal-content play-modal-content">
+<div class="play-modal-header">
+<div>
+<span class="play-modal-badge">Now Playing</span>
+<h2 class="play-modal-title">I Love You &gt;3</h2>
+</div>
+<button type="button" class="close" aria-label="Tutup" onclick="closeModal()">&times;</button>
+</div>
+<iframe allow="autoplay; fullscreen" class="play-modal-iframe" title="Pemutar video"></iframe>
+</div>
+</div>
 
-        let remainingImages = [...allImages];
-        let gridContainers = [];
+<div class="modal" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+<div class="modal-content info-modal-content">
+<button type="button" class="close" aria-label="Tutup" onclick="closeInfoModal()">&times;</button>
+<h2 id="infoModalTitle">Tentang Dia</h2>
+<p>Dia adalah sosok yang penuh keajaiban, seorang wanita yang mampu mengubah hari-hariku menjadi berwarna hanya dengan satu senyum. Setiap detail tentangnya adalah keindahan yang tak tergantikan.</p>
+<p>Kecantikannya bukan hanya dari luar, tetapi juga dari dalam hatinya yang lembut dan penuh kasih. Dia memiliki aura yang membuat setiap orang di sekitarnya merasa nyaman dan istimewa.</p>
+<p>Matanya memancarkan cahaya kebijaksanaan, senyumnya menenangkan jiwa, dan kehadirannya selalu menjadi alasan untukku bersyukur setiap hari. Dia adalah definisi sempurna dari sebuah keindahan yang sesungguhan.</p>
+<p>I Love You More Than Words Can Say ❤️</p>
+</div>
+</div>
 
-        function shuffleArray(array) {
-            const newArray = [...array];
-            for (let i = newArray.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-            }
-            return newArray;
-        }
-
-        function getNextImages(count) {
-            if (remainingImages.length < count) {
-                remainingImages = [...allImages];
-            }
-            const shuffled = shuffleArray(remainingImages);
-            const selected = shuffled.slice(0, count);
-            remainingImages = shuffled.slice(count);
-            return selected;
-        }
-
-        function initializeGrid() {
-            const grid = document.getElementById('imageGrid');
-            const initialImages = getNextImages(12);
-            
-            grid.innerHTML = initialImages.map((img, index) => `
-                <div class="image-container aspect-[2/3] rounded overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-300">
-                    <img alt="Image" class="active" loading="lazy" decoding="async" src="src/images/photo/${img}">
-                    <img alt="Image" class="inactive" loading="lazy" decoding="async">
-                </div>
-            `).join('');
-            
-            gridContainers = Array.from(grid.querySelectorAll('.image-container'));
-        }
-
-        function updateImages() {
-            const newImages = getNextImages(12);
-            
-            gridContainers.forEach((container, index) => {
-                const images = container.querySelectorAll('img');
-                const activeImg = images[0].classList.contains('active') ? images[0] : images[1];
-                const inactiveImg = images[0].classList.contains('active') ? images[1] : images[0];
-                
-                inactiveImg.src = `src/images/photo/${newImages[index]}`;
-                
-                activeImg.classList.remove('active');
-                activeImg.classList.add('inactive');
-                inactiveImg.classList.remove('inactive');
-                inactiveImg.classList.add('active');
-            });
-        }
-
-
-        var activeModal = null;
-        var lastFocusedElement = null;
-
-        function openModal() {
-            openDialog("myModal");
-        }
-
-        function closeModal() {
-            closeDialog("myModal");
-        }
-
-        function openInfoModal() {
-            openDialog("infoModal");
-        }
-
-        function closeInfoModal() {
-            closeDialog("infoModal");
-        }
-
-        function openDialog(modalId) {
-            var modal = document.getElementById(modalId);
-            lastFocusedElement = document.activeElement;
-            activeModal = modal;
-            modal.style.display = "block";
-            // Hanya modal video (myModal/Play) yang memakai suara → pause +
-            // sembunyikan music island. More Info (infoModal) TIDAK menampilkan
-            // video apa pun, jadi musik harus tetap lanjut.
-            if (window.MusicPlayer && modal.id === "myModal") window.MusicPlayer.pauseForVideo();
-            var closeBtn = modal.querySelector(".close");
-            if (closeBtn) closeBtn.focus();
-            var iframe = modal.querySelector("iframe");
-            if (iframe && !iframe.getAttribute("src")) {
-                iframe.setAttribute("src", "play.html");
-                // Aktifkan suara hanya saat modal dibuka via klik (user gesture).
-                iframe.addEventListener('load', function () {
-                    try {
-                        iframe.contentWindow.postMessage('netflix-unmute', '*');
-                    } catch (e) { /* cross-origin atau iframe belum siap */ }
-                }, { once: true });
-            }
-        }
-
-        function closeDialog(modalId) {
-            var modal = document.getElementById(modalId);
-            modal.style.display = "none";
-            // Kembalikan music island hanya untuk modal video (More Info tidak
-            // pernah me-suppress musik di openDialog, jadi di sini pun tidak).
-            if (window.MusicPlayer && modal.id === "myModal") window.MusicPlayer.resumeFromVideo();
-            var iframe = modal.querySelector("iframe");
-            if (iframe) iframe.removeAttribute("src");
-            if (activeModal === modal) activeModal = null;
-            if (lastFocusedElement) lastFocusedElement.focus();
-        }
-
-        // Pesan dari iframe play.html: kelola musik + tutup modal.
-        // Hanya terima pesan dari asal situs sendiri (anti spoofing lintas-origin).
-        function isTrustedOrigin(origin) {
-            return origin === window.location.origin || origin === 'null';
-        }
-        window.addEventListener('message', function (e) {
-            if (!isTrustedOrigin(e.origin)) return;
-            if (!window.MusicPlayer) return;
-            if (e.data === 'netflix-video-ended') {
-                // Video selesai → kembalikan music island.
-                window.MusicPlayer.resumeFromVideo();
-            } else if (e.data === 'netflix-video-playing') {
-                // Video diputar ulang (Replay) dengan suara → suppress lagi.
-                window.MusicPlayer.pauseForVideo();
-            } else if (e.data === 'netflix-close' && activeModal) {
-                // Tombol Tutup di play.html → tutup modal Play.
-                closeDialog(activeModal.id);
-            }
-        });
-
-        document.addEventListener("keydown", function(event) {
-            if (!activeModal) return;
-            if (event.key === "Escape") {
-                event.preventDefault();
-                if (activeModal.id === "myModal") {
-                    closeModal();
-                } else if (activeModal.id === "infoModal") {
-                    closeInfoModal();
-                }
-                return;
-            }
-            if (event.key === "Tab") {
-                var focusables = activeModal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"]), iframe, video, [role="button"]');
-                if (focusables.length === 0) return;
-                var first = focusables[0];
-                var last = focusables[focusables.length - 1];
-                if (event.shiftKey && document.activeElement === first) {
-                    event.preventDefault();
-                    last.focus();
-                } else if (!event.shiftKey && document.activeElement === last) {
-                    event.preventDefault();
-                    first.focus();
-                }
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;            initializeGrid();
-            if (!prefersReducedMotion) {
-                setInterval(updateImages, 5000);
-            }
-
-            // ===== Teks "More Info" + judul modal Play dari site-text-data.js =====
-            // (diatur langsung di kode file data tersebut)
-            if (window.SITE_TEXT && window.SITE_TEXT.index) {
-                var st = window.SITE_TEXT.index;
-                var info = document.getElementById('infoModal');
-                if (info) {
-                    var title = info.querySelector('h2');
-                    if (title && st.moreInfoTitle) title.textContent = st.moreInfoTitle;
-                    if (st.moreInfoParagraphs && st.moreInfoParagraphs.length) {
-                        info.querySelectorAll('p').forEach(function (p) { p.remove(); });
-                        st.moreInfoParagraphs.forEach(function (txt) {
-                            var p = document.createElement('p');
-                            p.textContent = txt;
-                            info.querySelector('.info-modal-content').appendChild(p);
-                        });
-                    }
-                }
-                var playTitle = document.querySelector('#myModal .play-modal-title');
-                if (playTitle && st.playTitle) playTitle.textContent = st.playTitle;
-            }
-        });
-    </script>
+<script>const allImages=["placeholder9_16_1.png","placeholder9_16_10.png","placeholder9_16_21.png","placeholder9_16_26.png","placeholder9_16_27.png","placeholder9_16_33.png","placeholder9_16_44.png","placeholder9_16_55.png","placeholder9_16_57.png","placeholder9_16_2.png","placeholder3_4_1.png","placeholder9_16_3.png","placeholder9_16_4.png","placeholder9_16_5.png","placeholder9_16_6.png","placeholder9_16_7.png","placeholder9_16_8.png","placeholder3_4_2.png","placeholder9_16_9.png","placeholder9_16_11.png","placeholder9_16_12.png","placeholder9_16_13.png","placeholder9_16_14.png","placeholder9_16_15.png","placeholder9_16_16.png","placeholder9_16_17.png","placeholder9_16_18.png","placeholder9_16_19.png","placeholder9_16_20.png","placeholder9_16_22.png","placeholder9_16_23.png","placeholder9_16_24.png","placeholder9_16_25.png","placeholder3_4_3.png","placeholder3_4_4.png","placeholder4_3_1.png","placeholder4_3_2.png","placeholder4_3_3.png","placeholder3_4_5.png","placeholder1_1_1.png","placeholder1_1_2.png","placeholder3_4_6.png","placeholder4_3_4.png","placeholder4_3_5.png","placeholder4_3_6.png","placeholder4_3_7.png","placeholder3_4_9.png","placeholder3_4_10.png","placeholder3_4_11.png","placeholder3_4_12.png","placeholder4_3_8.png","placeholder3_4_13.png","placeholder9_16_28.png","placeholder9_16_29.png","placeholder9_16_30.png","placeholder9_16_31.png","placeholder9_16_32.png","placeholder9_16_34.png","placeholder9_16_35.png","placeholder9_16_36.png","placeholder9_16_37.png","placeholder9_16_38.png","placeholder9_16_39.png","placeholder9_16_40.png","placeholder9_16_41.png","placeholder9_16_42.png","placeholder9_16_43.png","placeholder9_16_45.png","placeholder9_16_46.png","placeholder9_16_47.png","placeholder9_16_48.png","placeholder9_16_49.png","placeholder9_16_50.png","placeholder9_16_51.png","placeholder9_16_52.png","placeholder9_16_53.png","placeholder9_16_54.png","placeholder9_16_56.png","placeholder9_16_102.png","placeholder9_16_103.png","placeholder9_16_104.png"];window.HERO_SLIDES=[{img:"src/images/photo/placeholder16_9_15.png",imgMobile:"src/images/photo/placeholder9_16_1.png",title:"Bagaimana Caranya Memilikimu Secara Sempurna? Aku Sudah Capek Menjadi Pengagummu.",desc:"Beginilah Cara Rouf, Seseorang Yang Mungkin Tak Pernah Kamu Sadari, Mengungkapkan Kekagumannya Dari kejauhan, Aku Telah Melihat Cahayamu Bersinar, Berharap Suatu Hari Nanti Kamu Akan Menyadarinya. Tapi untuk saat ini, Beginilah Cara Rouf Mengungkapkan Perasaan Yang Sebenarnya. I Love You >3"},{img:"src/images/photo/placeholder16_9_1.png",imgMobile:"src/images/photo/placeholder9_16_10.png",title:"Dari Jauh Aku Menjagamu",desc:"Setiap senyummu adalah alasan. Aku hanya bisa memperhatikan dari kejauhan, berharap suatu hari nanti kamu menyadari bahwa kamu selalu istimewa."},{img:"src/images/photo/placeholder16_9_7.png",imgMobile:"src/images/photo/placeholder9_16_21.png",title:"Cahayamu, Lengkapkan Hariku",desc:"Ada kehangatan yang tak bisa kujelaskan setiap kali kamu hadir. Hari-hariku terasa lebih ringan hanya dengan melihatmu bahagia."},{img:"src/images/photo/placeholder16_9_8.png",imgMobile:"src/images/photo/placeholder9_16_26.png",title:"Kisah yang Tak Terucap",desc:"Banyak hal ingin kuucapkan, tapi takut mengganggu. Maka kubiarkan waktu yang berbicara, dan hatiku yang terus berharap."},{img:"src/images/photo/placeholder16_9_9.png",imgMobile:"src/images/photo/placeholder9_16_27.png",title:"Untukmu yang Selalu Kuagumi",desc:"Kamu tidak pernah tahu, tapi setiap detil tentangmu kusimpan rapi. Senyum, tawa, dan caramu menjalani hari—semuanya berharga."},{img:"src/images/photo/placeholder16_9_10.png",imgMobile:"src/images/photo/placeholder9_16_33.png",title:"Sepucuk Rasa dari Jauh",desc:"Bukan untuk diperhatikan, hanya ingin kamu tahu bahwa ada seseorang yang diam-diam menyimpan doa terbaik untukmu setiap malam."},{img:"src/images/photo/placeholder16_9_11.png",imgMobile:"src/images/photo/placeholder9_16_44.png",title:"Hari Ini, Aku Pilih Berani",desc:"Cukup lama aku hanya menonton dari jauh. Kini saatnya aku melangkah, menyampaikan rasa yang selama ini kupendam."},{img:"src/images/photo/placeholder16_9_12.png",imgMobile:"src/images/photo/placeholder9_16_55.png",title:"Senja yang Menemaniku",desc:"Setiap senja mengingatkanku pada caramu tersenyum. Perlahan, aku belajar bahwa cinta tidak harus selalu diucapkan."},{img:"src/images/photo/placeholder16_9_13.png",imgMobile:"src/images/photo/placeholder9_16_29.png",title:"Waktu Berbicara",desc:"Ada hal-hal yang tidak bisa dipaksakan. Aku membiarkan waktu yang menjawab, dan hatiku yang terus berdoa untukmu."},{img:"src/images/photo/placeholder16_9_14.png",imgMobile:"src/images/photo/placeholder9_16_30.png",title:"Rindu dalam Diam",desc:"Rindu tidak selalu tentang bertemu. Kadang cukup dengan tahu kamu baik-baik saja, dan hatiku tenang."},{img:"src/images/photo/placeholder16_9_2.png",imgMobile:"src/images/photo/placeholder9_16_31.png",title:"Sekadar Mengagumi",desc:"Tidak semua perasaan harus berbalas. Ada yang cukup dirasakan, dirawat, dan disimpan baik-baik di dalam hati."},{img:"src/images/photo/placeholder16_9_3.png",imgMobile:"src/images/photo/placeholder9_16_32.png",title:"Doa yang Tak Putus",desc:"Setiap malam kuselipkan namamu dalam doa. Semoga kamu selalu dilindungi, dimudahkan, dan dikelilingi orang-orang baik."},{img:"src/images/photo/placeholder16_9_4.png",imgMobile:"src/images/photo/placeholder9_16_34.png",title:"Bahagia yang Sederhana",desc:"Melihatmu tersenyum sudah cukup membuat hariku berarti. Terima kasih telah hadir dengan caramu yang sederhana namun indah."},{img:"src/images/photo/placeholder16_9_5.png",imgMobile:"src/images/photo/placeholder9_16_35.png",title:"Untuk Nanti",desc:"Jika suatu hari nanti kamu membaca ini, semoga kamu tahu: ada yang diam-diam menyayangimu lebih dari yang kamu kira."},{img:"src/images/photo/placeholder16_9_6.png",imgMobile:"src/images/photo/placeholder9_16_36.png",title:"I Love You",desc:"Tiga kata yang akhirnya berani kutulis. Terima kasih sudah menjadi bagian terindah dari ceritaku."}],window.HERO_OPTIONS={customContent:!0},window.SITE_TEXT&&window.SITE_TEXT.index&&window.HERO_SLIDES.length&&(window.SITE_TEXT.index.heroTitle&&(window.HERO_SLIDES[0].title=window.SITE_TEXT.index.heroTitle),window.SITE_TEXT.index.heroDesc&&(window.HERO_SLIDES[0].desc=window.SITE_TEXT.index.heroDesc));let remainingImages=[...allImages],gridContainers=[];function shuffleArray(a){const e=[...a];for(let a=e.length-1;a>0;a--){const n=Math.floor(Math.random()*(a+1));[e[a],e[n]]=[e[n],e[a]]}return e}function getNextImages(a){remainingImages.length<a&&(remainingImages=[...allImages]);const e=shuffleArray(remainingImages),n=e.slice(0,a);return remainingImages=e.slice(a),n}function initializeGrid(){const a=document.getElementById("imageGrid"),e=getNextImages(12);a.innerHTML=e.map((a,e)=>`\n                <div class="image-container aspect-[2/3] rounded overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-300">\n                    <img alt="Image" class="active" loading="lazy" decoding="async" src="src/images/photo/${a}">\n                    <img alt="Image" class="inactive" loading="lazy" decoding="async">\n                </div>\n            `).join(""),gridContainers=Array.from(a.querySelectorAll(".image-container"))}function updateImages(){const a=getNextImages(12);gridContainers.forEach((e,n)=>{const l=e.querySelectorAll("img"),i=l[0].classList.contains("active")?l[0]:l[1],o=l[0].classList.contains("active")?l[1]:l[0];o.src=`src/images/photo/${a[n]}`,i.classList.remove("active"),i.classList.add("inactive"),o.classList.remove("inactive"),o.classList.add("active")})}var activeModal=null,lastFocusedElement=null;function openModal(){openDialog("myModal")}function closeModal(){closeDialog("myModal")}function openInfoModal(){openDialog("infoModal")}function closeInfoModal(){closeDialog("infoModal")}function openDialog(a){var e=document.getElementById(a);lastFocusedElement=document.activeElement,activeModal=e,e.style.display="block",window.MusicPlayer&&"myModal"===e.id&&window.MusicPlayer.pauseForVideo();var n=e.querySelector(".close");n&&n.focus();var l=e.querySelector("iframe");l&&!l.getAttribute("src")&&(l.setAttribute("src","play.html"),l.addEventListener("load",function(){try{l.contentWindow.postMessage("netflix-unmute","*")}catch(a){}},{once:!0}))}function closeDialog(a){var e=document.getElementById(a);e.style.display="none",window.MusicPlayer&&"myModal"===e.id&&window.MusicPlayer.resumeFromVideo();var n=e.querySelector("iframe");n&&n.removeAttribute("src"),activeModal===e&&(activeModal=null),lastFocusedElement&&lastFocusedElement.focus()}function isTrustedOrigin(a){return a===window.location.origin||"null"===a}window.addEventListener("message",function(a){isTrustedOrigin(a.origin)&&window.MusicPlayer&&("netflix-video-ended"===a.data?window.MusicPlayer.resumeFromVideo():"netflix-video-playing"===a.data?window.MusicPlayer.pauseForVideo():"netflix-close"===a.data&&activeModal&&closeDialog(activeModal.id))}),document.addEventListener("keydown",function(a){if(activeModal){if("Escape"===a.key)return a.preventDefault(),void("myModal"===activeModal.id?closeModal():"infoModal"===activeModal.id&&closeInfoModal());if("Tab"===a.key){var e=activeModal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"]), iframe, video, [role="button"]');if(0===e.length)return;var n=e[0],l=e[e.length-1];a.shiftKey&&document.activeElement===n?(a.preventDefault(),l.focus()):a.shiftKey||document.activeElement!==l||(a.preventDefault(),n.focus())}}}),document.addEventListener("DOMContentLoaded",function(){const a=window.matchMedia("(prefers-reduced-motion: reduce)").matches;if(initializeGrid(),a||setInterval(updateImages,5e3),window.SITE_TEXT&&window.SITE_TEXT.index){var e=window.SITE_TEXT.index,n=document.getElementById("infoModal");if(n){var l=n.querySelector("h2");l&&e.moreInfoTitle&&(l.textContent=e.moreInfoTitle),e.moreInfoParagraphs&&e.moreInfoParagraphs.length&&(n.querySelectorAll("p").forEach(function(a){a.remove()}),e.moreInfoParagraphs.forEach(function(a){var e=document.createElement("p");e.textContent=a,n.querySelector(".info-modal-content").appendChild(e)}))}var i=document.querySelector("#myModal .play-modal-title");i&&e.playTitle&&(i.textContent=e.playTitle)}});</script>
 </body>
 </html>

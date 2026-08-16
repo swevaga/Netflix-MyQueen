@@ -1,157 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ==== mylist.html — Halaman My List — daftar personal + billboard rotasi (hero-slider). ==== -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netflix - My List</title>
-    <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
-    <link rel="stylesheet" href="src/css/tailwind.css?v=4">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="src/css/common.css?v=15">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="src/js/debug-hud.js?v=1"></script>
-    <script src="src/js/navbar.js?v=5"></script>
-    <script src="src/data/site-text-data.js?v=1"></script>
-    <script src="src/data/music-data.js?v=5"></script>
-    <script src="src/js/music-player.js?v=13"></script>
-    <script src="src/js/hero-slider.js?v=5"></script>
-    <script>
-        // Billboard rotasi My List (foto + teks berganti, ala index.html).
-        // img = 16:9 (desktop), imgMobile = 9:16 (mobile).
-        window.HERO_SLIDES = [
-            {
-                img: "src/images/photo/placeholder16_9_15.png",
-                imgMobile: "src/images/photo/placeholder9_16_1.png",
-                title: "My List",
-                desc: "Kumpulan orang-orang spesial yang selalu mengisi hari-hariku dengan tawa dan kehangatan."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_1.png",
-                imgMobile: "src/images/photo/placeholder9_16_10.png",
-                title: "Orang-Orang Istimewa",
-                desc: "Mereka yang tak pernah lelah membuatku merasa cukup. Terima kasih sudah hadir."
-            },
-            {
-                img: "src/images/photo/placeholder16_9_7.png",
-                imgMobile: "src/images/photo/placeholder9_16_21.png",
-                title: "Cerita yang Terus Berjalan",
-                desc: "Setiap orang punya cerita. Yang paling indah adalah ketika cerita itu melibatkan kamu."
-            }
-        ];
 
-        // Judul & deskripsi hero slide pertama diatur langsung di
-        // src/data/site-text-data.js (di kode).
-        if (window.SITE_TEXT && window.SITE_TEXT.mylist && window.HERO_SLIDES.length) {
-            if (window.SITE_TEXT.mylist.heroTitle) window.HERO_SLIDES[0].title = window.SITE_TEXT.mylist.heroTitle;
-            if (window.SITE_TEXT.mylist.heroDesc) window.HERO_SLIDES[0].desc = window.SITE_TEXT.mylist.heroDesc;
-        }
-    </script>
-    <!-- Vercel Analytics + Speed Insights (paket resmi @vercel/analytics + @vercel/speed-insights) -->
-    <script type="module" src="src/js/vercel-init.mjs"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netflix - My List</title>
+<link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
+<link rel="stylesheet" href="src/css/tailwind.css?v=5">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="src/css/common.css?v=16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="src/js/debug-hud.js?v=2"></script>
+<script src="src/js/navbar.js?v=6"></script>
+<script src="src/data/site-text-data.js?v=2"></script>
+<script src="src/data/music-data.js?v=6"></script>
+<script src="src/js/music-player.js?v=14"></script>
+<script src="src/js/hero-slider.js?v=6"></script>
+<script>window.HERO_SLIDES=[{img:"src/images/photo/placeholder16_9_15.png",imgMobile:"src/images/photo/placeholder9_16_1.png",title:"My List",desc:"Kumpulan orang-orang spesial yang selalu mengisi hari-hariku dengan tawa dan kehangatan."},{img:"src/images/photo/placeholder16_9_1.png",imgMobile:"src/images/photo/placeholder9_16_10.png",title:"Orang-Orang Istimewa",desc:"Mereka yang tak pernah lelah membuatku merasa cukup. Terima kasih sudah hadir."},{img:"src/images/photo/placeholder16_9_7.png",imgMobile:"src/images/photo/placeholder9_16_21.png",title:"Cerita yang Terus Berjalan",desc:"Setiap orang punya cerita. Yang paling indah adalah ketika cerita itu melibatkan kamu."}],window.SITE_TEXT&&window.SITE_TEXT.mylist&&window.HERO_SLIDES.length&&(window.SITE_TEXT.mylist.heroTitle&&(window.HERO_SLIDES[0].title=window.SITE_TEXT.mylist.heroTitle),window.SITE_TEXT.mylist.heroDesc&&(window.HERO_SLIDES[0].desc=window.SITE_TEXT.mylist.heroDesc));</script>
+
+<script type="module" src="src/js/vercel-init.mjs"></script>
 </head>
 <body class="bg-black text-white m-0 p-0 overflow-x-hidden">
-    <a class="skip-link" href="#main-content">Langsung ke konten</a>
-    <header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
-        <div class="flex items-center space-x-3 md:space-x-6">
-            <button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
-            <img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
-            <nav class="hidden md:flex space-x-5 text-sm">
-                <a class="text-gray-300 hover:text-white transition" href="index.html">Home</a>
-                <a class="text-gray-300 hover:text-white transition" href="series.html">Series</a>
-                <a class="text-gray-300 hover:text-white transition" href="movies.html">Movies</a>
-                <a class="text-gray-300 hover:text-white transition" href="newsandpopular.html">News &amp; Popular</a>
-                <a class="text-white hover:text-gray-300 transition" href="mylist.html">My List</a>
-            </nav>
-        </div>
-        <div class="flex items-center space-x-3 md:space-x-5">
-            <div class="relative">
-                <button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
-                <div class="notification" id="searchNotification">
-                    <p>Gada Siapa Siapa Kecuali Aku ~R</p>
-                </div>
-            </div>
-            <button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
-            <div class="notification" id="notificationMenu">
-                <p>Semakin Hari Semakin Cantik Sih Kamu</p>
-                <p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
-                <p>I Love You Hehe >3</p>
-            </div>
-            <div class="dropdown">
-                <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
-                <div class="dropdown-content" id="dropdownMenu">
-                    <a href="https://www.instagram.com/vaxetherion/">Accounts</a>
-                    <a href="admin.html">Settings</a>
-                    <a href="#">Logout</a>
-                </div>
-            </div>
-        </div>
-    </header>
-    <div class="dropdown md:hidden fixed top-11 left-3 z-50">
-        <div class="dropdown-content mobile-menu-dropdown" id="mobileMenu">
-            <a href="index.html">Home</a>
-            <a href="series.html">Series</a>
-            <a href="movies.html">Movies</a>
-            <a href="newsandpopular.html">News &amp; Popular</a>
-            <a href="mylist.html">My List</a>
-        </div>
-    </div>
-    
-    <main id="main-content" tabindex="-1" class="pt-20 md:pt-24 pb-12">
-        <div id="heroSlider" class="relative h-[55vh] md:h-[60vh] overflow-hidden mb-8"></div>
-        <section class="bg-black py-6">
-            <div class="container mx-auto px-4 md:px-12 max-w-4xl">
-                <h2 class="text-lg md:text-xl font-bold mb-6">List Account</h2>
-                
-                <div class="mb-10">
-                    <h3 class="text-md font-semibold mb-4 text-gray-300">Developer</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
-                            <img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
-                            <a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/roufdarkside" target="_blank" rel="noopener noreferrer">
-                                @roufdarkside
-                            </a>
-                        </div>
-                        <div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
-                            <img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
-                            <a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/roufserenity" target="_blank" rel="noopener noreferrer">
-                                @roufserenity
-                            </a>
-                        </div>
-                        <div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
-                            <img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
-                            <a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/vaxetherion" target="_blank" rel="noopener noreferrer">
-                                @vaxetherion
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3 class="text-md font-semibold mb-4 text-gray-300">My Queen</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
-                            <img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
-                            <a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/helminana177" target="_blank" rel="noopener noreferrer">
-                                @helminana177
-                            </a>
-                        </div>
-                        <div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
-                            <img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
-                            <a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/irullkiyowok" target="_blank" rel="noopener noreferrer">
-                                @irullkiyowok
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-    
-    <script>
+<a class="skip-link" href="#main-content">Langsung ke konten</a>
+<header class="flex items-center justify-between px-3 md:px-12 py-2 md:py-3 bg-gradient-to-b from-black/90 to-transparent fixed top-0 w-full z-40">
+<div class="flex items-center space-x-3 md:space-x-6">
+<button type="button" aria-label="Menu" class="nav-toggle bg-transparent border-0 p-0 text-white md:hidden text-base cursor-pointer" onclick="toggleMobileMenu()"><i class="fas fa-bars cursor-pointer" aria-hidden="true"></i></button>
+<img alt="Netflix Logo" class="h-5 md:h-9" src="src/images/icon/netflix_logo.png">
+<nav class="hidden md:flex space-x-5 text-sm">
+<a class="text-gray-300 hover:text-white transition" href="index.html">Home</a>
+<a class="text-gray-300 hover:text-white transition" href="series.html">Series</a>
+<a class="text-gray-300 hover:text-white transition" href="movies.html">Movies</a>
+<a class="text-gray-300 hover:text-white transition" href="newsandpopular.html">News &amp; Popular</a>
+<a class="text-white hover:text-gray-300 transition" href="mylist.html">My List</a>
+</nav>
+</div>
+<div class="flex items-center space-x-3 md:space-x-5">
+<div class="relative">
+<button type="button" aria-label="Cari" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleSearchNotification()"><i class="fas fa-search cursor-pointer" aria-hidden="true"></i></button>
+<div class="notification" id="searchNotification">
+<p>Gada Siapa Siapa Kecuali Aku ~R</p>
+</div>
+</div>
+<button type="button" aria-label="Notifikasi" class="nav-toggle bg-transparent border-0 p-0 text-white text-base cursor-pointer" onclick="toggleNotification()"><i class="fas fa-bell cursor-pointer" aria-hidden="true"></i></button>
+<div class="notification" id="notificationMenu">
+<p>Semakin Hari Semakin Cantik Sih Kamu</p>
+<p>Aku Cemburu Kamu Post Foto Nanti Ada Yang Suka Kamu</p>
+<p>I Love You Hehe >3</p>
+</div>
+<div class="dropdown">
+<button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
+<div class="dropdown-content" id="dropdownMenu">
+<a href="https://www.instagram.com/vaxetherion/">Accounts</a>
+<a href="admin.html">Settings</a>
+<a href="#">Logout</a>
+</div>
+</div>
+</div>
+</header>
+<div class="dropdown md:hidden fixed top-11 left-3 z-50">
+<div class="dropdown-content mobile-menu-dropdown" id="mobileMenu">
+<a href="index.html">Home</a>
+<a href="series.html">Series</a>
+<a href="movies.html">Movies</a>
+<a href="newsandpopular.html">News &amp; Popular</a>
+<a href="mylist.html">My List</a>
+</div>
+</div>
 
-    </script>
+<main id="main-content" tabindex="-1" class="pt-20 md:pt-24 pb-12">
+<div id="heroSlider" class="relative h-[55vh] md:h-[60vh] overflow-hidden mb-8"></div>
+<section class="bg-black py-6">
+<div class="container mx-auto px-4 md:px-12 max-w-4xl">
+<h2 class="text-lg md:text-xl font-bold mb-6">List Account</h2>
+
+<div class="mb-10">
+<h3 class="text-md font-semibold mb-4 text-gray-300">Developer</h3>
+<div class="space-y-3">
+<div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
+<img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
+<a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/roufdarkside" target="_blank" rel="noopener noreferrer">
+@roufdarkside
+</a>
+</div>
+<div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
+<img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
+<a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/roufserenity" target="_blank" rel="noopener noreferrer">
+@roufserenity
+</a>
+</div>
+<div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
+<img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
+<a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/vaxetherion" target="_blank" rel="noopener noreferrer">
+@vaxetherion
+</a>
+</div>
+</div>
+</div>
+
+<div>
+<h3 class="text-md font-semibold mb-4 text-gray-300">My Queen</h3>
+<div class="space-y-3">
+<div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
+<img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
+<a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/helminana177" target="_blank" rel="noopener noreferrer">
+@helminana177
+</a>
+</div>
+<div class="flex items-center space-x-3 bg-gray-800 p-3 rounded">
+<img alt="Instagram Icon" class="h-6 w-6" src="src/images/icon/instagram_icon.png"/>
+<a class="text-white hover:text-blue-400 transition" href="https://www.instagram.com/irullkiyowok" target="_blank" rel="noopener noreferrer">
+@irullkiyowok
+</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+<script></script>
 </body>
 </html>

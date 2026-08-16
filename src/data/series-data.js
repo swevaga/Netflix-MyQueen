@@ -738,10 +738,5 @@ window.SERIES_ITEMS = [
         "label": "Video 16:9 14",
         "width": 960,
         "height": 540
-    },
-    {
-        "src": "src/images/photo/Picsart_25-10-05_06-34-58-767_1786695831619.jpg",
-        "ratio": "9:16",
-        "label": "Picsart_25-10-05_06-34-58-767_1786695831619"
     }
 ];

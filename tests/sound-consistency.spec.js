@@ -62,7 +62,7 @@ test('movies: musik → video1 → video2 (tanpa tutup video1) → tutup semua �
   await startMusic(page, '/movies.html');
 
   // Buka video1 (klik thumbnail asli) → musik di-suppress.
-  await page.click('button[aria-label="Putar video 1"]');
+  await page.click('button[aria-label="Putar Video 1"]');
   await expectSuppressCount(page, 1);
   expect(await suppressed(page)).toEqual({ island: true, float: true });
 

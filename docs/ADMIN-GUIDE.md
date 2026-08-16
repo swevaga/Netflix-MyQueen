@@ -36,14 +36,18 @@
    di tempat aman (password manager).
 2. Buka `admin.html` di browser (bisa dari `https://SITUS-ANDA/admin.html` atau
    lokal).
-3. Masukkan **PIN** (bawaan: `1602` — ganti lewat tab *Pengaturan*).
+3. Masukkan **PIN** (bawaan: `9999999990000000000222222222244444444446666666666111111111133333333335555555555A`
+   — ganti lewat tab *Pengaturan*). Setelah **3x PIN salah**, perangkat
+   diblokir permanen (layar blokir + kontak Telegram).
 4. Isi **Owner / Repository / Branch / Token** di kartu *Koneksi GitHub*, klik
    **Tes Koneksi**.
 5. Klik **Muat Data dari GitHub** → semua konten situs terambil dari repo.
-6. Edit konten di tab **Berita / Foto Series / Video Movies / Musik**.
-   Foto/video/thumbnail **di-upload langsung dari panel ini** lewat
+6. Edit konten di tab **Berita / Foto Series / Video Movies / Musik / Teks / Blokir / Pengaturan**.
+   Foto/video/audio **di-upload langsung dari panel ini** lewat
    drag & drop / pilih file — path otomatis terisi, tidak perlu mengetik
-   path manual. Musik tetap diisi path/URL (file sudah ada di repo/hosting).
+   path manual. **Musik juga di-upload** (drag & drop ke `src/audio/`),
+   tidak ada lagi input path/URL manual. Semua file yang di-upload
+   **dinamai ulang otomatis** sesuai isi folder (lihat di bawah).
 7. Klik **Simpan Perubahan ke GitHub** → commit dibuat otomatis → Vercel
    auto re-deploy (±1 menit) → konten baru langsung tampil.
 
@@ -54,11 +58,11 @@
 | **Berita** | `src/data/news-data.js` | Pesan bertanggal di `newsandpopular.html` (tambah/hapus/edit, urutan) |
 | **Foto Series** | `src/data/series-data.js` | Grid foto `series.html` (dikelompokkan otomatis per rasio) |
 | **Video Movies** | `src/data/movies-data.js` | Video + thumbnail di `movies.html` |
-| **Musik** | `src/data/music-data.js` | Playlist Dynamic Island (semua halaman) |
-| **Media (Upload)** | `src/images/photo`, `src/videos/moviespage`, `src/videos/newsandpopularpage` | Foto/video/thumbnail di-upload drag & drop dari panel (path otomatis). Musik tetap path/URL |
-
-> ℹ️ **Teks situs** (kata-kata di index/news/mylist/play + More Info) tidak lagi
-> dikelola dari admin — diatur langsung di kode (`src/data/site-text-data.js`).
+| **Musik** | `src/data/music-data.js` | Playlist Dynamic Island (semua halaman) — file lagu DI-UPLOAD ke `src/audio/` |
+| **Teks** | `src/data/site-text-data.js` | Semua kata-kata: navbar, hero index, More Info, play.html, news & mylist |
+| **Blokir** | `src/data/blocked-devices.json` | Daftar IP / IMEI / MAC / Fingerprint yang diblokir + unduh daftar |
+| **Pengaturan** | `src/data/site-settings-data.js`, `src/data/play-video-data.js` | Jarak paragraf berita + video halaman Play |
+| **Media (Upload)** | `src/images/photo`, `src/videos/moviespage`, `src/videos/newsandpopularpage`, `src/audio`, `src/videos/playpage` | Foto/video/audio di-upload drag & drop (path otomatis + rename otomatis) |
 
 ### Catatan per Tab
 
@@ -76,19 +80,41 @@
 - **Video Movies**: upload **video** ke `src/videos/moviespage/` +
   **thumbnail (foto)** ke `src/images/photo/` — `id` diisi otomatis &
   dipertahankan saat edit.
-- **Musik**: isi **path/URL file music** + tulis **judul lagu** (contoh
-  *"Selamat Tinggal - Virgoun Ft. Audy"*).
+- **Musik**: **upload file lagu (drag & drop)** ke `src/audio/` + tulis
+  **judul lagu** (contoh *"Selamat Tinggal - Virgoun Ft. Audy"*). Path
+  otomatis terisi — tidak ada lagi input path/URL manual.
+- **Teks**: edit semua kata-kata situs (navbar, hero index, More Info,
+  play.html, news, mylist) — disimpan ke `src/data/site-text-data.js`.
+- **Blokir**: kelola daftar perangkat yang diblokir (IP / IMEI / MAC /
+  Fingerprint), deteksi perangkat ini sendiri, unduh daftar sebagai file.
+- **Pengaturan**: jarak antar paragraf pesan berita (px) + video halaman
+  Play (upload drag & drop ke `src/videos/playpage/`).
 
-### Media (Upload Drag & Drop)
+### Media (Upload Drag & Drop + Rename Otomatis)
 
-- Foto/video/thumbnail **di-upload langsung dari panel ini** — seret &
+- Foto/video/audio **di-upload langsung dari panel ini** — seret &
   letakkan file ke area upload, atau klik area untuk memilih file. Path
-  otomatis terisi di data; **tidak ada input path manual** untuk media ini.
+  otomatis terisi di data; **tidak ada input path manual** untuk media apa
+  pun (termasuk musik).
+- **Rename otomatis**: setiap file yang di-upload langsung dinamai ulang
+  mengikuti isi folder tujuannya (nomor berikutnya dicek via GitHub API):
+  - **Foto Series** (rasio 9:16 / 16:9 / 1:1 / 3:4 / 4:3) →
+    `placeholder9_16_N.png`, `placeholder16_9_N.png`, `placeholder1_1_N.png`,
+    `placeholder3_4_N.png`, `placeholder4_3_N.png`
+  - **Video Movies** → `videoN.mp4` · **Thumbnail** → `thumb_N.ext`
+  - **Musik** → `musikN.ext` · **Video Play** → `video.mp4` (nama tetap,
+    menggantikan file lama)
 - Folder tujuan sudah ditentukan (tertulis di setiap area upload):
   - **Foto Series & thumbnail** → `src/images/photo/`
   - **Video Movies** → `src/videos/moviespage/`
   - **Video Berita** → `src/videos/newsandpopularpage/`
-- Batas ukuran: foto ±20 MB, video ±70 MB (batas GitHub Contents API).
+  - **Musik** → `src/audio/` · **Video Play** → `src/videos/playpage/`
+- **Pilih dari GitHub**: tombol di tiap tab membuka pustaka media repo
+  dan hanya menampilkan file dari folder yang sesuai (foto →
+  `src/images/photo/`, video movies → `src/videos/moviespage/`, dst.) —
+  pilih file yang sudah ada tanpa upload ulang.
+- Batas ukuran: foto ±20 MB, video ±70 MB, audio ±30 MB (batas GitHub
+  Contents API).
 - Setelah upload, path tampil di area upload + preview muncul otomatis.
   Tombol **Ganti** mengganti file, tombol **Hapus** mengosongkan field
   (referensi di data saja — file di repo tidak ikut dihapus saat itu).
@@ -115,12 +141,29 @@ Menu **Profile → Settings** di navbar semua halaman membuka `admin.html`
 
 ## Keamanan
 
-- PIN default ada di konstanta `ADMIN_PIN` di bagian atas `<script>` `admin.html`
-  — ganti angkanya, atau pakai tab *Pengaturan* untuk PIN khusus per perangkat.
-- **Anti brute-force**: setelah 5 percobaan PIN salah, form terkunci 60 detik.
+- PIN default ada di konstanta `ADMIN_PIN` di `<script>` `admin.html` — ganti
+  angkanya, atau pakai tab *Pengaturan* untuk PIN khusus per perangkat.
+- **Anti brute-force (3x → blokir permanen)**: setelah **3x** PIN salah,
+  perangkat langsung melihat layar blokir penuh ("Akses Diblokir" + tombol
+  kontak Telegram @axetherion). Penanda disimpan di localStorage &
+  sessionStorage sehingga blokir bertahan walau halaman di-refresh. Setiap
+  percobaan juga diberi jeda minimum 700 ms (anti tebak cepat otomatis).
+- **Daftar blokir (tab Blokir)**: pemilik bisa menambah/mengganti/menghapus
+  entri IP, IMEI, MAC Address, atau Fingerprint perangkat di
+  `src/data/blocked-devices.json` (via GitHub API). Perangkat yang cocok
+  otomatis diblokir saat membuka admin. Tombol **Unduh Daftar** mengunduh
+  daftar sebagai file JSON + TXT.
+- **Fingerprint perangkat**: browser TIDAK mengungkap IMEI/MAC asli ke situs
+  web (kebijakan privasi). Panel memakai kombinasi fingerprint (canvas +
+  WebGL + info browser) dan IP publik (via api.ipify.org) sebagai pengganti
+  yang setara untuk identifikasi & blokir perangkat.
 - **Anti-XSS**: semua data (judul/path) di-escape sebelum dirender di daftar
   admin, dan file data divalidasi sebagai literal JSON/JS murni sebelum
   diproses (kode berbahaya ditolak).
+- **Anti-DDoS / lapisan edge**: situs statis dilindungi CDN (Vercel) — aktifkan
+  WAF / rate-limiting / Deployment Protection di dashboard Vercel untuk
+  memblokir serangan DDoS skala besar. Header keamanan (HSTS, nosniff,
+  X-Frame-Options, Permissions-Policy, COOP) sudah diatur di `vercel.json`.
 - PAT hanya disimpan di `localStorage` browser kamu. **Jangan pernah menaruh
   token di dalam file repository.** Gunakan tombol *Bersihkan Token &
   Konfigurasi* (tab Pengaturan) saat selesai di perangkat bersama.
