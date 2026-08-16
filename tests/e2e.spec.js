@@ -17,8 +17,21 @@
 // ==========================================================================
 const { test, expect } = require('@playwright/test');
 
-// PIN bawaan baru (sesuai permintaan pemilik).
-const ADMIN_PIN = '9999999990000000000222222222244444444446666666666111111111133333333335555555555A';
+// URL RAHASIA panel admin (admin.html di root hanyalah decoy 404).
+const ADMIN_URL = '/wudhgwuydwgduy.html';
+
+// PIN bawaan baru (sesuai permintaan pemilik). PIN asli TIDAK ada di kode
+// situs — yang diverifikasi adalah hash SHA-256-nya (crypto.subtle).
+const ADMIN_PIN = '1111133333555557777799999000008888866666444442222221436587091029384756#5647382910121314151617181910';
+
+// Tutup pop-up izin perangkat bila muncul (agar klik PIN tidak terhalang).
+async function dismissConsent(page) {
+  const modal = page.locator('#consentModal');
+  if (await modal.isVisible()) {
+    await page.click('#consentAllow');
+    await page.waitForTimeout(300);
+  }
+}
 
 const PAGES = [
   { path: '/index.html', title: 'Netflix', sectionId: null },
@@ -154,6 +167,31 @@ test.describe('Index', () => {
       return imgs.filter((i) => i.complete && i.naturalWidth > 0).length;
     });
     expect(loaded).toBeGreaterThanOrEqual(11);
+  });
+
+  test('hero: teks PER FOTO (slides dari SITE_TEXT) diterapkan ke semua slide', async ({ page }) => {
+    // Intercept file data teks → isi SITE_TEXT.index.slides (list/grid per foto).
+    // (* di akhir untuk menangkap query cache-buster ?v=N)
+    await page.route('**/src/data/site-text-data.js*', (route) =>
+      route.fulfill({
+        contentType: 'text/javascript',
+        body: 'window.SITE_TEXT={index:{slides:[{title:"Foto Satu",desc:"Deskripsi Satu"},{title:"Foto Dua",desc:"Deskripsi Dua"}]}};',
+      }),
+    );
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(500);
+    const st = await page.evaluate(() => ({
+      t0: window.HERO_SLIDES[0].title,
+      d0: window.HERO_SLIDES[0].desc,
+      t1: window.HERO_SLIDES[1].title,
+      d1: window.HERO_SLIDES[1].desc,
+      count: window.HERO_SLIDES.length,
+    }));
+    expect(st.count).toBeGreaterThanOrEqual(2);
+    expect(st.t0).toBe('Foto Satu');
+    expect(st.d0).toBe('Deskripsi Satu');
+    expect(st.t1).toBe('Foto Dua');
+    expect(st.d1).toBe('Deskripsi Dua');
   });
 });
 
@@ -302,7 +340,8 @@ test.describe('Musik', () => {
 
 test.describe('Admin Panel', () => {
   test('PIN gatekeeper: salah → ditolak, benar → dashboard terbuka', async ({ page }) => {
-    await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+    await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
+    await dismissConsent(page);
     await expect(page.locator('#pinSection')).toBeVisible();
     await expect(page.locator('#adminSection')).toBeHidden();
 
@@ -328,7 +367,8 @@ test.describe('Admin Panel', () => {
   });
 
   test('Tombol kunci mengembalikan ke layar PIN', async ({ page }) => {
-    await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+    await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
+    await dismissConsent(page);
     await page.fill('#pinInput', ADMIN_PIN);
     await page.click('#pinForm button[type="submit"]');
     await expect(page.locator('#adminSection')).toBeVisible();

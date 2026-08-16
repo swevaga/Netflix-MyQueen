@@ -47,7 +47,7 @@ Panduan lengkap untuk mengelola dan mengembangkan situs ini:
 
 | Panduan | Isi |
 |---------|-----|
-| [docs/ADMIN-GUIDE.md](./docs/ADMIN-GUIDE.md) | Admin Panel (`admin.html`): kelola berita, foto (upload drag & drop + rasio), video + thumbnail, musik via GitHub API — media foto/video di-upload langsung dari panel |
+| [docs/ADMIN-GUIDE.md](./docs/ADMIN-GUIDE.md) | Admin Panel (URL rahasia — `admin.html` hanyalah decoy 404): kelola berita, foto (upload drag & drop + rasio), video + thumbnail, musik via GitHub API — media di-upload langsung dari panel, PIN SHA-256 + blokir 3 lapis |
 | [docs/DEPLOYMENT-GUIDE.md](./docs/DEPLOYMENT-GUIDE.md) | Deployment (Vercel & GitHub Actions), proteksi repo private |
 | [docs/NEWS-GUIDE.md](./docs/NEWS-GUIDE.md) | Update News & Popular: upload video + atur tanggal tanpa edit HTML |
 | [docs/MUSIC-GUIDE.md](./docs/MUSIC-GUIDE.md) | Music Player Dynamic Island: menambah/mengganti lagu, urutan & autoplay |

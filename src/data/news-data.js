@@ -1,7 +1,7 @@
 /* ==========================================================================
-   src/data/news-data.js — DIKELOLA OTOMATIS oleh admin.html
+   src/data/news-data.js — DIKELOLA OTOMATIS oleh panel admin
    Jangan edit manual jika tidak perlu — perubahan bisa tertimpa
-   saat admin.html menyimpan. ========================================================================== */
+   saat panel admin menyimpan. ========================================================================== */
 
 window.NEWS_ITEMS = [
     {

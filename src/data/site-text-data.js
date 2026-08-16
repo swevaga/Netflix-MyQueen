@@ -1,14 +1,17 @@
 /* ==========================================================================
    site-text-data.js — Semua "kata-kata" situs
    --------------------------------------------------------------------------
-   DIKELOLA LANGSUNG DI KODE ini (bukan dari admin.html). Teks yang diatur di
-   sini (tanpa edit HTML):
+   DIKELOLA LANGSUNG DI KODE ini (bukan dari panel admin). Teks yang diatur
+   di sini (tanpa edit HTML):
      - Notifikasi & teks pencarian di navbar (semua halaman)
-     - Hero (judul + deskripsi) halaman utama index.html
+     - Hero (judul + deskripsi) halaman utama index.html — termasuk `slides`
+       (LIST/GRID teks hero PER FOTO: array { title, desc } baris ke-N
+       mengganti teks slide ke-N)
      - Modal "More Info" di index.html
      - Judul modal Play di index.html
      - Halaman play.html (judul + paragraf)
-     - Hero (judul + deskripsi) newsandpopular.html & mylist.html
+     - Hero (judul + deskripsi) newsandpopular.html & mylist.html — termasuk
+       `slides` (teks hero per foto, sama seperti index)
 
    Aturan: halaman memakai nilai dari file ini; bila field kosong, halaman
    memakai teks bawaan (fallback) yang ada di HTML-nya.

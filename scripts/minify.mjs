@@ -63,7 +63,8 @@ async function minifyJs(file) {
   const out = await terserMinify(src, {
     compress: { passes: 1, drop_console: false },
     mangle: true, // top-level names TIDAK di-mangle (dipakai inline onclick)
-    format: { comments: false },
+    // Pertahankan komentar dokumentasi /*! ... */ (keterangan fitur).
+    format: { comments: /^!/ },
   });
   writeFileSync(file, out.code);
   report(file, Buffer.byteLength(src), Buffer.byteLength(out.code));
@@ -95,7 +96,8 @@ async function minifyHtml(file) {
         compress: { passes: 1, drop_console: false },
         mangle: true,
         module: isModule,
-        format: { comments: false },
+        // Pertahankan komentar dokumentasi /*! ... */ (keterangan fitur).
+        format: { comments: /^!/ },
       });
       return `<script${isModule ? ' type="module"' : ''}>${r.code}</script>`;
     } catch (e) {
@@ -104,8 +106,10 @@ async function minifyHtml(file) {
     }
   });
 
-  // Hapus komentar HTML (pertahankan komentar kondisional <!--[if ...]-->).
-  html = html.replace(/<!--(?!\[if)[\s\S]*?-->/g, '');
+  // Hapus komentar HTML, TAPI pertahankan:
+  //   - komentar kondisional <!--[if ...]-->
+  //   - komentar dokumentasi <!--! ... --> (keterangan fitur)
+  html = html.replace(/<!--(?!\[if|!)[\s\S]*?-->/g, '');
 
   // Rapikan spasi: buang spasi awal & akhir baris, baris kosong beruntun.
   html = html

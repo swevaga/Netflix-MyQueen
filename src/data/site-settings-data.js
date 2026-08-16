@@ -1,8 +1,8 @@
 /* ==========================================================================
-   site-settings-data.js — Pengaturan tampilan situs (DIKELOLA dari admin.html)
+   site-settings-data.js — Pengaturan tampilan situs (DIKELOLA dari panel admin)
    --------------------------------------------------------------------------
-   DIKELOLA OTOMATIS oleh admin.html (tab Pengaturan) — jangan edit manual
-   jika tidak perlu; perubahan bisa tertimpa saat admin.html menyimpan.
+   DIKELOLA OTOMATIS oleh panel admin (tab Pengaturan) — jangan edit manual
+   jika tidak perlu; perubahan bisa tertimpa saat panel admin menyimpan.
 
    Field yang tersedia:
      - newsParagraphSpacing: jarak antar paragraf pesan berita (px) di

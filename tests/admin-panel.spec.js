@@ -1,24 +1,41 @@
 // ==========================================================================
-// admin-panel.spec.js — Uji regresi Admin Panel (admin.html)
+// admin-panel.spec.js — Uji regresi Admin Panel (URL rahasia)
 // --------------------------------------------------------------------------
+// Panel asli ada di wudhgwuydwgduy.html (admin.html hanyalah decoy 404).
 // Cakupan:
 //   1. Edit berita: judul berubah, video & countdown DI-PERTAHANKAN.
-//   2. Tambah berita TANPA "Muat Data" dulu → state dibuat otomatis (tidak
-//      hilang diam-diam) & ditandai dirty.
-//   3. Hapus berita → file video dihapus dari repo (ghDeleteFile dipanggil);
-//      file yang dipakai item lain TIDAK dihapus.
-//   4. Upload video dengan MIME kosong/generik (application/octet-stream)
-//      tapi ekstensi .mp4 → DITERIMA (fallback validasi ekstensi).
-//   5. XSS: judul berisi markup HTML ditampilkan ESCAPED di daftar admin.
-//   6. Proteksi brute-force PIN: 5x salah → terkunci 60 detik.
+//   2. Tambah berita TANPA "Muat Data" dulu → state dibuat otomatis & dirty.
+//   3. Hapus berita → file video dihapus dari repo; file bersama tidak.
+//   4. Upload video MIME generik (octet-stream) + ekstensi .mp4 → diterima.
+//   5. XSS: judul berisi markup HTML tampil ESCAPED di daftar admin.
+//   6. Keamanan: 3x PIN salah → blokir PERMANEN (Triple-Lock: localStorage +
+//      sessionStorage + cookie queen_admin_banned) + tombol kontak Telegram.
+//   7. Honeypot #hp_field → bot yang mengisinya langsung diblokir.
+//   8. Dynamic URL masking: address bar jadi rantai acak; URL acak yang
+//      disalin & dibuka di tab lain → dilempar ke index.html.
+//   9. Pop-up izin perangkat (consent) muncul sebelum akses.
 // ==========================================================================
 const { test, expect } = require('@playwright/test');
 
-// PIN bawaan baru (sesuai permintaan pemilik).
-const ADMIN_PIN = '9999999990000000000222222222244444444446666666666111111111133333333335555555555A';
+// URL RAHASIA panel admin (file admin.html di root hanyalah decoy 404).
+const ADMIN_URL = '/wudhgwuydwgduy.html';
+
+// PIN bawaan baru sesuai permintaan pemilik. PIN asli TIDAK ada di kode
+// situs — yang diverifikasi adalah hash SHA-256-nya (crypto.subtle).
+const ADMIN_PIN = '1111133333555557777799999000008888866666444442222221436587091029384756#5647382910121314151617181910';
+
+// Tutup pop-up izin perangkat bila muncul (agar klik PIN tidak terhalang).
+async function dismissConsent(page) {
+  const modal = page.locator('#consentModal');
+  if (await modal.isVisible()) {
+    await page.click('#consentAllow');
+    await page.waitForTimeout(300);
+  }
+}
 
 async function unlockAdmin(page) {
-  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
+  await dismissConsent(page);
   await page.fill('#pinInput', ADMIN_PIN);
   await page.click('#pinForm button[type="submit"]');
   await expect(page.locator('#adminSection')).toBeVisible();
@@ -185,8 +202,9 @@ test.describe('Admin Panel — edit & hapus Berita', () => {
 });
 
 test.describe('Admin Panel — PIN brute-force protection', () => {
-  test('3x PIN salah → perangkat DIBLOKIR PERMANEN (layar blokir + kontak Telegram)', async ({ page }) => {
-    await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+  test('3x PIN salah → perangkat DIBLOKIR PERMANEN (Triple-Lock + kontak Telegram)', async ({ page }) => {
+    await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
+    await dismissConsent(page);
     await expect(page.locator('#pinSection')).toBeVisible();
 
     // 1x salah → sisa percobaan 2. (Ada jeda 700ms antar percobaan sebagai
@@ -213,12 +231,100 @@ test.describe('Admin Panel — PIN brute-force protection', () => {
     await expect(page.locator('#pinSection')).toBeHidden();
     await expect(page.locator('#adminSection')).toBeHidden();
 
-    // Refresh halaman → tetap diblokir (penanda tersimpan lokal, permanen).
+    // Triple-Lock Multi Storage: status blokir tersimpan di 3 tempat sekaligus.
+    const locks = await page.evaluate(() => ({
+      ls: localStorage.getItem('mqBlocked'),
+      ss: sessionStorage.getItem('mqBlocked'),
+      cookie: /queen_admin_banned=1/.test(document.cookie),
+    }));
+    expect(locks.ls).toBe('1');
+    expect(locks.ss).toBe('1');
+    expect(locks.cookie).toBe(true);
+
+    // Refresh halaman → tetap diblokir (penanda tersimpan permanen).
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500);
     await expect(page.locator('#blockedSection')).toBeVisible();
     await expect(page.locator('#pinSection')).toBeHidden();
     await expect(page.locator('#adminSection')).toBeHidden();
+  });
+});
+
+test.describe('Admin Panel — keamanan tambahan', () => {
+  test('Honeypot: bot yang mengisi field tersembunyi #hp_field langsung diblokir', async ({ page }) => {
+    await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
+    await dismissConsent(page);
+    await page.fill('#hp_field', 'isi-bot-otomatis');
+    await page.click('#pinForm button[type="submit"]');
+    await expect(page.locator('#blockedSection')).toBeVisible();
+    await expect(page.locator('#blockedSection')).toContainText('Akses Diblokir');
+  });
+
+  test('Pop-up izin perangkat (consent) muncul sebelum akses; Tolak → tertutup', async ({ page }) => {
+    await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#consentModal')).toBeVisible();
+    await expect(page.locator('#consentModal')).toContainText('Izin Akses Perangkat');
+    await page.click('#consentDeny');
+    await expect(page.locator('#consentModal')).toBeHidden();
+  });
+
+  test('Dynamic URL masking: address bar berubah jadi rantai acak 24 karakter', async ({ page }) => {
+    await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(300);
+    expect(page.url()).toMatch(/#[A-Za-z0-9]{24}$/);
+  });
+
+  test('URL acak hasil masking dibuka di tab lain → dilempar ke index.html', async ({ page }) => {
+    await page.goto(ADMIN_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(300);
+    const maskedUrl = page.url();
+    expect(maskedUrl).toMatch(/#[A-Za-z0-9]{24}$/);
+    // Tab baru punya sessionStorage baru → dianggap URL curian → pulang ke index.
+    const page2 = await page.context().newPage();
+    await page2.goto(maskedUrl, { waitUntil: 'domcontentloaded' });
+    await page2.waitForTimeout(600);
+    expect(new URL(page2.url()).pathname).toContain('index');
+    await page2.close();
+  });
+
+  test('admin.html (decoy) menampilkan 404 — panel asli hanya di URL rahasia', async ({ page }) => {
+    await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('body')).toContainText('404');
+    await expect(page.locator('#pinSection')).toHaveCount(0);
+    await expect(page.locator('#adminSection')).toHaveCount(0);
+  });
+
+  test('Movies: judul video TIDAK tampil di kartu maupun modal (hanya video)', async ({ page }) => {
+    await page.goto('/movies.html', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2500);
+    // Kartu tanpa teks judul di bawah thumbnail.
+    const gridText = await page.locator('#moviesGrid').textContent();
+    expect(gridText.trim()).toBe('');
+    // Modal: hanya video — tanpa header "Now Playing" / judul.
+    await page.click('button[aria-label="Putar Video 1"]');
+    await expect(page.locator('#video1')).toBeVisible();
+    await expect(page.locator('#video1 .movies-modal-title')).toHaveCount(0);
+    await expect(page.locator('#video1 .movies-modal-badge')).toHaveCount(0);
+    await page.click('#video1 .close');
+    await expect(page.locator('#video1')).toBeHidden();
+  });
+
+  test('Series: aturan animasi hover foto tersedia (desktop)', async ({ page }) => {
+    await page.goto('/series.html', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1500);
+    const hasHover = await page.evaluate(() => {
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            if (rule.selectorText && rule.selectorText.includes('.series-item:hover')) {
+              return true;
+            }
+          }
+        } catch (e) { /* lintas-origin stylesheet diabaikan */ }
+      }
+      return false;
+    });
+    expect(hasHover).toBe(true);
   });
 });
 
@@ -290,5 +396,23 @@ test.describe('Admin Panel — fitur baru', () => {
     await expect(page.locator('#musicForm input[type="file"]')).toHaveAttribute('accept', 'audio/*');
     // Tidak ada lagi input path manual untuk musik.
     await expect(page.locator('#musicForm input[type="text"]').first()).toBeVisible();
+  });
+
+  test('Teks hero per foto (list/grid): edit slides index → state.siteText diisi array', async ({ page }) => {
+    await unlockAdmin(page);
+    await page.click('.tab-btn[data-tab="tabText"]');
+    await page.click('#tabText button:has-text("Edit Teks")');
+    await expect(page.locator('#textForm')).toBeVisible();
+    // #txt_13 = index.slides (teks hero per foto, satu baris per slide).
+    await expect(page.locator('#txt_13')).toBeVisible();
+    await page.fill('#txt_13', 'Judul Foto 1 | Deskripsi foto 1\nJudul Foto 2 | Deskripsi foto 2');
+    await page.click('#textForm button[type="submit"]');
+    await page.waitForTimeout(200);
+    const slides = await page.evaluate(() => window.state.siteText.data.index.slides);
+    expect(slides).toEqual([
+      { title: 'Judul Foto 1', desc: 'Deskripsi foto 1' },
+      { title: 'Judul Foto 2', desc: 'Deskripsi foto 2' },
+    ]);
+    expect(await page.evaluate(() => window.state.siteText.dirty)).toBe(true);
   });
 });

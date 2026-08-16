@@ -1,12 +1,24 @@
-# Admin Panel Guide (admin.html)
+# Admin Panel Guide (URL Rahasia)
 
 > Panduan mengelola konten website **tanpa edit kode sama sekali** — cukup
 > browser. Dibuat mengikuti blueprint "Custom Admin Panel (Netflix-MyQueen)".
 
+## URL Rahasia (Hidden URL)
+
+- Panel admin ASLI berada di file dengan nama acak yang **tidak bisa
+  ditebak**, misalnya: `wudhgwuydwgduy.html` (bisa diganti kapan saja).
+- File `admin.html` di root hanyalah **DECOY (umpan)** — siapa pun/bot yang
+  menebak `https://SITUS-ANDA/admin.html` hanya melihat **404 Not Found**.
+- **Dynamic URL Masking**: begitu panel dibuka, JavaScript langsung mengganti
+  teks di address bar menjadi rantai acak 24 karakter (via
+  `history.replaceState()`, tanpa memuat ulang). Jika URL acak hasil salinan
+  dibuka di HP/tab lain, halaman otomatis "hangus" dan dilempar kembali ke
+  `index.html`.
+
 ## Arsitektur & Alur Kerja
 
 ```
-[ Browser Kamu ] ──( 1. Buka admin.html + Input PIN )──> [ UI Admin Form ]
+[ Browser Kamu ] ──( 1. Buka URL RAHASIA + Input PIN )──> [ UI Admin Form ]
                                                               │
                                                    ( 2. Submit Data + Token )
                                                               │
@@ -16,16 +28,26 @@
 
 | Komponen | Peran & Fungsi | Media Penyimpanan |
 |---|---|---|
-| Halaman Admin | Form input data konten (`admin.html`) | Browser lokal |
-| Keamanan Klien | Kunci PIN sebelum form terbuka | JavaScript sederhana |
+| Halaman Admin | Form input data konten (`wudhgwuydwgduy.html`) | Browser lokal |
+| Keamanan Klien | PIN (hash SHA-256) + honeypot + blokir 3 lapis | localStorage, sessionStorage, cookie |
 | Autentikasi | GitHub Personal Access Token (PAT) | localStorage browser |
 | Database | File di `src/data/*.js` | Repository GitHub |
 | Hosting & Deploy | Auto re-deploy setelah update | Vercel (Auto Trigger) |
 
-### Matriks Keamanan (2 Lapis)
+### Matriks Keamanan (Berlapis)
 
-1. **LAPIS 1 — PIN Gatekeeper (klien)**: mencegah pengunjung umum membuka form admin.
-2. **LAPIS 2 — GitHub API Authorization**: hanya akun dengan PAT yang bisa
+1. **LAPIS 1 — URL rahasia + masking**: file admin tidak bisa ditebak;
+   address bar dikaburkan dengan rantai acak.
+2. **LAPIS 2 — PIN Gatekeeper (klien)**: PIN asli **tidak pernah ada di
+   kode** — hanya hash SHA-256 yang tersimpan (diverifikasi via
+   `crypto.subtle`).
+3. **LAPIS 3 — Honeypot trap**: input tersembunyi `#hp_field` — bot/script
+   yang mengisinya langsung kena blokir permanen.
+4. **LAPIS 4 — Brute-force lock**: setelah **3x PIN salah**, perangkat
+   diblokir **permanen** di 3 tempat sekaligus (Triple-Lock Multi Storage:
+   localStorage + sessionStorage + cookie `queen_admin_banned` yang kadaluarsa
+   ±999.999.999 tahun).
+5. **LAPIS 5 — GitHub API Authorization**: hanya akun dengan PAT yang bisa
    mengubah file di repo. **Token tidak pernah ada di dalam kode.**
 
 ## Quick Start
@@ -34,21 +56,24 @@
    settings → Personal access tokens → Tokens (classic)*. Scope yang dibutuhkan:
    `repo` (full control of private/public repositories). Simpan token (`ghp_xxx`)
    di tempat aman (password manager).
-2. Buka `admin.html` di browser (bisa dari `https://SITUS-ANDA/admin.html` atau
-   lokal).
-3. Masukkan **PIN** (bawaan: `9999999990000000000222222222244444444446666666666111111111133333333335555555555A`
-   — ganti lewat tab *Pengaturan*). Setelah **3x PIN salah**, perangkat
-   diblokir permanen (layar blokir + kontak Telegram).
-4. Isi **Owner / Repository / Branch / Token** di kartu *Koneksi GitHub*, klik
+2. Buka panel admin di URL rahasia — contoh: `https://SITUS-ANDA/wudhgwuydwgduy.html`
+   (bukan `admin.html` — itu decoy 404).
+3. Pop-up **izin akses perangkat** muncul — pilih **Setuju** agar panel dapat
+   memeriksa IP publik & fingerprint perangkat untuk proteksi blokir.
+4. Masukkan **PIN** (bawaan sesuai permintaan pemilik — tersimpan sebagai
+   hash SHA-256 `bc3ebf64…47b1`; ganti lewat tab *Pengaturan*). Setelah
+   **3x PIN salah**, perangkat diblokir permanen (layar blokir + kontak
+   Telegram @axetherion).
+5. Isi **Owner / Repository / Branch / Token** di kartu *Koneksi GitHub*, klik
    **Tes Koneksi**.
-5. Klik **Muat Data dari GitHub** → semua konten situs terambil dari repo.
-6. Edit konten di tab **Berita / Foto Series / Video Movies / Musik / Teks / Blokir / Pengaturan**.
+6. Klik **Muat Data dari GitHub** → semua konten situs terambil dari repo.
+7. Edit konten di tab **Berita / Foto Series / Video Movies / Musik / Teks / Blokir / Pengaturan**.
    Foto/video/audio **di-upload langsung dari panel ini** lewat
    drag & drop / pilih file — path otomatis terisi, tidak perlu mengetik
    path manual. **Musik juga di-upload** (drag & drop ke `src/audio/`),
    tidak ada lagi input path/URL manual. Semua file yang di-upload
    **dinamai ulang otomatis** sesuai isi folder (lihat di bawah).
-7. Klik **Simpan Perubahan ke GitHub** → commit dibuat otomatis → Vercel
+8. Klik **Simpan Perubahan ke GitHub** → commit dibuat otomatis → Vercel
    auto re-deploy (±1 menit) → konten baru langsung tampil.
 
 ## Yang Bisa Dikelola
@@ -57,9 +82,9 @@
 |---|---|---|
 | **Berita** | `src/data/news-data.js` | Pesan bertanggal di `newsandpopular.html` (tambah/hapus/edit, urutan) |
 | **Foto Series** | `src/data/series-data.js` | Grid foto `series.html` (dikelompokkan otomatis per rasio) |
-| **Video Movies** | `src/data/movies-data.js` | Video + thumbnail di `movies.html` |
+| **Video Movies** | `src/data/movies-data.js` | Video + thumbnail di `movies.html` (tanpa judul di layar) |
 | **Musik** | `src/data/music-data.js` | Playlist Dynamic Island (semua halaman) — file lagu DI-UPLOAD ke `src/audio/` |
-| **Teks** | `src/data/site-text-data.js` | Semua kata-kata: navbar, hero index, More Info, play.html, news & mylist |
+| **Teks** | `src/data/site-text-data.js` | Semua kata-kata: navbar, hero index, More Info, play.html, news & mylist — tampilan list/grid per halaman |
 | **Blokir** | `src/data/blocked-devices.json` | Daftar IP / IMEI / MAC / Fingerprint yang diblokir + unduh daftar |
 | **Pengaturan** | `src/data/site-settings-data.js`, `src/data/play-video-data.js` | Jarak paragraf berita + video halaman Play |
 | **Media (Upload)** | `src/images/photo`, `src/videos/moviespage`, `src/videos/newsandpopularpage`, `src/audio`, `src/videos/playpage` | Foto/video/audio di-upload drag & drop (path otomatis + rename otomatis) |
@@ -71,7 +96,6 @@
   tanggal mendatang disembunyikan sampai tanggalnya tiba. Isi pesan cukup
   ditulis satu paragraf per baris. **Video (Opsional)**: upload drag & drop
   ke `src/videos/newsandpopularpage/` — kosongkan untuk pesan teks saja.
-  Contoh: tanggal `13-08-2026`, judul *"Teruslah Bersinar Untukku"*.
 - **Foto Series**: upload **foto (drag & drop)** ke `src/images/photo/`
   (folder ini satu-satunya yang dipakai) + pilih **rasio** — `ratio`
   menentukan kelompok tampilan (9:16, 16:9, 3:4, 4:3, 1:1). `label` opsional
@@ -79,14 +103,18 @@
   dari repo **tidak boleh** dipakai lagi (gambar rusak).
 - **Video Movies**: upload **video** ke `src/videos/moviespage/` +
   **thumbnail (foto)** ke `src/images/photo/` — `id` diisi otomatis &
-  dipertahankan saat edit.
+  dipertahankan saat edit. Judul tidak lagi ditampilkan di situs (hanya
+  video yang muncul saat diputar), sesuai permintaan pemilik.
 - **Musik**: **upload file lagu (drag & drop)** ke `src/audio/` + tulis
   **judul lagu** (contoh *"Selamat Tinggal - Virgoun Ft. Audy"*). Path
   otomatis terisi — tidak ada lagi input path/URL manual.
-- **Teks**: edit semua kata-kata situs (navbar, hero index, More Info,
-  play.html, news, mylist) — disimpan ke `src/data/site-text-data.js`.
+- **Teks**: edit semua kata-kata situs dengan tampilan **list/grid per
+  halaman** (Navbar, `index.html`, `play.html`, `newsandpopular.html`,
+  `mylist.html`) — termasuk teks yang muncul bergantian saat foto hero
+  berganti. Disimpan ke `src/data/site-text-data.js`.
 - **Blokir**: kelola daftar perangkat yang diblokir (IP / IMEI / MAC /
-  Fingerprint), deteksi perangkat ini sendiri, unduh daftar sebagai file.
+  Fingerprint) — tambah, ganti, hapus; deteksi perangkat ini sendiri;
+  unduh daftar sebagai file JSON + TXT.
 - **Pengaturan**: jarak antar paragraf pesan berita (px) + video halaman
   Play (upload drag & drop ke `src/videos/playpage/`).
 
@@ -124,8 +152,6 @@
   dihapus. File URL eksternal (hosting lain) tidak pernah dihapus.
   Tanpa token, item tetap dihapus dari data tapi file di repo tidak ikut
   terhapus (log memberi tahu).
-- **Musik** tetap diisi **path/URL manual** (tidak ada upload) — file harus
-  sudah ada di `src/audio/…` atau hosting eksternal.
 
 ## Estimasi Waktu
 
@@ -136,18 +162,30 @@
 
 ## Akses Cepat dari Situs
 
-Menu **Profile → Settings** di navbar semua halaman membuka `admin.html`
-(langsung ke layar PIN).
+Menu **Profile → Settings** di navbar semua halaman membuka panel admin
+(langsung ke layar PIN) — link sudah menunjuk ke URL rahasia.
 
 ## Keamanan
 
-- PIN default ada di konstanta `ADMIN_PIN` di `<script>` `admin.html` — ganti
-  angkanya, atau pakai tab *Pengaturan* untuk PIN khusus per perangkat.
-- **Anti brute-force (3x → blokir permanen)**: setelah **3x** PIN salah,
-  perangkat langsung melihat layar blokir penuh ("Akses Diblokir" + tombol
-  kontak Telegram @axetherion). Penanda disimpan di localStorage &
-  sessionStorage sehingga blokir bertahan walau halaman di-refresh. Setiap
-  percobaan juga diberi jeda minimum 700 ms (anti tebak cepat otomatis).
+- **PIN tersimpan sebagai hash SHA-256** — PIN asli TIDAK ada di kode mana
+  pun (yang ada hanya `bc3ebf64775aa30923869e8507f37a7317f985db52c808e6a62045bca27447b1`).
+  Verifikasi memakai `crypto.subtle.digest` — hash mustahil di-reverse
+  menjadi PIN asli.
+- **3x salah PIN → blokir PERMANEN (Triple-Lock Multi Storage)**: setelah
+  3x salah, penanda blokir disimpan serentak di **localStorage**,
+  **sessionStorage**, dan **cookie `queen_admin_banned`** (kadaluarsa
+  ±999.999.999 tahun). Membersihkan satu tempat saja tidak cukup.
+  Layar blokir menampilkan tombol kontak **Telegram @axetherion**.
+- **Cara buka blokir (jika pemilik tidak sengaja terblokir)**: buka
+  browser → F12 (Inspect) → tab Console → ketik:
+  ```
+  localStorage.clear(); document.cookie = "queen_admin_banned=; max-age=0; path=/"; location.reload();
+  ```
+- **Honeypot trap**: input tersembunyi `#hp_field` di form PIN. Manusia
+  tidak bisa melihatnya, tetapi bot/script otomatis akan mengisinya — jika
+  terisi → langsung BAN PERMANEN.
+- **Izin akses perangkat (consent)**: pop-up muncul sebelum panel membaca
+  identitas perangkat. Tanpa izin, proteksi IP/fingerprint nonaktif.
 - **Daftar blokir (tab Blokir)**: pemilik bisa menambah/mengganti/menghapus
   entri IP, IMEI, MAC Address, atau Fingerprint perangkat di
   `src/data/blocked-devices.json` (via GitHub API). Perangkat yang cocok
@@ -168,4 +206,4 @@ Menu **Profile → Settings** di navbar semua halaman membuka `admin.html`
   token di dalam file repository.** Gunakan tombol *Bersihkan Token &
   Konfigurasi* (tab Pengaturan) saat selesai di perangkat bersama.
 - Jika repo bersifat publik, siapa pun bisa *melihat* kode — lapisan keamanan
-  sebenarnya adalah token (tulis) + PIN (tampilan form admin).
+  sebenarnya adalah token (tulis) + PIN (tampilan form admin) + URL rahasia.

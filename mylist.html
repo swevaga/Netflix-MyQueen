@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<!--!
+==========================================================================
+mylist.html — My List — Netflix-MyQueen
+--------------------------------------------------------------------------
+Fitur:
+• Hero slider (HERO_SLIDES) — teks diambil dari src/data/site-text-data.js
+• Daftar akun spesial (Developer & My Queen)
+==========================================================================
+-->
 <html lang="en">
 <head>
 
@@ -6,19 +15,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Netflix - My List</title>
 <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
-<link rel="stylesheet" href="src/css/tailwind.css?v=5">
+<link rel="stylesheet" href="src/css/tailwind.css?v=7">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-<link rel="stylesheet" href="src/css/common.css?v=16">
+<link rel="stylesheet" href="src/css/common.css?v=18">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="src/js/debug-hud.js?v=2"></script>
-<script src="src/js/navbar.js?v=6"></script>
-<script src="src/data/site-text-data.js?v=2"></script>
-<script src="src/data/music-data.js?v=6"></script>
-<script src="src/js/music-player.js?v=14"></script>
-<script src="src/js/hero-slider.js?v=6"></script>
-<script>window.HERO_SLIDES=[{img:"src/images/photo/placeholder16_9_15.png",imgMobile:"src/images/photo/placeholder9_16_1.png",title:"My List",desc:"Kumpulan orang-orang spesial yang selalu mengisi hari-hariku dengan tawa dan kehangatan."},{img:"src/images/photo/placeholder16_9_1.png",imgMobile:"src/images/photo/placeholder9_16_10.png",title:"Orang-Orang Istimewa",desc:"Mereka yang tak pernah lelah membuatku merasa cukup. Terima kasih sudah hadir."},{img:"src/images/photo/placeholder16_9_7.png",imgMobile:"src/images/photo/placeholder9_16_21.png",title:"Cerita yang Terus Berjalan",desc:"Setiap orang punya cerita. Yang paling indah adalah ketika cerita itu melibatkan kamu."}],window.SITE_TEXT&&window.SITE_TEXT.mylist&&window.HERO_SLIDES.length&&(window.SITE_TEXT.mylist.heroTitle&&(window.HERO_SLIDES[0].title=window.SITE_TEXT.mylist.heroTitle),window.SITE_TEXT.mylist.heroDesc&&(window.HERO_SLIDES[0].desc=window.SITE_TEXT.mylist.heroDesc));</script>
+<script src="src/js/debug-hud.js?v=4"></script>
+<script src="src/js/navbar.js?v=8"></script>
+<script src="src/data/site-text-data.js?v=4"></script>
+<script src="src/data/music-data.js?v=8"></script>
+<script src="src/js/music-player.js?v=16"></script>
+<script src="src/js/hero-slider.js?v=8"></script>
+<script>window.HERO_SLIDES=[{img:"src/images/photo/placeholder16_9_15.png",imgMobile:"src/images/photo/placeholder9_16_1.png",title:"My List",desc:"Kumpulan orang-orang spesial yang selalu mengisi hari-hariku dengan tawa dan kehangatan."},{img:"src/images/photo/placeholder16_9_1.png",imgMobile:"src/images/photo/placeholder9_16_10.png",title:"Orang-Orang Istimewa",desc:"Mereka yang tak pernah lelah membuatku merasa cukup. Terima kasih sudah hadir."},{img:"src/images/photo/placeholder16_9_7.png",imgMobile:"src/images/photo/placeholder9_16_21.png",title:"Cerita yang Terus Berjalan",desc:"Setiap orang punya cerita. Yang paling indah adalah ketika cerita itu melibatkan kamu."}],window.SITE_TEXT&&window.SITE_TEXT.mylist&&window.HERO_SLIDES.length&&function(e){e.heroTitle&&(window.HERO_SLIDES[0].title=e.heroTitle),e.heroDesc&&(window.HERO_SLIDES[0].desc=e.heroDesc),Array.isArray(e.slides)&&e.slides.forEach(function(e,a){var i=window.HERO_SLIDES[a];i&&e&&(e.title&&(i.title=e.title),e.desc&&(i.desc=e.desc))})}(window.SITE_TEXT.mylist);</script>
 
 <script type="module" src="src/js/vercel-init.mjs"></script>
 </head>
@@ -53,7 +62,7 @@
 <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
 <div class="dropdown-content" id="dropdownMenu">
 <a href="https://www.instagram.com/vaxetherion/">Accounts</a>
-<a href="admin.html">Settings</a>
+<a href="wudhgwuydwgduy.html">Settings</a>
 <a href="#">Logout</a>
 </div>
 </div>

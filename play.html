@@ -1,21 +1,33 @@
 <!DOCTYPE html>
+<!--!
+==========================================================================
+play.html — Pemutar Video — Netflix-MyQueen
+--------------------------------------------------------------------------
+Fitur:
+• Video hero play (src/data/play-video-data.js, upload drag & drop)
+• Tombol Suara (unmute) + komunikasi iframe dengan index.html
+(netflix-unmute / netflix-video-ended / netflix-close)
+• Overlay video selesai (Replay / Tutup)
+• Judul & paragraf dari src/data/site-text-data.js (edit lewat admin)
+==========================================================================
+-->
 <html lang="en">
 <head>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Netflix - Play</title>
-<link rel="stylesheet" href="src/css/tailwind.css?v=5">
+<link rel="stylesheet" href="src/css/tailwind.css?v=7">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-<link rel="stylesheet" href="src/css/common.css?v=16">
+<link rel="stylesheet" href="src/css/common.css?v=18">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="src/data/site-text-data.js?v=2"></script>
-<script src="src/data/play-video-data.js?v=2"></script>
-<script src="src/data/music-data.js?v=6"></script>
-<script src="src/js/debug-hud.js?v=2"></script>
-<script src="src/js/music-player.js?v=14"></script>
+<script src="src/data/site-text-data.js?v=4"></script>
+<script src="src/data/play-video-data.js?v=4"></script>
+<script src="src/data/music-data.js?v=8"></script>
+<script src="src/js/debug-hud.js?v=4"></script>
+<script src="src/js/music-player.js?v=16"></script>
 
 <script type="module" src="src/js/vercel-init.mjs"></script>
 </head>

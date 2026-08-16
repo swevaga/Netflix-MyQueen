@@ -17,7 +17,7 @@
 
      3. Simpan — grid & modal movies.html otomatis memakai video baru.
 
-   Admin panel (admin.html) mengubah file ini melalui GitHub API tanpa
+   Panel admin mengubah file ini melalui GitHub API tanpa
    perlu edit kode sama sekali. Jangan ubah nama variabel window.MOVIES_ITEMS.
    ========================================================================== */
 
