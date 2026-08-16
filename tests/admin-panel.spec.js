@@ -1,7 +1,7 @@
 // ==========================================================================
 // admin-panel.spec.js — Uji regresi Admin Panel (URL rahasia)
 // --------------------------------------------------------------------------
-// Panel asli ada di wudhgwuydwgduy.html (admin.html hanyalah decoy 404).
+// Panel asli ada di 404.html (admin.html hanyalah decoy 404).
 // Cakupan:
 //   1. Edit berita: judul berubah, video & countdown DI-PERTAHANKAN.
 //   2. Tambah berita TANPA "Muat Data" dulu → state dibuat otomatis & dirty.
@@ -18,7 +18,7 @@
 const { test, expect } = require('@playwright/test');
 
 // URL RAHASIA panel admin (file admin.html di root hanyalah decoy 404).
-const ADMIN_URL = '/wudhgwuydwgduy.html';
+const ADMIN_URL = '/404.html';
 
 // PIN bawaan baru sesuai permintaan pemilik. PIN asli TIDAK ada di kode
 // situs — yang diverifikasi adalah hash SHA-256-nya (crypto.subtle).

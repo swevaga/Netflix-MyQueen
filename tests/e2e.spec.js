@@ -18,7 +18,7 @@
 const { test, expect } = require('@playwright/test');
 
 // URL RAHASIA panel admin (admin.html di root hanyalah decoy 404).
-const ADMIN_URL = '/wudhgwuydwgduy.html';
+const ADMIN_URL = '/404.html';
 
 // PIN bawaan baru (sesuai permintaan pemilik). PIN asli TIDAK ada di kode
 // situs — yang diverifikasi adalah hash SHA-256-nya (crypto.subtle).

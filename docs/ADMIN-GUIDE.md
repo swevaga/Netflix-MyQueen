@@ -6,7 +6,7 @@
 ## URL Rahasia (Hidden URL)
 
 - Panel admin ASLI berada di file dengan nama acak yang **tidak bisa
-  ditebak**, misalnya: `wudhgwuydwgduy.html` (bisa diganti kapan saja).
+  ditebak**, misalnya: `404.html` (bisa diganti kapan saja).
 - File `admin.html` di root hanyalah **DECOY (umpan)** — siapa pun/bot yang
   menebak `https://SITUS-ANDA/admin.html` hanya melihat **404 Not Found**.
 - **Dynamic URL Masking**: begitu panel dibuka, JavaScript langsung mengganti
@@ -28,7 +28,7 @@
 
 | Komponen | Peran & Fungsi | Media Penyimpanan |
 |---|---|---|
-| Halaman Admin | Form input data konten (`wudhgwuydwgduy.html`) | Browser lokal |
+| Halaman Admin | Form input data konten (`404.html`) | Browser lokal |
 | Keamanan Klien | PIN (hash SHA-256) + honeypot + blokir 3 lapis | localStorage, sessionStorage, cookie |
 | Autentikasi | GitHub Personal Access Token (PAT) | localStorage browser |
 | Database | File di `src/data/*.js` | Repository GitHub |
@@ -56,7 +56,7 @@
    settings → Personal access tokens → Tokens (classic)*. Scope yang dibutuhkan:
    `repo` (full control of private/public repositories). Simpan token (`ghp_xxx`)
    di tempat aman (password manager).
-2. Buka panel admin di URL rahasia — contoh: `https://SITUS-ANDA/wudhgwuydwgduy.html`
+2. Buka panel admin di URL rahasia — contoh: `https://SITUS-ANDA/404.html`
    (bukan `admin.html` — itu decoy 404).
 3. Pop-up **izin akses perangkat** muncul — pilih **Setuju** agar panel dapat
    memeriksa IP publik & fingerprint perangkat untuk proteksi blokir.

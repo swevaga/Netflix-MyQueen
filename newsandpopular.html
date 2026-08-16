@@ -17,21 +17,23 @@ Fitur:
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Netflix - News &amp; Popular</title>
 <link rel="icon" href="src/images/icon/netflix.ico" type="image/x-icon"/>
-<link rel="stylesheet" href="src/css/tailwind.css?v=7">
+<link rel="stylesheet" href="src/css/tailwind.css?v=9">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-<link rel="stylesheet" href="src/css/common.css?v=18">
+<link rel="stylesheet" href="src/css/common.css?v=20">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="src/data/news-data.js?v=10"></script>
-<script src="src/data/site-settings-data.js?v=5"></script>
-<script src="src/js/debug-hud.js?v=4"></script>
-<script src="src/js/navbar.js?v=8"></script>
-<script src="src/js/scroll-reveal.js?v=8"></script>
-<script src="src/data/site-text-data.js?v=4"></script>
-<script src="src/data/music-data.js?v=8"></script>
-<script src="src/js/music-player.js?v=16"></script>
-<script src="src/js/hero-slider.js?v=8"></script>
+<link rel="preload" as="image" href="src/images/photo/placeholder16_9_15.png" fetchpriority="high" media="(min-width: 769px)">
+<link rel="preload" as="image" href="src/images/photo/placeholder9_16_1.png" fetchpriority="high" media="(max-width: 768px)">
+<script src="src/data/news-data.js?v=12"></script>
+<script src="src/data/site-settings-data.js?v=7"></script>
+<script src="src/js/debug-hud.js?v=6"></script>
+<script src="src/js/navbar.js?v=10"></script>
+<script src="src/js/scroll-reveal.js?v=10"></script>
+<script src="src/data/site-text-data.js?v=6"></script>
+<script src="src/data/music-data.js?v=10"></script>
+<script src="src/js/music-player.js?v=18"></script>
+<script src="src/js/hero-slider.js?v=10"></script>
 <script>window.HERO_SLIDES=[{img:"src/images/photo/placeholder16_9_15.png",imgMobile:"src/images/photo/placeholder9_16_1.png",title:"News & Popular",desc:"Kisah Rouf untuk Nurul — dari mengagumi dari jauh, hingga berani mengungkapkan perasaan yang selama ini dipendam."},{img:"src/images/photo/placeholder16_9_1.png",imgMobile:"src/images/photo/placeholder9_16_10.png",title:"Dari Jauh Aku Menjagamu",desc:"Setiap hari kuamati caramu menjalani hidup. Senyummu adalah alasan terbaik untuk terus berharap."},{img:"src/images/photo/placeholder16_9_7.png",imgMobile:"src/images/photo/placeholder9_16_21.png",title:"Cahayamu, Lengkapkan Hariku",desc:"Ada kehangatan yang tak bisa kujelaskan setiap kali kamu hadir. Hari-hariku terasa lebih ringan hanya dengan melihatmu bahagia."},{img:"src/images/photo/placeholder16_9_13.png",imgMobile:"src/images/photo/placeholder9_16_29.png",title:"Kisah yang Terus Berjalan",desc:"Setiap orang punya cerita. Yang paling indah adalah ketika cerita itu melibatkan kamu."}],window.SITE_TEXT&&window.SITE_TEXT.news&&window.HERO_SLIDES.length&&function(a){a.heroTitle&&(window.HERO_SLIDES[0].title=a.heroTitle),a.heroDesc&&(window.HERO_SLIDES[0].desc=a.heroDesc),Array.isArray(a.slides)&&a.slides.forEach(function(a,e){var i=window.HERO_SLIDES[e];i&&a&&(a.title&&(i.title=a.title),a.desc&&(i.desc=a.desc))})}(window.SITE_TEXT.news);</script>
 
 <script type="module" src="src/js/vercel-init.mjs"></script>
@@ -67,7 +69,7 @@ Fitur:
 <button type="button" aria-haspopup="true" aria-expanded="false" aria-controls="dropdownMenu" aria-label="Menu akun" class="nav-toggle bg-transparent border-0 p-0 cursor-pointer flex items-center" onclick="toggleDropdown()"><img alt="User Avatar" class="h-5 w-5 md:h-7 md:w-7 rounded pointer-events-none" src="src/images/icon/user_avatar.png"></button>
 <div class="dropdown-content" id="dropdownMenu">
 <a href="https://www.instagram.com/vaxetherion/">Accounts</a>
-<a href="wudhgwuydwgduy.html">Settings</a>
+<a href="404.html">Settings</a>
 <a href="#">Logout</a>
 </div>
 </div>
