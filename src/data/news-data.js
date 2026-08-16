@@ -64,6 +64,35 @@ window.NEWS_ITEMS = [
         "video": ""
     },
     {
+        "date": "2025-03-31",
+        "title": "Pesan di Malam Takbiran dan Ketulusan yang Unik",
+        "paragraphs": [
+            "menggenggam ponsel atau bertukar kabar dengannya secara intens. Bahkan di hari-hari setelahnya pun, obrolan kami lewat pesan singkat terbilang cukup sepi.",
+            "Mungkin tidak banyak cerita spektakuler yang bisa kubagikan tentang hari Lebaran itu sendiri. Namun, di balik kesibukan dan jeda pesan yang renggang, dadaku tetap terasa penuh dan hangat. Sebab, ada satu momen di malam sebelum Hari Raya—di tengah gema takbir yang bergema syahdu di luar kamar—yang terus terngiang rapi di dalam ingatanku.",
+            "Malam itu, di selang-seling gema takbiran, Nurul mengirimkan beberapa baris pesan yang teramat sederhana, namun sanggup menghentikan detak waktuku sejenak:",
+            "\"Makasih ya udah nge-treat aku dengan baik...\"",
+            "\"Aku di sini bakal selalu doain kamu yang terbaik...\"",
+            "\"Pokoknya aku sayang kamu.\"",
+            "Kalimat-kalimat singkat itu sukses membuatku terpaku lama di layar ponsel. Nurul selalu punya caranya sendiri untuk membuatku terkesan. Cara yang terkadang sederhana, sesekali agak unik dan tidak terduga, tetapi selalu berhasil menyentuh bagian paling dalam dari perasaanku. Ia tidak perlu menjadi sosok yang manis berlebihan; ketulusan yang jujur dalam setiap patah katanya sudah lebih dari cukup.",
+            "Aku tersenyum menatap deretan pesan itu. Selama dia merasa nyaman menjadi dirinya sendiri di dekatku, aku akan selalu membiarkannya dan menjaganya sepenuh hati. Pesan di malam Takbiran itu menjadi pengingat manis bahwa meski kami tidak selalu mengobrol setiap jam, perasaannya padaku selalu ada di sana—tenang, hangat, dan nyata."
+        ],
+        "video": ""
+    },
+    {
+        "date": "2025-06-04",
+        "title": "Di Antara Sunyi dan Janji untuk Bertahan",
+        "paragraphs": [
+            "Tanggal 4 Juni 2025 menjadi hari di mana duniaku rasanya runtuh sepenuhnya. Hari itu, aku berada di titik paling rendah—hampir menyerah pada keadaan karena merasa waktu hidupku di dunia ini tak akan lama lagi. Suasana di sekitarku mendadak terasa begitu sunyi, transparan, dan datar bagaikan tanpa lekukan, seolah seluruh warna kehidupan menguap begitu saja.",
+            "Semua berawal saat aku menerima surat hasil pemeriksaan medis dari rumah sakit. Saat mataku menelusuri baris demi baris penjelasan teknis dalam surat tersebut, pertahanku runtuh seketika. Tubuhku sempat drop dan lemas tak berdaya gara-gara sama sekali tak menyangka bahwa kondisi kesehatanku bakalan separah itu. Rasa takut, bingung, dan putus asa berdesakan di dalam dada.",
+            "Dengan tangan gemetar, aku mengirimkan hasil surat medis tersebut kepadanya. Di dalam pikiran yang kacau, berbagai prasangka buruk berseliweran—apakah ia akan merasa terbebani? Apakah ia akan menjauh setelah mengetahui kenyataan ini?",
+            "Namun, tanggapan yang dikirimkan Nurul justru merobohkan seluruh ketakutanku. Tanpa ragu sedikit pun, ia membalasnya dengan ketulusan yang luar biasa:",
+            "\"Aku bakal selalu terima kondisi kamu...\"",
+            "Tadinya, aku sudah benar-benar kehilangan harapan. Namun, Nurul tidak membiarkanku tenggelam dalam kegelapan. Ia menyiramkan semangat baru, meyakinkanku bahwa semuanya pasti akan lewat, meskipun kami berdua tahu kemungkinannya sangat kecil. Ia selalu percaya padaku—lebih dari aku percaya pada diriku sendiri—bahwa aku sanggup melewati masa-masa sulit ini.",
+            "Perlahan tapi pasti, api semangat yang sempat padam di dalam dadaku kembali menyala. Kepercayaannya menjadi penopang utama yang membakar tekadku untuk berjuang semaksimal mungkin. Aku tidak boleh menyerah, dan aku berjanji tidak akan membuat dirinya kecewa. Aku harus bertahan, karena aku sama sekali tak ingin meninggalkannya dalam duka dan kesedihan."
+        ],
+        "video": ""
+    },
+    {
         "date": "2025-12-07",
         "title": "Suara di Ujung Telepon dan Warna Baru Liburan",
         "paragraphs": [
@@ -75,6 +104,18 @@ window.NEWS_ITEMS = [
             "Dengan ketetapan hati itu, aku memberanikan diri menerima ajakannya. Aku memintanya menentukan jam berapa ia senggang untuk menelepon, lalu kami menyepakati waktu yang telah ditentukan.",
             "Saat dering telepon pertama menyapa dan aku menekan tombol hijau, lidahku mendadak kelu. Untuk beberapa detik awal, aku benar-benar bingung harus berbicara apa. Kecanggungan sempat menyelimuti, tapi perlahan-lahan suasana mencair. Aku masih tidak menyangka bisa mendengar suaranya secara langsung di telingaku, mengobrol dan saling bertukar pikiran secara nyata.",
             "Momen itu ternyata menjadi pintu pembuka yang mengubah segalanya. Keesokan harinya dan hari-hari setelahnya, kami malah ketagihan untuk terus-menerus melakukan panggilan telepon—saling menceritakan hal-hal kecil dari pagi hingga malam, sampai kami sering kali lupa waktu."
+        ],
+        "video": ""
+    },
+    {
+        "date": "2026-03-05",
+        "title": "Kepanikan di Bulan Ramadhan dan Sahabat yang Jadi Obat Nyamuk",
+        "paragraphs": [
+            "Bulan Ramadhan pada 5 Maret 2026 membawa suasana yang tenang dan hangat. Ini adalah waktu di mana banyak orang meluangkan waktu bersama orang-orang tersayang, dan aku pun berusaha melakukan hal yang sama—membagi perhatian antara keluarga dan gadis yang sangat kucintai. Namun di tengah hangatnya suasana Ramadhan itu, sebuah kepanikan mendadak melanda.",
+            "Akun Instagram milikku—yang selama ini menjadi pintu utama komunikasiku dengannya—tiba-tiba diretas. Aku benar-benar dibuat kebingungan setengah mati. Pasalnya, aku sama sekali tidak terbiasa menggunakan WhatsApp atau nomor telepon untuk bertukar pesan; bagiku nomor telepon hanyalah deretan angka teknis untuk menerima kode verifikasi. Dalam kepanikan itu, terlintas rasa takut jika Nurul akan salah paham. Kami pernah bertengkar hebat hingga tidak bertukar pesan selama tiga hari penuh, dan aku takut ia mengira aku sengaja menghindarinya lagi.",
+            "Setelah mencoba berbagai cara dengan kepala dingin, aku akhirnya berhasil masuk ke salah satu akun cadanganku dan bergegas mengiriminya pesan. Benar saja, saat balasan pertamanya masuk, Nurul tampak cukup bete dan berjarak. Tanpa membuang waktu, aku langsung menjelaskan bahwa akun utamaku baru saja di-hack. Melesatnya penjelasan itu seketika mencairkan suasana dan mengikis kesalahpahaman di antara kami.",
+            "Setelah masalah peretasan itu selesai, kami kembali ke kebiasaan manis kami. Kami menghabiskan hari-hari liburan Ramadhan dengan bertukar cerita tentang kesibukan masing-masing, serta maraton bermain game bersama.",
+            "Namun di balik keseruan liburan itu, ada satu rasa bersalah yang cukup menggelitik. Setiap kali bermain Roblox, kami berdua selalu mengajak salah seorang teman kami untuk bergabung. Di satu sisi, kehadiran teman ini membuat permainan terasa seru dan ramai. Tapi di sisi lain, aku dan Nurul malah sering asyik berdua hingga lupa tempat, membuat teman kami itu terpaksa berulang kali menjadi \"obat nyamuk\" di antara kami berdua. Rasa kasihan dan geli bercampur jadi satu setiap kali mengingat betapa polosnya kami yang kadang tidak tahu tempat kalau sudah bersama."
         ],
         "video": ""
     }
