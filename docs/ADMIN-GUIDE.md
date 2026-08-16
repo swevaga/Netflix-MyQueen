@@ -43,11 +43,15 @@
    `crypto.subtle`).
 3. **LAPIS 3 — Honeypot trap**: input tersembunyi `#hp_field` — bot/script
    yang mengisinya langsung kena blokir permanen.
-4. **LAPIS 4 — Brute-force lock**: setelah **3x PIN salah**, perangkat
+4. **LAPIS 4 — Brute-force lock (klien)**: setelah **3x PIN salah**, perangkat
    diblokir **permanen** di 3 tempat sekaligus (Triple-Lock Multi Storage:
    localStorage + sessionStorage + cookie `queen_admin_banned` yang kadaluarsa
    ±999.999.999 tahun).
-5. **LAPIS 5 — GitHub API Authorization**: hanya akun dengan PAT yang bisa
+5. **LAPIS 5 — Server-side ban (`/api/post.js` + `src/data/banned_ips.json`)**: IP
+   yang 3x salah PIN ikut dicatat & diblokir di server via Vercel API
+   (`GITHUB_TOKEN`). Daftar IP terblokir server dikelola di tab **Blokir**
+   (Muat dari API / Unban / Unduh Log .json).
+6. **LAPIS 6 — GitHub API Authorization**: hanya akun dengan PAT yang bisa
    mengubah file di repo. **Token tidak pernah ada di dalam kode.**
 
 ## Quick Start
@@ -61,9 +65,9 @@
 3. Pop-up **izin akses perangkat** muncul — pilih **Setuju** agar panel dapat
    memeriksa IP publik & fingerprint perangkat untuk proteksi blokir.
 4. Masukkan **PIN** (bawaan sesuai permintaan pemilik — tersimpan sebagai
-   hash SHA-256 `bc3ebf64…47b1`; ganti lewat tab *Pengaturan*). Setelah
+   hash SHA-256 `d03f21ae…bbfea`; ganti lewat tab *Pengaturan*). Setelah
    **3x PIN salah**, perangkat diblokir permanen (layar blokir + kontak
-   Telegram @axetherion).
+   Telegram @axetherion) + IP ikut diblokir server-side lewat `/api/post.js`.
 5. Isi **Owner / Repository / Branch / Token** di kartu *Koneksi GitHub*, klik
    **Tes Koneksi**.
 6. Klik **Muat Data dari GitHub** → semua konten situs terambil dari repo.
@@ -153,6 +157,31 @@
   Tanpa token, item tetap dihapus dari data tapi file di repo tidak ikut
   terhapus (log memberi tahu).
 
+## Backend `/api/post.js` (Vercel Serverless)
+
+File `api/post.js` menangani lapisan keamanan & CRUD sisi server via
+GitHub REST API. Environment Variables yang dipakai:
+
+- `GITHUB_TOKEN` — Personal Access Token (scope `repo`) — **wajib**.
+- `ADMIN_PIN` — PIN admin (opsional; bila kosong memakai PIN bawaan pemilik).
+- `GH_OWNER` / `GH_REPO` / `GH_BRANCH` — target repo (opsional; admin juga
+  bisa mengirim owner/repo dari panel).
+
+Aksi (`POST /api/post.js?action=…`):
+
+| action | Fungsi |
+|---|---|
+| `status` | Cek apakah IP/Fingerprint terblokir di `banned_ips.json` |
+| `verify` | Verifikasi PIN server-side; 3x salah → auto-ban IP |
+| `reset` | Reset hitungan gagal untuk IP (saat login sukses) |
+| `ban` / `unban` | Tambah / hapus IP dari daftar blokir server |
+| `list` | Ambil daftar IP terblokir (untuk tab Blokir) |
+| `read` / `write` / `delete` | Full CRUD file konten di repo (`src/data/*`) |
+
+> Keamanan: token & PIN hanya dibaca dari Environment Variables — tidak
+> pernah ditulis ke kode, log, atau response. Path dibatasi di `src/` untuk
+> mencegah path traversal.
+
 ## Estimasi Waktu
 
 - Pengisian form: ~10–20 detik
@@ -168,14 +197,19 @@ Menu **Profile → Settings** di navbar semua halaman membuka panel admin
 ## Keamanan
 
 - **PIN tersimpan sebagai hash SHA-256** — PIN asli TIDAK ada di kode mana
-  pun (yang ada hanya `bc3ebf64775aa30923869e8507f37a7317f985db52c808e6a62045bca27447b1`).
-  Verifikasi memakai `crypto.subtle.digest` — hash mustahil di-reverse
-  menjadi PIN asli.
-- **3x salah PIN → blokir PERMANEN (Triple-Lock Multi Storage)**: setelah
-  3x salah, penanda blokir disimpan serentak di **localStorage**,
-  **sessionStorage**, dan **cookie `queen_admin_banned`** (kadaluarsa
-  ±999.999.999 tahun). Membersihkan satu tempat saja tidak cukup.
-  Layar blokir menampilkan tombol kontak **Telegram @axetherion**.
+  pun (yang ada hanya `d03f21ae7af2e2199935eee2e74e863e45cdda7cad26f866a0df8b867b9bbfea`
+  = hash PIN bawaan pemilik). Verifikasi memakai `crypto.subtle.digest` —
+  hash mustahil di-reverse menjadi PIN asli.
+- **4-LAYER BAN (3 klien + 1 server)**: setelah 3x salah, penanda blokir
+  disimpan serentak di **localStorage**, **sessionStorage**, dan
+  **cookie `queen_admin_banned`** (kadaluarsa ±999.999.999 tahun) —
+  membersihkan satu tempat saja tidak cukup. Lapisan ke-4: IP ikut dicatat
+  ke `src/data/banned_ips.json` lewat `/api/post.js` (Vercel, pakai
+  `GITHUB_TOKEN`), dicek otomatis saat membuka panel. Layar blokir
+  menampilkan tombol kontak **Telegram @axetherion**.
+- **Error PIN dihapus**: sesuai permintaan pemilik, tidak ada lagi teks error
+  di bawah input PIN — percobaan salah hanya mengosongkan input (blokir
+  tetap terjadi setelah 3x).
 - **Cara buka blokir (jika pemilik tidak sengaja terblokir)**: buka
   browser → F12 (Inspect) → tab Console → ketik:
   ```

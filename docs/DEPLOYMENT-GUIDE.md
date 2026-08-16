@@ -153,6 +153,30 @@ Alternatif jika suatu saat ingin "boleh dibagikan tapi tidak dikomersialkan": **
 4. **Deploy**. Selesai — tiap `git push` ke `main` otomatis mendeploy.
 5. Aktifkan **Deployment Protection** (§6).
 
+### 5.3b Environment Variables WAJIB untuk `/api/post.js`
+
+Backend `api/post.js` (Vercel Serverless) membaca variabel lingkungan berikut:
+
+| Variabel | Wajib? | Fungsi |
+|----------|--------|--------|
+| `GITHUB_TOKEN` | ✅ | PAT GitHub scope `repo` — untuk baca/tulis `src/data/banned_ips.json` & CRUD konten via GitHub REST API. Tanpa ini semua aksi API ditolak (HTTP 503). |
+| `GH_OWNER` / `GH_REPO` | ⬜ | Target repo default API (bisa juga dikirim dari panel admin). |
+| `GH_BRANCH` | ⬜ | Branch target, default `main`. |
+| `ADMIN_PIN` | ⬜ | PIN admin — kosong = PIN bawaan pemilik (hash SHA-256). |
+
+**Setup otomatis (disarankan):**
+
+```bash
+node scripts/setup-vercel-env.mjs              # interaktif, tampilkan perintah
+node scripts/setup-vercel-env.mjs --apply      # langsung jalankan vercel env add
+```
+
+Skrip memvalidasi token & repo via GitHub API, menampilkan nilai yang di-mask
+(token tidak pernah dicetak utuh), dan membuat template aman `.env.example`.
+Cara manual: Vercel → Project → Settings → **Environment Variables** →
+tambahkan `GITHUB_TOKEN`, `GH_OWNER`, `GH_REPO`, `GH_BRANCH`, `ADMIN_PIN`.
+Setelah diisi, **redeploy** agar serverless function memuat nilai baru.
+
 ### 5.4 Opsional: Deploy Vercel via GitHub Actions
 
 Ganti isi `.github/workflows/deploy.yml`:
@@ -305,6 +329,7 @@ Foto & video versi lengkap (untuk penerima yang dituju saja):
 | Konfigurasi Vercel | `vercel.json` | ✅ Selesai |
 | Hapus workflow Jekyll | `.github/workflows/jekyll-docker.yml` | ✅ Selesai |
 | Workflow deploy (Vercel via Actions) | `.github/workflows/deploy.yml` | ✅ Selesai (opsi §5.4) |
+| Environment Variables `/api/post.js` | Vercel → Project → Settings → Environment Variables | ⬜ Jalankan `node scripts/setup-vercel-env.mjs --apply` |
 | Ubah visibilitas repo | GitHub Settings → Danger Zone | ⬜ Manual di dashboard |
 | Deployment Protection | Vercel → Project Settings | ⬜ Setelah deploy |
 | Link download aset | Google Drive → README | ⬜ Opsional |

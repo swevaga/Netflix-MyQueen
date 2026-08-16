@@ -47,7 +47,7 @@ Panduan lengkap untuk mengelola dan mengembangkan situs ini:
 
 | Panduan | Isi |
 |---------|-----|
-| [docs/ADMIN-GUIDE.md](./docs/ADMIN-GUIDE.md) | Admin Panel (URL rahasia — `admin.html` hanyalah decoy 404): kelola berita, foto (upload drag & drop + rasio), video + thumbnail, musik via GitHub API — media di-upload langsung dari panel, PIN SHA-256 + blokir 3 lapis |
+| [docs/ADMIN-GUIDE.md](./docs/ADMIN-GUIDE.md) | Admin Panel (URL rahasia — `admin.html` hanyalah decoy 404): kelola berita, foto (upload drag & drop + rasio), video + thumbnail, musik via GitHub API — media di-upload langsung dari panel, PIN SHA-256 + blokir 4 lapis (3 klien + 1 server via `/api/post.js`) |
 | [docs/DEPLOYMENT-GUIDE.md](./docs/DEPLOYMENT-GUIDE.md) | Deployment (Vercel & GitHub Actions), proteksi repo private |
 | [docs/NEWS-GUIDE.md](./docs/NEWS-GUIDE.md) | Update News & Popular: upload video + atur tanggal tanpa edit HTML |
 | [docs/MUSIC-GUIDE.md](./docs/MUSIC-GUIDE.md) | Music Player Dynamic Island: menambah/mengganti lagu, urutan & autoplay |
@@ -113,6 +113,11 @@ netflix-myqueen/
 ├── newsandpopular.html     # News & Popular
 ├── mylist.html             # My List
 ├── play.html               # Pemutar video
+├── 404.html                # Panel admin (URL rahasia; admin.html = decoy 404)
+├── api/
+│   └── post.js             # Vercel Serverless: verifikasi PIN, ban IP server, CRUD GitHub
+├── scripts/
+│   └── setup-vercel-env.mjs# Setup Environment Variables Vercel (GITHUB_TOKEN, dll)
 ├── src/
 │   ├── css/
 │   │   ├── common.css      # Gaya bersama (dropdown, notification, animasi)
@@ -153,6 +158,44 @@ Atau cukup buka `index.html` langsung di browser. **Tidak ada instalasi dependen
 3. **Build Command**: *(kosongkan)* | **Output Directory**: *(kosongkan — root)*.
 4. Deploy → setiap `git push` ke `main` otomatis ter-deploy.
 5. Aktifkan **Deployment Protection** (Vercel Authentication) agar situs hanya bisa dibuka penerima yang dituju.
+6. Set **Environment Variables** untuk `/api/post.js` (lihat di bawah).
+
+### ⚙️ Environment Variables (WAJIB untuk `/api/post.js`)
+
+Backend `api/post.js` memakai variabel lingkungan Vercel berikut — **tanpa
+`GITHUB_TOKEN`, semua aksi API ditolak (HTTP 503)**:
+
+| Variabel | Wajib? | Fungsi |
+|----------|--------|--------|
+| `GITHUB_TOKEN` | ✅ Wajib | PAT GitHub (scope `repo`) — untuk baca/tulis `src/data/banned_ips.json` & CRUD konten via GitHub REST API |
+| `GH_OWNER` | ⬜ Opsional | Username pemilik repo (default target API; bisa juga diisi dari panel admin) |
+| `GH_REPO` | ⬜ Opsional | Nama repository (default target API) |
+| `GH_BRANCH` | ⬜ Opsional | Branch target, default `main` |
+| `ADMIN_PIN` | ⬜ Opsional | PIN admin — bila kosong, API memakai **PIN bawaan** pemilik (diverifikasi sebagai hash SHA-256) |
+
+**Cara membuat `GITHUB_TOKEN`:** GitHub → *Settings → Developer settings →
+Personal access tokens → Tokens (classic)* → pilih scope **`repo`** → *Generate
+new token*. Simpan di tempat aman (password manager).
+
+**Cara mengisi (3 pilihan):**
+
+```bash
+# 1) Skrip interaktif — tanya satu per satu & tampilkan perintah vercel env add
+node scripts/setup-vercel-env.mjs
+
+# 2) Isi lewat flag, lalu langsung eksekusi (butuh Vercel CLI + project ter-link)
+node scripts/setup-vercel-env.mjs --token ghp_xxx --owner vaetherion --repo netflix-myqueen --apply
+
+# 3) Manual: Vercel → Project → Settings → Environment Variables → tambahkan
+#    GITHUB_TOKEN, GH_OWNER, GH_REPO, GH_BRANCH, ADMIN_PIN
+```
+
+Skrip juga membuat template aman `.env.example` (tanpa secret) dan memvalidasi
+token/repo via GitHub API. Detail flag: `node scripts/setup-vercel-env.mjs --help`.
+
+> 🔒 Token & PIN hanya dibaca dari Environment Variables — tidak pernah
+ditulis ke kode, log, atau response API. File `.env*` lokal otomatis
+diabaikan oleh `.gitignore` (kecuali `.env.example`).
 
 ### Opsi B — GitHub Pages (⚠️ Hanya jika repo publik / akun Pro)
 

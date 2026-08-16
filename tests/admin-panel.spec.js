@@ -20,9 +20,9 @@ const { test, expect } = require('@playwright/test');
 // URL RAHASIA panel admin (file admin.html di root hanyalah decoy 404).
 const ADMIN_URL = '/404.html';
 
-// PIN bawaan baru sesuai permintaan pemilik. PIN asli TIDAK ada di kode
+// PIN bawaan sesuai permintaan pemilik. PIN asli TIDAK ada di kode
 // situs — yang diverifikasi adalah hash SHA-256-nya (crypto.subtle).
-const ADMIN_PIN = '1111133333555557777799999000008888866666444442222221436587091029384756#5647382910121314151617181910';
+const ADMIN_PIN = '11111333335555577777999990000088888666664444422222214365870910293847565647382910121314151617181910';
 
 // Tutup pop-up izin perangkat bila muncul (agar klik PIN tidak terhalang).
 async function dismissConsent(page) {
@@ -207,17 +207,18 @@ test.describe('Admin Panel — PIN brute-force protection', () => {
     await dismissConsent(page);
     await expect(page.locator('#pinSection')).toBeVisible();
 
-    // 1x salah → sisa percobaan 2. (Ada jeda 700ms antar percobaan sebagai
-    // anti brute-force otomatis — beri waktu antar klik.)
+    // 1x salah → dashboard tetap terkunci (tanpa teks error di bawah PIN,
+    // sesuai permintaan pemilik). Ada jeda 700ms antar percobaan sebagai
+    // anti brute-force otomatis — beri waktu antar klik.
     await page.fill('#pinInput', '0000');
     await page.click('#pinForm button[type="submit"]');
-    await expect(page.locator('#pinError')).toContainText('Sisa percobaan: 2');
+    await expect(page.locator('#adminSection')).toBeHidden();
 
-    // 2x salah → sisa percobaan 1.
+    // 2x salah → masih terkunci.
     await page.waitForTimeout(800);
     await page.fill('#pinInput', '0000');
     await page.click('#pinForm button[type="submit"]');
-    await expect(page.locator('#pinError')).toContainText('Sisa percobaan: 1');
+    await expect(page.locator('#adminSection')).toBeHidden();
 
     // 3x salah → LAYAR BLOKIR permanen, bukan sekadar pesan error.
     await page.waitForTimeout(800);
