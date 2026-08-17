@@ -37,7 +37,9 @@ const crypto = require('crypto');
  * ADMIN_PIN belum diset di environment.
  * ------------------------------------------------------------------------ */
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
-const ADMIN_PIN = process.env.ADMIN_PIN || '';
+// ADMIN_PIN di-trim agar karakter spasi/newline tersembunyi (mis. dari
+// editor env) tidak membuat PIN asli gagal diverifikasi.
+const ADMIN_PIN = String(process.env.ADMIN_PIN || '').trim();
 // Hash SHA-256 PIN bawaan pemilik (d03f21ae…bbfea).
 const DEFAULT_PIN_HASH =
   'd03f21ae7af2e2199935eee2e74e863e45cdda7cad26f866a0df8b867b9bbfea';
@@ -54,6 +56,30 @@ const MAX_PIN_FAILURES = 3;
  * Util kecil
  * ------------------------------------------------------------------------ */
 const sha256 = (s) => crypto.createHash('sha256').update(String(s)).digest('hex');
+
+// Ambil IP publik client dari header Vercel (bukan body dari client).
+// Prioritas: x-forwarded-for (entri pertama = client asli, karena Vercel
+// menambahkan IP di belakang) → x-real-ip → socket.remoteAddress.
+// IP lokal/private (192.168.x.x, 10.x.x.x, 127.x.x.x, dll.) DIABAIKAN
+// agar tidak ada IP internal yang tercatat/diblokir.
+function isPublicIp(ip) {
+  const v = String(ip || '').trim().toLowerCase();
+  if (!v) return false;
+  // IPv4 private/reserved
+  if (/^(10\.|192\.168\.|127\.|169\.254\.|0\.|100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.|224\.|240\.)/.test(v)) return false;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(v)) return false;
+  // IPv6 private/reserved (loopback, link-local, ULA, dokumentasi, dll.)
+  if (/^::1$/.test(v) || /^::/.test(v) || /^fc/.test(v) || /^fd/.test(v) || /^fe80:/.test(v) || /^2001:db8:/.test(v)) return false;
+  return true;
+}
+
+function getClientIp(req) {
+  const xff = String((req.headers && req.headers['x-forwarded-for']) || '').split(',')[0].trim();
+  const xri = String((req.headers && req.headers['x-real-ip']) || '').trim();
+  const ra = req.socket && req.socket.remoteAddress ? String(req.socket.remoteAddress).trim() : '';
+  const candidate = xff || xri || ra;
+  return isPublicIp(candidate) ? candidate : '';
+}
 
 // Verifikasi PIN: bandingkan hash SHA-256 input dengan ADMIN_PIN (env)
 // atau hash bawaan. ADMIN_PIN boleh berisi PIN mentah ATAU hash SHA-256
@@ -264,7 +290,7 @@ module.exports = async function handler(req, res) {
       case 'status': {
         // Cek apakah IP/Fingerprint terblokir di banned_ips.json.
         const data = await loadBanData(owner, repo, branch);
-        const ip = String(body.ip || '').trim().toLowerCase();
+        const ip = (getClientIp(req) || String(body.ip || '').trim()).toLowerCase();
         const fp = String(body.fingerprint || '').trim().toLowerCase();
         const hit = data.banned.find((b) => {
           if (!b) return false;
@@ -282,7 +308,9 @@ module.exports = async function handler(req, res) {
         // Verifikasi PIN server-side — PIN dicek TERLEBIH DAHULU agar
         // pemilik dengan PIN benar SELALU bisa masuk (dan otomatis
         // di-unban bila IP-nya sempat terblokir).
-        const ip = String(body.ip || '').trim();
+        // IP diambil dari HEADER Vercel (paling akurat); fallback body.ip
+        // hanya untuk pengembangan lokal (tanpa header Vercel).
+        const ip = getClientIp(req) || String(body.ip || '').trim();
         const fingerprint = String(body.fingerprint || '').trim();
         if (!ip && !fingerprint) {
           return json(res, 400, { ok: false, error: 'IP wajib dikirim untuk verifikasi.' });
@@ -290,7 +318,9 @@ module.exports = async function handler(req, res) {
 
         const data = await loadBanData(owner, repo, branch);
         const key = ip || fingerprint;
-        const pin = String(body.pin || '');
+        // PIN di-trim — spasi/newline tersembunyi di input tidak boleh
+        // membuat PIN benar dianggap salah.
+        const pin = String(body.pin || '').trim();
 
         if (pinMatches(pin)) {
           // PIN BENAR → unban IP ini + reset hitungan, lalu sukses.
@@ -339,7 +369,7 @@ module.exports = async function handler(req, res) {
 
       case 'reset': {
         // Reset hitungan gagal untuk IP (bukan unban — unban lewat verify/unban).
-        const ip = String(body.ip || '').trim();
+        const ip = getClientIp(req) || String(body.ip || '').trim();
         if (!ip) return json(res, 400, { ok: false, error: 'IP wajib dikirim.' });
         const data = await loadBanData(owner, repo, branch);
         if (data.attempts[ip]) {
