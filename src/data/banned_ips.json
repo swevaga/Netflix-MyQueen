@@ -1,6 +1,12 @@
 {
-    "banned": [],
-    "attempts": {
-        "103.132.53.170": 2
-    }
+    "banned": [
+        {
+            "ip": "103.132.53.170",
+            "reason": "3x salah PIN (auto-ban server-side)",
+            "added": "2026-08-21",
+            "fails": 3,
+            "bannedAt": "2026-08-21T16:00:22.365Z"
+        }
+    ],
+    "attempts": {}
 }
